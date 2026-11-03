@@ -172,6 +172,17 @@ def darstellung_setzen(root, wert: str) -> None:
     gui_setzen(root, "darstellung", wert, "auto | hell | dunkel (Schalter unten in der Seitenleiste)")
 
 
+def darstellung_karte(token: str, aktuell: str) -> str:
+    namen = {"auto": "Wie das System", "hell": "Hell", "dunkel": "Dunkel"}
+    knoepfe = "".join(f'<label class="check"><input type="radio" name="darstellung" value="{k}"'
+                      f'{" checked" if k == aktuell else ""} onchange="this.form.requestSubmit()"> {v}</label>'
+                      for k, v in namen.items())
+    return (f'<div class="card" id="darstellung"><h2>Darstellung</h2><form method="post" action="/einstellungen#darstellung" '
+            f'class="row" style="gap:18px"><input type="hidden" name="token" value="{token}"><input type="hidden" '
+            f'name="aktion" value="darstellung">{knoepfe}<noscript><button class="ghost small">Übernehmen</button>'
+            f'</noscript></form><p class="muted">Hell oder dunkel – oder automatisch wie dein System.</p></div>')
+
+
 def systemsprache(run=None) -> str:
     """„en“, wenn das Betriebssystem nicht auf Deutsch eingestellt ist (für den ersten Start), sonst „de“."""
     import locale

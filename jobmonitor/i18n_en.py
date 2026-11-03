@@ -297,7 +297,7 @@ TEXTE: dict[str, str] = {
     "Karriereseite mit": ": the AI creates a list of employers near you that match your CV and search profiles – open "
                          "the career page with",
     "öffnen, dann": ", then",
-    "Groß ansehen": "View large", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
+    "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":
         "Struck through = not covered. Entries with status “planned” do not count. Can you already do a struck-through "
@@ -482,9 +482,10 @@ TEXTE: dict[str, str] = {
     "Passwort wiederholen": "Repeat password",
     "Das Passwort wird nirgends gespeichert – ohne es lässt sich das Image nicht öffnen.":
         "The password is not stored anywhere – without it the image cannot be opened.",
-    "Job-Monitor unterstützen": "Support Job-Monitor", "Darstellung: System": "Appearance: system",
-    "Darstellung: Hell": "Appearance: light", "Darstellung: Dunkel": "Appearance: dark",
-    "Hell, dunkel oder wie das System": "Light, dark or like the system",
+    "Job-Monitor unterstützen": "Support Job-Monitor", "Darstellung": "Appearance",
+    "Wie das System": "Like the system", "Hell": "Light", "Dunkel": "Dark",
+    "Hell oder dunkel – oder automatisch wie dein System.": "Light or dark – or automatically like your system.",
+    "Darstellung gespeichert.": "Appearance saved.",
     "Oberfläche der App. Stellenanzeigen, deine Texte und die Anleitung im Detail bleiben, wie sie sind.":
         "The app's interface. Job ads and your own texts stay as they are.",
     "Sprache der Oberfläche gespeichert.": "Interface language saved.", "Sprache": "Language", "Unterstützen": "Support",
@@ -1128,5 +1129,4 @@ SKRIPT: dict[str, str] = {
     "'oder Datei hierher ziehen'": "'or drag a file here'",
     "'Diese Datei passt hier nicht (erwartet: '": "'This file does not fit here (expected: '",
     "' Zeichen'": "' characters'",
-    "{auto: 'System', hell: 'Hell', dunkel: 'Dunkel'}": "{auto: 'system', hell: 'light', dunkel: 'dark'}",
 }

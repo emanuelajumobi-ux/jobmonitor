@@ -241,12 +241,6 @@ def handler_for(app: App, server_ref: list):
                 body = app.bewerbung_post(self.path.removeprefix("/bewerbung/"), form)
                 if body:
                     return self._send(body)
-            if self.path == "/darstellung":
-                try:
-                    app.darstellung(form)
-                except Exception:   # nur Komfort: ohne Speichern bleibt die Umschaltung bis zum nächsten Seitenwechsel
-                    log.exception("Darstellung nicht gespeichert")
-                return self._send(b"ok", "text/plain")
             if self.path == "/oeffnen":
                 ok = app.open_file(form.get("pfad", ""))
                 return self._send(b"ok" if ok else b"nicht gefunden", "text/plain; charset=utf-8", 200 if ok else 404)

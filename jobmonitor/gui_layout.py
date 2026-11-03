@@ -30,7 +30,6 @@ ICONS = {
     "power": '<path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>',
     "herz": '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23'
             'l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
-    "mond": '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
     "search": '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     "einstellungen": '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 '
                      '2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 '
@@ -407,7 +406,7 @@ td.fit { white-space:nowrap; font-weight:500; width:70px; font-variant-numeric:t
 /* App-Fenster (pywebview mit Vibrancy): Seitenleiste durchscheinend wie Finder/Mail, Inhalt deckend */
 html.native body { background:transparent; }
 html.native main { background:var(--bg); min-height:100vh; }
-html.native { --side:rgba(255,255,255,.28); --side-2:rgba(0,0,0,.06); --side-3:rgba(0,0,0,.1); --side-text:#1f2937;
+html.native { --side:rgba(255,255,255,.55); --side-2:rgba(0,0,0,.06); --side-3:rgba(0,0,0,.1); --side-text:#1f2937;
               --side-muted:#6b6b6b; --side-strong:#0b1220; --side-line:rgba(0,0,0,.08); }
 html.native .side { border-right:1px solid rgba(0,0,0,.08); }
 html.native button, html.native .btn, html.native .tabs a, html.native .filters a { cursor:default; }
@@ -535,15 +534,6 @@ document.addEventListener('drop', e => {
   feld.dispatchEvent(new Event('change', {bubbles: true}));
   if (feld.form.querySelectorAll('input[type=file]').length === 1 && feld.form.checkValidity()) feld.form.requestSubmit();
 });
-// Darstellung umschalten: System → Hell → Dunkel; sofort sichtbar, gespeichert in config.yaml (gui.darstellung)
-document.querySelectorAll('[data-darstellung]').forEach(b => b.addEventListener('click', () => {
-  const folge = {auto: 'hell', hell: 'dunkel', dunkel: 'auto'}, text = {auto: 'System', hell: 'Hell', dunkel: 'Dunkel'};
-  const neu = folge[b.dataset.darstellung] || 'auto';
-  b.dataset.darstellung = neu;
-  if (neu === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = neu;
-  b.querySelector('span').textContent = b.querySelector('span').textContent.replace(/:.*/, ': ') + text[neu];
-  fetch('/darstellung', {method: 'POST', body: new URLSearchParams({token: document.body.dataset.token, wert: neu})});
-}));
 // PDFs in Vorschau öffnen statt im Fenster
 document.addEventListener('click', e => {
   const a = e.target.closest('a[data-open]');
@@ -555,11 +545,8 @@ document.addEventListener('click', e => {
 """
 
 
-DARSTELLUNG_TEXT = {"auto": "Darstellung: System", "hell": "Darstellung: Hell", "dunkel": "Darstellung: Dunkel"}
-
-
 def nav(active: str, badges: dict[str, tuple[int, str]], token: str, hint: str = "",
-        traum_name: str | None = "Cloud Security", spenden_url: str = "", darstellung: str = "auto") -> str:
+        traum_name: str | None = "Cloud Security", spenden_url: str = "") -> str:
     """`traum_name`: Name des Traumprofils (config.yaml → traumprofil.name); None blendet den Eintrag aus."""
     parts, section = [], None
     for key, title, href, sec in NAV:
@@ -580,8 +567,6 @@ def nav(active: str, badges: dict[str, tuple[int, str]], token: str, hint: str =
     return f"""<aside class="side"><div class="brand">{LOGO}Job-Monitor</div>
 <nav class="nav">{"".join(parts)}</nav>
 <div class="side-foot">{hint_html}{spenden}
-<button type="button" data-darstellung="{darstellung}" title="Hell, dunkel oder wie das System">{icon("mond", 16)}
-<span>{DARSTELLUNG_TEXT.get(darstellung, DARSTELLUNG_TEXT["auto"])}</span></button>
 <form method="post" action="/sync"><input type="hidden" name="token" value="{token}"><button>{icon("sync", 16)}
 Synchronisieren</button></form>
 <form method="post" action="/quit"><input type="hidden" name="token" value="{token}"><button>{icon("power", 16)}

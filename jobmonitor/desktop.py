@@ -51,6 +51,26 @@ def _shadow(window) -> None:
         log.debug("Fensterschatten nicht gesetzt", exc_info=True)
 
 
+def erscheinung(wert: str) -> None:
+    """Hell/Dunkel des App-Fensters (Einstellungen → Darstellung): auch das durchscheinende Material der Seitenleiste
+    folgt dann der Wahl statt dem System. „auto“ = wie das System."""
+    if sys.platform != "darwin":
+        return
+    try:
+        from AppKit import NSAppearance, NSApplication
+        from PyObjCTools import AppHelper
+    except ImportError:
+        return
+    name = {"hell": "NSAppearanceNameAqua", "dunkel": "NSAppearanceNameDarkAqua"}.get(wert)
+
+    def setzen():
+        try:
+            NSApplication.sharedApplication().setAppearance_(NSAppearance.appearanceNamed_(name) if name else None)
+        except Exception:   # nur Optik
+            log.debug("Darstellung nicht gesetzt", exc_info=True)
+    AppHelper.callAfter(setzen)
+
+
 def _extensions(mime_types) -> list[str]:
     """Dateiendungen zu den MIME-Typen aus `accept` (z. B. application/pdf → pdf, image/jpeg → jpeg, jpg, jpe)."""
     try:
@@ -156,6 +176,12 @@ def run(root: Path, port: int = PORT) -> int:
                                        width=1440, height=900, min_size=(900, 600), transparent=mac,
                                        vibrancy=mac, text_select=True)
     app.window.events.shown += lambda: _shadow(app.window)
+    try:
+        from . import i18n
+        from .config import load_config
+        app.window.events.shown += lambda: erscheinung(i18n.darstellung(load_config(root / "config.yaml")))
+    except Exception:   # nur Optik
+        log.debug("Darstellung beim Start nicht gesetzt", exc_info=True)
     webview.start()          # blockiert, bis das Fenster geschlossen ist
 
     server.shutdown()

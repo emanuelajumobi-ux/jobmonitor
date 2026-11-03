@@ -47,9 +47,12 @@ def test_ohne_ki_und_fehler(app, root, monkeypatch):  # noqa: F811
 
 
 def test_darstellung_und_unterstuetzen(app, root):  # noqa: F811
-    html = app.index().decode()
-    assert 'data-darstellung="auto"' in html and "data-theme" not in html.split("<head>")[0]
-    app.darstellung({"wert": "dunkel"})
+    i18n.darstellung_setzen(root, "auto")
+    html = app.einstellungen().decode()
+    assert 'id="darstellung"' in html and 'value="auto" checked' in html
+    assert "data-theme" not in app.index().decode().split("<head>")[0]
+    html = app.einstellungen_post({"aktion": "darstellung", "darstellung": "dunkel"}).decode()
+    assert "Darstellung gespeichert" in html and 'value="dunkel" checked' in html
     assert i18n.darstellung(load_config(root / "config.yaml")) == "dunkel"
     assert '<html lang="de" data-theme="dunkel">' in app.index().decode()
     text = (root / "config.yaml").read_text(encoding="utf-8")

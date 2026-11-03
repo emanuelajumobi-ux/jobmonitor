@@ -140,13 +140,16 @@ class App(BewerbungenSeiten):
         if (knopf := gh.knopf(active)):                 # „?“ unten rechts: Hilfe zu dieser Seite
             body, extra_css = body + knopf, extra_css + gh.KNOPF_CSS
         seite = layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name,
-                                                        spenden.url(cfg), i18n.darstellung(cfg)),
+                                                        spenden.url(cfg)),
                                 extra_css, self.token, self.native, i18n.darstellung(cfg))
         return self.uebersetzt(seite)
 
-    def darstellung(self, form: dict) -> None:
-        """Schalter unten in der Seitenleiste (per fetch, ohne neue Seite)."""
-        i18n.darstellung_setzen(self.root, form.get("wert", ""))
+    def darstellung(self, wert: str) -> None:
+        """Einstellungen → Darstellung; im App-Fenster folgt auch das Fenstermaterial (desktop.erscheinung)."""
+        i18n.darstellung_setzen(self.root, wert)
+        if self.native:
+            from .desktop import erscheinung
+            erscheinung(wert)
 
     def uebersetzt(self, seite: bytes) -> bytes:
         """Englische Oberfläche (Einstellungen → Sprache): fertige Seite übersetzen (i18n.py)."""
@@ -1206,7 +1209,7 @@ class App(BewerbungenSeiten):
     # --- Einstellungen (statt Terminal) ---
     def einstellungen(self, message: str = "") -> bytes:
         cfg = load_config(self.root / "config.yaml")
-        profile_html = (i18n.karte(self.token, i18n.sprache(cfg))
+        profile_html = (i18n.karte(self.token, i18n.sprache(cfg)) + i18n.darstellung_karte(self.token, i18n.darstellung(cfg))
                         + zeitplan.karte(self.root, self.token, esc, zeitplan.github_aktiv(self.root))
                         + wohnort.karte(self.token, cfg.get("ort") or {}, bool(ki.schluessel()), esc)
                         + gsp.render_liste(self.token, cfg, self._portale()))
@@ -1294,6 +1297,9 @@ class App(BewerbungenSeiten):
             if aktion in ("pipeline", "pipeline_ohne_mail"):
                 msg = ok(gw.pipeline_starten(self.root, aktion == "pipeline_ohne_mail"))
                 self._laeufe = None                                 # neuer Lauf soll gleich in der Liste stehen
+            elif aktion == "darstellung":
+                self.darstellung(form.get("darstellung", ""))
+                msg = ok("Darstellung gespeichert.")
             elif aktion == "sprache_gui":
                 i18n.setzen(self.root, form.get("sprache", ""))
                 msg = ok("Sprache der Oberfläche gespeichert." if form.get("sprache") == "de" else

@@ -132,23 +132,35 @@ def galerie_html(esc) -> str:
             f'die Prüfung vor dem Abschicken weist darauf hin. Zum Vergrößern auf eine Vorschau klicken.</p>'
             f'<div class="designs">{karten}</div></div>'
             f'<dialog id="design-gross"><div class="kopf"><b></b><span class="muted">Mit deinen Daten · '
-            f'Esc schließt</span><button type="button" class="ghost small" data-zu>Schließen</button></div>'
-            f'<div class="blatt"><iframe title="Design groß"></iframe></div></dialog><script>{JS}</script>')
+            f'Esc schließt</span><button type="button" class="ghost small" data-zoom>Größer</button>'
+            f'<button type="button" class="ghost small" data-zu>Schließen</button></div>'
+            f'<div class="buehne"><div class="blatt"><iframe title="Design groß"></iframe></div></div></dialog><script>{JS}</script>')
 
 
 JS = """
 (() => {
   const dlg = document.getElementById('design-gross'), frame = dlg.querySelector('iframe');
-  const passen = () => {   // A4-Seite auf Fensterbreite skalieren, Höhe scrollt
-    const s = Math.min(1.25, (dlg.querySelector('.blatt').clientWidth - 2) / 794);
+  const blatt = dlg.querySelector('.blatt'), zoom = dlg.querySelector('[data-zoom]');
+  let breit = false;
+  // Eine A4-Seite passt ganz ins Fenster, weitere Seiten scrollen; „Größer“ nimmt die Fensterbreite
+  const passen = () => {
+    const kopf = dlg.querySelector('.kopf').offsetHeight;
+    const w = Math.min(innerWidth * 0.94, 1100) - 48 - 16, h = innerHeight * 0.92 - kopf - 48;
+    const s = breit ? Math.min(1.1, w / 794) : Math.min(w / 794, h / 1123);
+    let hoehe = 1123;
+    try { hoehe = Math.max(1123, frame.contentDocument.documentElement.scrollHeight); } catch (e) {}
+    frame.style.height = hoehe + 'px';
     frame.style.transform = `scale(${s})`;
-    frame.parentElement.style.height = (1123 * s) + 'px';
+    blatt.style.width = (794 * s) + 'px'; blatt.style.height = (hoehe * s) + 'px';
+    zoom.textContent = breit ? 'Ganze Seite' : 'Größer';
   };
+  frame.addEventListener('load', () => { if (dlg.open) passen(); });
   document.querySelectorAll('[data-gross]').forEach(b => b.addEventListener('click', () => {
     dlg.querySelector('.kopf b').textContent = b.dataset.name;
     frame.src = '/designs/vorschau/' + b.dataset.gross;
-    dlg.showModal(); passen();
+    breit = false; dlg.showModal(); passen();
   }));
+  zoom.addEventListener('click', () => { breit = !breit; passen(); });
   dlg.querySelector('[data-zu]').addEventListener('click', () => dlg.close());
   dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
   window.addEventListener('resize', () => { if (dlg.open) passen(); });
@@ -163,13 +175,16 @@ CSS = """
 .design .rahmen .lupe { position:absolute; inset:auto 8px 8px auto; padding:4px 10px; border-radius:999px; font-size:12px;
   background:rgba(0,0,0,.65); color:#fff; opacity:0; transition:opacity .15s; }
 .design .rahmen:hover .lupe, .design .rahmen:focus-visible .lupe { opacity:1; }
-#design-gross { width:min(1040px, 94vw); max-height:92vh; padding:0; border:0; border-radius:14px;
-  background:var(--surface); color:var(--text); overflow:auto; }
+#design-gross { width:auto; max-width:94vw; max-height:92vh; padding:0; border:0; border-radius:14px;
+  background:var(--surface-2); color:var(--text); overflow:auto; }
 #design-gross::backdrop { background:rgba(0,0,0,.55); }
 #design-gross .kopf { position:sticky; top:0; z-index:1; display:flex; gap:12px; align-items:center; padding:12px 16px;
   background:var(--surface); border-bottom:1px solid var(--line); }
-#design-gross .kopf button { margin-left:auto; }
-#design-gross .blatt { margin:16px; overflow:hidden; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.18); }
+#design-gross .kopf [data-zoom] { margin-left:auto; }
+#design-gross { min-width:min(520px, 94vw); }
+#design-gross .buehne { padding:24px; }
+#design-gross .blatt { margin:0 auto; overflow:hidden; background:#fff; border-radius:2px;
+  box-shadow:0 1px 3px rgba(0,0,0,.12), 0 8px 28px rgba(0,0,0,.18); }
 #design-gross iframe { width:794px; height:1123px; border:0; transform-origin:0 0; display:block; }
 .design iframe { width:794px; height:1123px; border:0; transform-origin:0 0; transform:scale(.24); pointer-events:none;
   position:absolute; top:0; left:0; }
