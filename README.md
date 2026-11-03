@@ -6,7 +6,24 @@ Gesprächsvorbereitung und Nachfassen. Alles läuft auf deinem Rechner. **Bewerb
 immer selbst ab** – die App liefert nur Hinweise und Entwürfe.
 
 **Fertige App für Mac und Windows:** [Downloads](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest) –
-siehe [Installieren](#installieren).
+siehe [Installieren](#installieren). Was neu ist, steht in den [Neuigkeiten](NEUIGKEITEN.md). Ohne Einrichtung
+ausprobieren: im Einrichtungs-Assistenten **Demo ansehen** (erfundene Beispieldaten).
+
+![Gefundene Stellen, sortiert nach Fit](docs/bilder/stellen.png)
+
+<table><tr>
+<td width="50%"><img src="docs/bilder/bewerbung.png" alt="Bewerbung vorbereiten: Anschreiben, Lebenslauf und Mappe"><br>
+<sub>Bewerbung vorbereiten – „Alles vorbereiten“ erledigt Anzeige, Anschreiben, Lebenslauf und Mappe in einem Schritt</sub></td>
+<td width="50%"><img src="docs/bilder/luecken.png" alt="Lücken-Auswertung"><br>
+<sub>Lücken-Auswertung – was am häufigsten fehlt und wie stark der Fit steigen würde</sub></td>
+</tr><tr>
+<td width="50%"><img src="docs/bilder/bewerbungen.png" alt="Bewerbungsliste mit Status"><br>
+<sub>Bewerbungen mit Status, Gesprächen und Nachfassen</sub></td>
+<td width="50%"><img src="docs/bilder/lebenslauf.png" alt="Lebenslauf im Design Modern"><br>
+<sub>Lebenslauf im Design „Modern“ (fünf Designs zur Wahl)</sub></td>
+</tr></table>
+
+<sub>Alle Bilder zeigen die Demo mit erfundenen Daten.</sub>
 
 ## Was die App macht
 
@@ -18,6 +35,12 @@ siehe [Installieren](#installieren).
 - **Bewerben:** Lebenslauf und Anschreiben als PDF in fünf Designs (Klassisch, Modern, Kreativ, Kompakt, Akademisch –
   je Suchprofil oder Bewerbung wählbar), Prüfung vor dem Abschicken, Gesprächsvorbereitung,
   Nachfass-Entwürfe, Rückblick und Lücken-Auswertung mit Lernplan.
+
+## Fehler gefunden, Idee?
+
+In der App unter Einstellungen → **Feedback** (oder in der Anleitung ganz unten): „Fehler melden“ und „Idee
+vorschlagen“ öffnen ein vorausgefülltes [Issue](https://github.com/emanuelajumobi-ux/jobmonitor/issues) – nur mit
+Version und Betriebssystem, ohne persönliche Daten.
 
 ## Brauche ich GitHub?
 

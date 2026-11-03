@@ -64,18 +64,18 @@ anzeigen: {adresse: true, geburtsdatum: false, foto: false}
 # (Titel, Firma, Anforderungen, Tage alt, Eckdaten)
 STELLEN = [
     ("Werkstudent IT-Support (m/w/d)", "Beispiel Logistik GmbH", {"IT-Support": 1.0, "Windows": 1.0,
-     "Active Directory": 1.0, "Microsoft 365": 0.5, "Englisch": 1.0}, 0, {"stunden": 20, "remote": False}),
+     "Active Directory": 1.0, "Microsoft 365": 0.5, "Englisch": 1.0}, 0, {"stunden": "20 h/Woche", "verguetung": "15 €/h"}),
     ("Werkstudent Data Analytics", "Muster Energie AG", {"Python": 1.0, "SQL": 1.0, "Git": 0.5, "Englisch": 1.0},
-     0, {"stunden": 16, "remote": True}),
+     0, {"stunden": "16 h/Woche", "remote": "2 Tage/Woche"}),
     ("Werkstudent Cloud Operations", "Beispiel Cloud GmbH", {"Azure": 1.0, "Linux": 1.0, "Terraform": 1.0,
-     "Docker": 1.0, "Python": 0.5}, 1, {"stunden": 20, "remote": True}),
+     "Docker": 1.0, "Python": 0.5}, 1, {"stunden": "20 h/Woche", "remote": "ganz möglich"}),
     ("Praktikum IT-Sicherheit", "Muster Versicherung AG", {"Informationssicherheit": 1.0, "ISO 27001": 1.0,
-     "Windows": 1.0, "MS Office": 1.0}, 2, {"abschlussarbeit": True}),
+     "Windows": 1.0, "MS Office": 1.0}, 2, {"start": "ab März", "abschlussarbeit": True}),
     ("Werkstudent Softwareentwicklung Python", "Beispiel Software GmbH", {"Python": 1.0, "Git": 1.0, "SQL": 0.5,
-     "Docker": 0.5, "CI/CD": 0.5}, 3, {"stunden": 18}),
+     "Docker": 0.5, "CI/CD": 0.5}, 3, {"stunden": "18 h/Woche"}),
     ("Werkstudent Datenbanken", "Muster Handel GmbH", {"SQL": 1.0, "Python": 0.5, "Datenmigration": 1.0}, 5, {}),
     ("Werkstudent Netzwerkadministration", "Beispiel Stadtwerke", {"Netzwerk": 1.0, "Linux": 1.0, "Windows": 1.0,
-     "Monitoring": 0.5}, 6, {"stunden": 20}),
+     "Monitoring": 0.5}, 6, {"stunden": "20 h/Woche"}),
 ]
 
 BEWERBUNGEN = [  # (Firma, Status, Tage her, Index in STELLEN oder None)

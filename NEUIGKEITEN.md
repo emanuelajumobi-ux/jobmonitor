@@ -9,6 +9,9 @@ Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was
 - **Hell oder dunkel:** unter Einstellungen → Darstellung, unabhängig vom System. Im App-Fenster passt sich auch die Seitenleiste an.
 - **Designs groß ansehen:** Ein Klick auf eine Vorschau unter Master-CV → Designs zeigt den ganzen Lebenslauf mit deinen Daten; die Vorschau hat jetzt denselben Seitenrand wie das PDF.
 - **Unterstützen:** gut sichtbar unten in der Seitenleiste; ein einmaliger Glückwunsch bei deiner ersten Einladung zum Gespräch.
+- **Demo ansehen:** im Einrichtungs-Assistenten die App erst einmal mit erfundenen Beispieldaten ausprobieren – deine eigenen Daten bleiben unberührt.
+- **Feedback:** „Fehler melden“ und „Idee vorschlagen“ unter Einstellungen und in der Anleitung (vorausgefülltes GitHub-Issue, ohne persönliche Daten).
+- **Kein fester Wohnort mehr:** Ohne festgelegten Wohnort nimmt die App nicht mehr stillschweigend Köln an, sondern zählt nur Remote-Stellen und erinnert dich auf der Startseite.
 
 ## 1.1.0
 
