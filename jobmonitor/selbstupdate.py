@@ -46,8 +46,8 @@ def moeglich() -> bool:
     return os.access(ziel.parent, os.W_OK) and os.access(ziel, os.W_OK)
 
 
-def _paket(repo: str, version: str, get) -> tuple[str, str | None]:
-    """(Download-Adresse, SHA-256 oder None) des passenden Pakets."""
+def _paket(repo: str, version: str, get) -> tuple[str, str]:
+    """(Download-Adresse, SHA-256) des passenden Pakets."""
     resp = get(API.format(repo=repo, version=version), timeout=10,
                headers={"Accept": "application/vnd.github+json", "User-Agent": f"job-monitor/{__version__}"})
     if resp.status_code != 200:
@@ -60,7 +60,9 @@ def _paket(repo: str, version: str, get) -> tuple[str, str | None]:
     if not url.startswith(f"https://github.com/{repo}/releases/download/"):
         raise UpdateError("Unerwartete Download-Adresse – Update abgebrochen.")
     digest = str(asset.get("digest") or "")
-    return url, digest.removeprefix("sha256:") if digest.startswith("sha256:") else None
+    if not digest.startswith("sha256:"):
+        raise UpdateError("GitHub nennt keine Prüfsumme für das Paket – Update abgebrochen.")
+    return url, digest.removeprefix("sha256:")
 
 
 def herunterladen(repo: str, version: str, get=None) -> Path:
@@ -83,7 +85,7 @@ def herunterladen(repo: str, version: str, get=None) -> Path:
                     fh.write(block)
     except requests.RequestException as exc:
         raise UpdateError(f"Download fehlgeschlagen ({exc.__class__.__name__}).") from None
-    if sha and pruef.hexdigest() != sha.lower():
+    if pruef.hexdigest() != sha.lower():
         shutil.rmtree(arbeit, ignore_errors=True)
         raise UpdateError("Die Prüfsumme des Downloads stimmt nicht – Update abgebrochen.")
     return entpacken(zip_pfad, arbeit / "neu")

@@ -63,6 +63,8 @@ def test_herunterladen_mit_pruefsumme(programm):
         selbstupdate.herunterladen(REPO, "9.9.9", get=_get(body, "sha256:" + "0" * 64))
     with pytest.raises(selbstupdate.UpdateError, match="Download-Adresse"):
         selbstupdate.herunterladen(REPO, "9.9.9", get=_get(body, None, "https://example.com/x.zip"))
+    with pytest.raises(selbstupdate.UpdateError, match="keine Prüfsumme"):
+        selbstupdate.herunterladen(REPO, "9.9.9", get=_get(body, None))
 
 
 def test_ungueltiges_paket(tmp_path):
