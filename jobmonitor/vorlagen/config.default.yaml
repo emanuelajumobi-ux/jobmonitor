@@ -32,7 +32,7 @@ sources:
     # Zusätzlich bundesweit suchen und nur Treffer mit homeofficemoeglich=true behalten
     bundesweit_remote: true
   hsnr:
-    enabled: true
+    enabled: false            # Stellenbörse der Hochschule Niederrhein (Krefeld/Mönchengladbach) – nur in der Nähe sinnvoll
     url: "https://www.hs-niederrhein.de/stellenboerse/"
     max_pages: 8              # erster Lauf; danach Stopp bei bekannten Einträgen
     stellentypen: [Werkstudentenstellen, "Praxisphasen & Praktika", Abschlussarbeiten, Jobs]

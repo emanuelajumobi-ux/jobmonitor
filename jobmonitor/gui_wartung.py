@@ -412,7 +412,7 @@ ab dem nächsten Lauf. Gefundene Stellen, Bewerbungen und Einstellungen bleiben 
         hinweis += f" – pausiert, solange die Suche auf „{esc(MODI[suchmodus])}“ steht"
     note = f"""<div class="card"><h2>Mitteilung bei neuen Stellen</h2>
 <p class="muted">Statt eines Berichts per Mail: eine Mitteilung von Job-Monitor auf diesem Mac, z. B. „3 neue Stellen ·
-Werkstudent Cloud – adesso · Fit 85 %“. Dazu je eine eigene Mitteilung für sehr gut passende Stellen (ab Fit
+Werkstudent Marketing – Beispiel GmbH · Fit 85 %“. Dazu je eine eigene Mitteilung für sehr gut passende Stellen (ab Fit
 75 % oder Traumprofil) und für neue Antworten von Firmen. Ein Klick öffnet die App. Ohne Neues kommt nichts; schläft
 der Mac zur Uhrzeit, kommt sie beim Aufwachen.</p>
 <form method="post" action="/einstellungen" class="row" style="align-items:center;gap:14px">

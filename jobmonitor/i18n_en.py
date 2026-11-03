@@ -410,11 +410,11 @@ TEXTE: dict[str, str] = {
     "Mitteilung bei neuen Stellen": "Notification for new jobs", "Probe-Mitteilung senden": "Send test notification",
     "· keine Mitteilungen": "· no notifications",
     "Statt eines Berichts per Mail: eine Mitteilung von Job-Monitor auf diesem Mac, z. B. „3 neue Stellen · "
-    "Werkstudent Cloud – adesso · Fit 85 %“. Dazu je eine eigene Mitteilung für sehr gut passende Stellen (ab Fit "
+    "Werkstudent Marketing – Beispiel GmbH · Fit 85 %“. Dazu je eine eigene Mitteilung für sehr gut passende Stellen (ab Fit "
     "75 % oder Traumprofil) und für neue Antworten von Firmen. Ein Klick öffnet die App. Ohne Neues kommt nichts; "
     "schläft der Mac zur Uhrzeit, kommt sie beim Aufwachen.":
         "Instead of a report by email: a notification from Job-Monitor on this computer, e.g. “3 new jobs · Working "
-        "student Cloud – adesso · Fit 85 %”. Plus a separate notification for very well matching jobs (fit 75 % or "
+        "student Marketing – Beispiel GmbH · Fit 85 %”. Plus a separate notification for very well matching jobs (fit 75 % or "
         "more, or dream profile) and for new replies from companies. One click opens the app. Without news nothing "
         "comes; if the computer is asleep at that time, it comes when it wakes up.",
     "E-Mail-Adresse": "Email address", "App-Passwort": "App password",
