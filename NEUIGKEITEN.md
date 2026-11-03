@@ -11,6 +11,7 @@ Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was
 - **Unterstützen:** gut sichtbar unten in der Seitenleiste; ein einmaliger Glückwunsch bei deiner ersten Einladung zum Gespräch.
 - **Demo ansehen:** im Einrichtungs-Assistenten die App erst einmal mit erfundenen Beispieldaten ausprobieren – deine eigenen Daten bleiben unberührt.
 - **Feedback:** „Fehler melden“ und „Idee vorschlagen“ unter Einstellungen und in der Anleitung (vorausgefülltes GitHub-Issue, ohne persönliche Daten).
+- **Update mit einem Klick:** Beim Hinweis auf eine neue Version lädt „Jetzt aktualisieren“ sie herunter, prüft sie und startet die App neu – deine Daten bleiben. (Ab der nächsten Version nach dieser.)
 - **Kein fester Wohnort mehr:** Ohne festgelegten Wohnort nimmt die App nicht mehr stillschweigend Köln an, sondern zählt nur Remote-Stellen und erinnert dich auf der Startseite.
 
 ## 1.1.0

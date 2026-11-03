@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, demo, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, demo, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -212,6 +212,24 @@ class App(BewerbungenSeiten):
         self.new_ids = current - seen if seen is not None else set()
         path.write_text(json.dumps(sorted(current | (seen or set()))), encoding="utf-8")
 
+    def aktualisieren(self) -> bytes:
+        """„Jetzt aktualisieren“: neue Version laden, Hilfsskript starten, App beenden (selbstupdate.py)."""
+        neu = getattr(self, "update_neu", None)
+        if not neu or self.window is None or not selbstupdate.moeglich():
+            return self.index('<div class="card err">Automatisches Update hier nicht möglich – bitte über '
+                              '„Herunterladen“ installieren.</div>')
+        try:
+            repo = (load_config(self.root / "config.yaml").get("updates") or {})["repo"]
+            app_neu = selbstupdate.herunterladen(repo, neu["version"])
+            selbstupdate.tauschen_starten(app_neu)
+        except (selbstupdate.UpdateError, KeyError, OSError, subprocess.SubprocessError) as exc:
+            log.exception("Update fehlgeschlagen")
+            return self.index(f'<div class="card err">Update nicht möglich: {esc(exc)} Die bisherige Version läuft '
+                              f'weiter; „Herunterladen“ geht wie gewohnt.</div>')
+        threading.Timer(1.5, self.window.destroy).start()   # Seite noch zeigen, dann beenden (desktop.py synct)
+        return self.page("Update", f'<h1>Version {esc(neu["version"])} wird installiert</h1><p class="sub">Job-Monitor '
+                                   f'beendet sich und startet gleich in der neuen Version. Deine Daten bleiben.</p>')
+
     def demo_starten(self) -> bytes:
         if self.echt is None:
             self.echt = self.root
@@ -305,7 +323,8 @@ class App(BewerbungenSeiten):
         self._offline_cache = None
         if not erststart.eingerichtet(self.root):       # neuer Nutzer: erst der Assistent
             return self.einrichten()
-        message = updates.hinweis(getattr(self, "update_neu", None)) + message
+        message = updates.hinweis(getattr(self, "update_neu", None), self.token,
+                                  self.window is not None and selbstupdate.moeglich()) + message
         if self.notice:
             message, self.notice = self.notice + message, ""
         cfg = load_config(self.root / "config.yaml")

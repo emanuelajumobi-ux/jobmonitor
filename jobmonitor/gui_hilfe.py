@@ -153,8 +153,10 @@ AUFGABEN = [
         "als ZIP-Datei.",
         "Abgelegt unter Dokumente → Job-Monitor Sicherungen. Der KI-Schlüssel ist nicht enthalten."], "sicherung backup"),
     ("update", "Wie bekomme ich eine neue Version?", [
-        "Gibt es eine neue Version, steht oben auf der Startseite ein Hinweis mit <b>Herunterladen</b>.",
-        "Neue App laden und die alte ersetzen – deine Daten im Ordner Dokumente/Job-Monitor bleiben erhalten.",
+        "Gibt es eine neue Version, steht oben auf der Startseite ein Hinweis mit <b>Jetzt aktualisieren</b>: Die App "
+        "lädt sie, prüft sie und startet neu – deine Daten im Ordner Dokumente/Job-Monitor bleiben erhalten.",
+        "Klappt das nicht (z. B. fehlende Schreibrechte im Programme-Ordner): <b>Herunterladen</b>, die neue App "
+        "entpacken und die alte ersetzen.",
         "Beim ersten Start fragt das System wieder nach (Mac: Systemeinstellungen → Datenschutz & Sicherheit → „Trotzdem "
         "öffnen“)."], "update version neu herunterladen"),
 ]

@@ -324,6 +324,16 @@ TEXTE: dict[str, str] = {
         "– made-up sample data, none of it is real. Searching and syncing are off.",
     "In der Demo nicht verfügbar – erst „Demo beenden“.": "Not available in the demo – “End demo” first.",
     "In der Demo wird nichts synchronisiert.": "Nothing is synced in the demo.",
+    "Jetzt aktualisieren": "Update now",
+    ": Die App lädt sie, prüft sie und startet neu – deine Daten im Ordner Dokumente/Job-Monitor bleiben erhalten.":
+        ": the app downloads it, checks it and restarts – your data in the Documents/Job-Monitor folder is kept.",
+    "Klappt das nicht (z. B. fehlende Schreibrechte im Programme-Ordner):":
+        "If that does not work (e.g. no write permission in the Applications folder):",
+    ", die neue App entpacken und die alte ersetzen.": ", unzip the new app and replace the old one.", "Neue Version wird geladen …": "Downloading the new version …",
+    "Ein Klick lädt sie und startet die App neu – deine Daten bleiben.":
+        "One click downloads it and restarts the app – your data stays.",
+    "Neue App laden und die alte ersetzen – deine Daten bleiben.": "Download the new app and replace the old one – your "
+                                                                  "data stays.",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":
@@ -1124,6 +1134,8 @@ MUSTER: list[tuple[str, str]] = [
     ("{n} Seiten zum selbst Ansehen", "{} pages to look at yourself"),
     ("{n} (+{n} optional)", "{} (+{} optional)"), ("Sprache: {}.{}", "Language: {}.{}"),
     ("Alles vorbereitet: {}", "Everything prepared: {}"),
+    ("Version {} ist da", "Version {} is available"), ("(du hast {}). {}", "(you have {}). {}"),
+    ("Version {} wird installiert", "Installing version {}"),
     ("{n} Firmen", "{} companies"),
     ("{} … aus config.yaml (filter.fach). Richtig für Profile im selben Bereich.",
      "{} … from config.yaml (filter.fach). Right for profiles in the same area."),

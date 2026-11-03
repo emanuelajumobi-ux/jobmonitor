@@ -1,4 +1,4 @@
-"""Neue Versionen der installierten App anzeigen (kein automatisches Installieren).
+"""Neue Versionen der installierten App anzeigen; installieren mit einem Klick (selbstupdate.py) oder per Download.
 
 Höchstens einmal am Tag, im Hintergrund beim Start: GET https://api.github.com/repos/{repo}/releases/latest auf das
 öffentliche Download-Repo (config.yaml → updates.repo). Dabei sieht GitHub die IP-Adresse, sonst wird nichts gesendet.
@@ -76,15 +76,22 @@ def schalten(root: Path, an: bool) -> str:
     return "Die App sucht wieder nach neuen Versionen." if an else "Keine Suche nach neuen Versionen mehr."
 
 
-def hinweis(neu: dict | None) -> str:
+def hinweis(neu: dict | None, token: str = "", automatisch: bool = False) -> str:
+    """`automatisch`: Knopf „Jetzt aktualisieren“ (installierte App mit Schreibrechten, selbstupdate.moeglich)."""
     if not neu:
         return ""
     url = neu["url"] if neu.get("url", "").startswith("https://github.com/") else ""
     notizen = notizen_html(neu.get("notizen", ""))
+    knopf = (f'<form method="post" action="/update" style="margin:0"><input type="hidden" name="token" '
+             f'value="{escape(token)}"><button class="small" data-ki="Neue Version wird geladen …">Jetzt '
+             f'aktualisieren</button></form>' if automatisch and token else "")
+    text = ("Ein Klick lädt sie und startet die App neu – deine Daten bleiben." if knopf else
+            "Neue App laden und die alte ersetzen – deine Daten bleiben.")
     return (f'<div class="card info"><div class="row" style="justify-content:space-between;gap:12px"><p style="margin:0">'
-            f'<b>Version {escape(neu["version"])} ist da</b> (du hast {escape(__version__)}). Neue App laden und die '
-            f'alte ersetzen – deine Daten bleiben.</p>'
-            + (f'<a class="btn small" href="{escape(url)}" target="_blank" rel="noopener">Herunterladen</a>' if url else "")
+            f'<b>Version {escape(neu["version"])} ist da</b> (du hast {escape(__version__)}). {text}</p>'
+            f'<div class="row" style="gap:8px">{knopf}'
+            + (f'<a class="btn {"ghost " if knopf else ""}small" href="{escape(url)}" target="_blank" '
+               f'rel="noopener">Herunterladen</a>' if url else "") + '</div>'
             + '</div>' + (f'<details><summary>Was ist neu</summary>{notizen}</details>' if notizen else "") + '</div>')
 
 
