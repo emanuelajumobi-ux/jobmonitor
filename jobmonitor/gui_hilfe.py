@@ -39,12 +39,34 @@ AUFGABEN = [
     ("stelle-bewerben", "Wie bewerbe ich mich auf eine gefundene Stelle?", [
         "Unter <a href=\"/\">Stellen</a> bei der Stelle auf <b>Bewerbung</b> klicken – es entsteht ein Bewerbungsordner mit "
         "einem Anschreiben-Entwurf.",
+        "Am schnellsten: <b>Alles vorbereiten</b> – sichert die Anzeige, entwirft das Anschreiben (mit KI), schneidet "
+        "den Lebenslauf zu und baut die Mappe in einem Schritt. Danach alles lesen und anpassen.",
         "Text in <b>[eckigen Klammern]</b> selbst ausfüllen oder <b>Entwurf mit KI</b> nutzen.",
         "Unter <b>Design</b> das Aussehen wählen (Klassisch, Modern, Kreativ, Kompakt, Akademisch).",
         "<b>Speichern und Mappe bauen</b>: Anschreiben, zugeschnittener Lebenslauf und Unterlagen als ein PDF.",
         "Die Karte <b>Vor dem Abschicken</b> durchgehen (Platzhalter, Firmenname, Größe, Anlagen, Frist).",
         "Über das Portal oder per Mail selbst abschicken, dann in <a href=\"/bewerbungen\">Bewerbungen</a> den Status auf "
         "<b>beworben</b> setzen."], "anschreiben mappe pdf lebenslauf bewerben abschicken"),
+    ("portal", "Wie fülle ich ein Bewerbungsportal schneller aus?", [
+        "Auf der Bewerbungsseite unter <b>Für Bewerbungsportale</b> stehen Name, Kontakt, Studium, Verfügbarkeit, "
+        "Gehaltsvorstellung, Kurzprofil, Motivation und das Anschreiben als Text – je mit <b>Kopieren</b>.",
+        "Lange Texte kürzt die App auf die Zeichengrenze des Portals (300 bis 2000 Zeichen), an der Satzgrenze oder "
+        "mit <b>Mit KI kürzen</b>.",
+        "Die Gehaltsvorstellung trägst du einmal im <a href=\"/profil\">Profil</a> ein. Abgeschickt wird nichts – du "
+        "fügst ein und sendest selbst."], "portal formular kopieren workday successfactors gehalt kurzprofil"),
+    ("englisch", "Wie bewerbe ich mich auf Englisch?", [
+        "Auf der Bewerbungsseite unter <b>Sprache der Bewerbung</b> „Englisch“ wählen. Ist die Anzeige auf Englisch, "
+        "schlägt die App das selbst vor.",
+        "Einmalig <b>Master-CV mit KI übersetzen</b>: Die englische Fassung liegt danach in cv/cv_master.en.yaml und "
+        "lässt sich unter <a href=\"/einstellungen#dateien\">Dateien bearbeiten</a> anpassen.",
+        "Lebenslauf und Anschreiben bekommen englische Überschriften, Datum und Grußformel; englische Lebensläufe "
+        "kommen ohne Foto und Geburtsdatum aus. <b>Entwurf mit KI</b> schreibt das Anschreiben auf Englisch."],
+     "englisch english international cover letter cv übersetzen"),
+    ("sprache", "Wie stelle ich die App auf Englisch um? (How do I switch the app to English?)", [
+        "<a href=\"/einstellungen#sprache\">Einstellungen → Sprache · Language</a>: „English“ wählen. Beim ersten Start "
+        "übernimmt die App die Sprache des Systems.",
+        "Stellenanzeigen, deine eigenen Texte und Teile der Anleitung bleiben deutsch."],
+     "sprache language english englisch oberfläche"),
     ("design-waehlen", "Wie ändere ich das Design von Lebenslauf und Anschreiben?", [
         "Alle Designs mit deinen Daten ansehen: <a href=\"/master#designs\">Master-CV → Designs</a>.",
         "Für ein ganzes Suchprofil: <a href=\"/einstellungen\">Einstellungen</a> → Suchprofil bearbeiten → <b>Design</b>.",
@@ -135,7 +157,8 @@ AUFGABEN = [
 # Kurze Namen der wichtigsten Aufgaben fürs Inhaltsverzeichnis
 NAV_AUFGABEN = [("stelle-bewerben", "Bewerben"), ("design-waehlen", "Design wählen"), ("suchprofil", "Suchprofil anlegen"),
                 ("postfach", "Postfach verbinden"), ("ki-schluessel", "KI einrichten"), ("taeglich", "Täglich suchen"),
-                ("gespraech", "Gespräch vorbereiten"), ("update", "Neue Version")]
+                ("gespraech", "Gespräch vorbereiten"), ("portal", "Bewerbungsportale"), ("englisch", "Auf Englisch"),
+                ("update", "Neue Version")]
 
 SEITEN = [
     ("seite-stellen", "Stellen", "/", "Gefundene Stellen nach Fit, mit Reitern je Suchprofil, Eckdaten-Filter, Suchfeld. "

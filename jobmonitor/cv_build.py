@@ -164,16 +164,21 @@ def _slug(text: str) -> str:
 
 def build(root: Path, cfg: dict, job_id: str | None = None, compile_pdf: bool = True,
           stelle: dict | None = None, hinweise: list | None = None, ki_zuschnitt: dict | None = None,
-          design: str | None = None) -> Path:
+          design: str | None = None, sprache: str = "de") -> Path:
     """Erzeugt cv/out/lebenslauf[-firma-id].tex (+ .pdf). Gibt den Pfad der Hauptdatei zurück.
 
     `job_id`: Stelle aus dem Bericht (state/seen.sqlite). `stelle`: selbst angegebene Stelle als
     {"id", "company", "anforderungen", ...}, z. B. aus eigene_stelle.py.
     `hinweise`: Liste, in die der Lebenslauf-Prüfer (cv_check.py) seine Hinweise schreibt.
     `ki_zuschnitt`: Ergebnis von ki.lebenslauf (nur mit Stelle), wird geprüft angewendet.
+    `sprache`: „en“ nimmt cv_master.en.yaml (falls vorhanden), englische Beschriftungen, ohne Foto und Geburtsdatum.
     """
+    from . import sprache as sp
+    en = sprache == "en"
     try:
         cv, _ = load_cv_master(root)
+        if en:
+            cv = sp.cv_en(root) or cv
     except CvDataError as exc:
         raise CvBuildError(str(exc)) from None
     if cv is None:
@@ -181,6 +186,8 @@ def build(root: Path, cfg: dict, job_id: str | None = None, compile_pdf: bool = 
     profile = load_profile(root)
     if profile is None:
         raise CvBuildError("cv/profile.yaml fehlt. Kopiere cv/profile.example.yaml und trage deine Daten ein.")
+    if en:
+        profile = sp.profil_en(profile)
     for where, data in (("cv_master.yaml", cv), ("profile.yaml", profile)):
         hits = placeholders(data)
         if hits:
@@ -206,6 +213,8 @@ def build(root: Path, cfg: dict, job_id: str | None = None, compile_pdf: bool = 
         covered = covered_terms(cv, cfg["fit"]["begriffe"])
         extra["stelle"] = {**detail, "passt": [t for t in detail["anforderungen"] if t in covered]}
         name = f"lebenslauf-{_slug(detail['company'])}-{detail['id']}"
+    if en:
+        name += "-en"
 
     out_dir = root / ccfg["ausgabe"]
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -228,8 +237,9 @@ def build(root: Path, cfg: dict, job_id: str | None = None, compile_pdf: bool = 
                                                                                        "cv/template.html.j2"))
         extra = {**extra, "akzent": designs.akzent(cfg)}
         html_path = out_dir / f"{name}.html"
-        html_path.write_text(pdf_html.environment(template.parent).get_template(template.name).render(
-            cv=complete_cv(cv), profile=profile, **extra), encoding="utf-8")
+        html = pdf_html.environment(template.parent).get_template(template.name).render(
+            cv=complete_cv(cv), profile=profile, **extra)
+        html_path.write_text(sp.beschriften(html) if en else html, encoding="utf-8")
         _pruefen(hinweise, full_cv, cv, detail, cfg)
         if not compile_pdf:
             return html_path
@@ -245,7 +255,8 @@ def build(root: Path, cfg: dict, job_id: str | None = None, compile_pdf: bool = 
         if helper.suffix in (".cls", ".sty") and helper.is_file():
             shutil.copy(helper, out_dir / helper.name)
     tex_path = out_dir / f"{name}.tex"
-    tex_path.write_text(render(cv, profile, template, extra), encoding="utf-8")
+    tex = render(cv, profile, template, extra)
+    tex_path.write_text(sp.beschriften(tex) if en else tex, encoding="utf-8")
 
     _pruefen(hinweise, full_cv, cv, detail, cfg)
     if not compile_pdf:

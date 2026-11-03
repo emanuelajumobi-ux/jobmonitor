@@ -207,7 +207,12 @@ def _kopf(stelle: dict, anzeige_text: str, cv: dict) -> str:
             f"\n\nLEBENSLAUF (einzige Quelle für Fakten über die Person):\n{cv_text(cv)}")
 
 
-def anschreiben_prompt(stelle: dict, anzeige_text: str, cv: dict, ziel, grenzen: dict) -> str:
+def anschreiben_prompt(stelle: dict, anzeige_text: str, cv: dict, ziel, grenzen: dict, englisch: bool = False) -> str:
+    sprache = ("- Schreibe auf Englisch (professionelles, natürliches Business-Englisch, wie in englischen Cover Letters "
+               "üblich), konkret statt Floskeln wie „I am writing to express my interest“. Platzhalter ebenfalls auf "
+               "Englisch.\n" if englisch else
+               "- Sachlich und konkret, Deutsch, Sie-Form gegenüber der Firma. Keine Floskeln wie „hiermit bewerbe ich "
+               "mich“ oder „mit großem Interesse“.\n")
     return (
         "Du hilfst jemandem, ein Anschreiben für eine Bewerbung zu entwerfen. Die Person liest und überarbeitet den "
         "Entwurf selbst, bevor er ihn verschickt.\n\n"
@@ -221,15 +226,14 @@ def anschreiben_prompt(stelle: dict, anzeige_text: str, cv: dict, ziel, grenzen:
         "dem Lebenslauf. Passt etwas nicht, lass es weg statt es schönzureden.\n"
         f"- Schreibe für Verfügbarkeit (ab wann, Stunden pro Woche) genau den Platzhalter {ZEITRAUM}.\n"
         f"- {grenzen['min_woerter']} bis {min(grenzen['max_woerter'], 320)} Wörter, 3 bis 4 Absätze, getrennt durch "
-        f"eine Leerzeile. Höchstens {grenzen['max_ich_saetze']} Sätze beginnen mit „Ich“.\n"
-        "- Sachlich und konkret, Deutsch, Sie-Form gegenüber der Firma. Keine Floskeln wie „hiermit bewerbe ich "
-        "mich“ oder „mit großem Interesse“.\n"
+        f"eine Leerzeile. Höchstens {grenzen['max_ich_saetze']} Sätze beginnen mit „Ich“ bzw. „I“.\n"
+        f"{sprache}"
         "- Ohne Anrede, ohne Grußformel, ohne Namen, Adresse oder Datum – die ergänzt das Programm.\n"
         "- Gib nur den Text des Anschreibens aus, ohne Überschrift und ohne Erklärung.")
 
 
 GRUSS = re.compile(r"^(sehr geehrte|liebe|hallo|guten tag|mit freundlichen|viele grüße|beste grüße|freundliche "
-                   r"grüße)", re.I)
+                   r"grüße|dear\b|kind regards|best regards|yours sincerely|yours faithfully|sincerely)", re.I)
 
 
 def aufraeumen(text: str) -> str:
@@ -243,9 +247,12 @@ def aufraeumen(text: str) -> str:
 
 
 def anschreiben(root: Path, cfg: dict, stelle: dict, anzeige_text: str, cv: dict, ziel, zeitraum: str | None,
-                ask=None) -> str:
+                ask=None, englisch: bool = False) -> str:
     from .anschreiben_check import limits
-    text = aufraeumen(fragen(root, cfg, anschreiben_prompt(stelle, anzeige_text, cv, ziel, limits(cfg)), ask=ask))
+    text = aufraeumen(fragen(root, cfg, anschreiben_prompt(stelle, anzeige_text, cv, ziel, limits(cfg), englisch),
+                             ask=ask))
+    if englisch:
+        return text.replace(ZEITRAUM, "[when you can start and how many hours per week]")
     return text.replace(ZEITRAUM, zeitraum) if zeitraum else text
 
 
@@ -321,8 +328,8 @@ def lebenslauf_prompt(stelle: dict, anzeige_text: str, cv: dict, max_projekte: i
         f"AUFGABEN JE STATION (mit Nummern):\n{stationen or '(keine)'}\n\nPROJEKTE (mit Nummern):\n{projekte or '(keine)'}"
         "\n\nAntworte nur mit JSON:\n"
         '{"profil": "...", "aufgaben": {"0": [2, 0, 1]}, "projekte": [1, 0]}\n'
-        "- profil: 2 bis 3 Sätze (höchstens 450 Zeichen) in der dritten Person ohne Namen, wie der bisherige "
-        "Profiltext. Betone, was zur Stelle passt. Nenne nur Kenntnisse, Stationen und Ziele, die im Lebenslauf "
+        "- profil: 2 bis 3 Sätze (höchstens 450 Zeichen) in der dritten Person ohne Namen, in der Sprache des "
+        "Lebenslaufs, wie der bisherige Profiltext. Betone, was zur Stelle passt. Nenne nur Kenntnisse, Stationen und Ziele, die im Lebenslauf "
         "stehen.\n"
         "- aufgaben: je Station die Nummern ihrer Aufgaben, wichtigste für diese Stelle zuerst; unpassende darfst "
         "du weglassen, aber behalte mindestens 3 (oder alle, wenn es weniger sind).\n"

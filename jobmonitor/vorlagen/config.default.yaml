@@ -332,7 +332,7 @@ traumprofil:
 
 # Freiwillige Unterstützung (Einstellungen und Glückwunsch bei einer Zusage); leer = nichts anzeigen
 spenden:
-  url: ""
+  url: "https://www.paypal.me/EmanuelAjumobi"
 
 # Neue Versionen: einmal am Tag die öffentliche Versionsliste bei GitHub abfragen (nur in der installierten App)
 updates:
@@ -340,6 +340,7 @@ updates:
   repo: emanuelajumobi-ux/jobmonitor
 
 gui:                          # nur lokal: Oberfläche (Job-Monitor.app / make gui)
+  sprache: de                 # Oberfläche: de | en (Einstellungen → Sprache)
   manuell_pruefen_tage: 14    # Erinnerung, Karriereseiten unter „manuell prüfen“ wieder selbst anzusehen
 
 mail:

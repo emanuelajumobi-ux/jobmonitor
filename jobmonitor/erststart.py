@@ -25,6 +25,13 @@ def vorbereiten(root: Path) -> list[str]:
         if not (root / name).exists() and quelle.is_file():
             shutil.copy(quelle, root / name)
             neu.append(name)
+    if "config.yaml" in neu:          # erster Start: Oberfläche in der Sprache des Systems (Deutsch oder Englisch)
+        from . import i18n
+        try:
+            if i18n.systemsprache() == "en":
+                i18n.setzen(root, "en")
+        except Exception:   # Sprache ist nur Komfort – der erste Start darf daran nicht scheitern
+            pass
     (root / "cv").mkdir(exist_ok=True)
     for name in CV_DATEIEN:
         ziel, quelle = root / "cv" / name, CODE / "cv" / name

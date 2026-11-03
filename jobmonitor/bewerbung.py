@@ -26,6 +26,7 @@ GENDER = re.compile(r"\s*\((?:[mwdxi*]\s*/\s*){1,3}[mwdxi*]\)|\s*\((?:all gender
 MONATE = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober",
           "November", "Dezember"]
 ANREDE = "Sehr geehrte Damen und Herren,"
+ANREDE_EN = "Dear Hiring Team,"
 
 
 class BewerbungError(Exception):
@@ -41,8 +42,8 @@ def _monat(value: str) -> str:
     return f"{MONATE[int(m.group(1)) - 1]} {m.group(2)}" if m and 1 <= int(m.group(1)) <= 12 else value
 
 
-def _aufzaehlung(items: list[str]) -> str:
-    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " und " + items[-1]
+def _aufzaehlung(items: list[str], und: str = "und") -> str:
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + f" {und} " + items[-1]
 
 
 # --- Ordner je Stelle ---
@@ -112,32 +113,66 @@ def zeitraum_aus(profile: dict, ziel) -> str | None:
                                                     else None)
 
 
-def draft(root: Path, cfg: dict, stelle: dict) -> str:
-    """Entwurf aus cv/anschreiben_vorlage.txt. Fehlende Angaben bleiben als [Platzhalter] stehen."""
-    vorlage = (root / cfg["cv"]["anschreiben_vorlage"]).read_text(encoding="utf-8")
+def _vorlage(root: Path, cfg: dict, englisch: bool) -> str:
+    if not englisch:
+        return (root / cfg["cv"]["anschreiben_vorlage"]).read_text(encoding="utf-8")
+    from .config import CODE
+    for pfad in (root / "cv" / "anschreiben_vorlage_en.txt", CODE / "jobmonitor" / "vorlagen" / "anschreiben_vorlage_en.txt"):
+        if pfad.is_file():
+            return pfad.read_text(encoding="utf-8")
+    raise BewerbungError("Englische Anschreiben-Vorlage fehlt.")
+
+
+def draft(root: Path, cfg: dict, stelle: dict, sprache: str = "de") -> str:
+    """Entwurf aus cv/anschreiben_vorlage.txt (Englisch: anschreiben_vorlage_en.txt). Fehlende Angaben bleiben als
+    [Platzhalter] stehen."""
+    en = sprache == "en"
+    vorlage = _vorlage(root, cfg, en)
     body = "\n".join(line for line in vorlage.splitlines() if not line.startswith("#")).strip()
-    cv, _ = load_cv_master(root)
+    cv = None
+    if en:
+        from .sprache import cv_en
+        cv = cv_en(root)
+    if cv is None:
+        cv, _ = load_cv_master(root)
     cv = cv or {}
     profile = load_profile(root) or {}
 
     ausbildung = (cv.get("ausbildung") or [{}])[0]
-    studium = profile.get("studium") or (
-        f"{ausbildung.get('abschluss')} an der {ausbildung.get('institution')}" if ausbildung.get("abschluss")
-        else "[Studiengang und Hochschule]")
+    if en:
+        studium = (f"studying {ausbildung.get('abschluss')} at {ausbildung.get('institution')}"
+                   if ausbildung.get("abschluss") else "[your degree programme and university]")
+    else:
+        studium = profile.get("studium") or (
+            f"{ausbildung.get('abschluss')} an der {ausbildung.get('institution')}" if ausbildung.get("abschluss")
+            else "[Studiengang und Hochschule]")
     aktuell = next((s for s in cv.get("stationen") or [] if not s.get("bis")), None)
-    station_satz = (f"Seit {_monat(aktuell.get('von', ''))} arbeite ich als {_rolle(aktuell.get('rolle'))} bei "
-                    f"{aktuell.get('organisation')}." if aktuell else "")
+    if aktuell and en:
+        station_satz = (f"Since {aktuell.get('von', '')} I have been working as {aktuell.get('rolle')} at "
+                        f"{aktuell.get('organisation')}.")
+    elif aktuell:
+        station_satz = (f"Seit {_monat(aktuell.get('von', ''))} arbeite ich als {_rolle(aktuell.get('rolle'))} bei "
+                        f"{aktuell.get('organisation')}.")
+    else:
+        station_satz = ""
     passt = passende(cv, stelle.get("anforderungen") or {}, cfg["fit"]["begriffe"])[:4]
     ziel = suchprofil.get(cfg, stelle.get("profil"))
     zeitraum = zeitraum_aus(profile, ziel)
-    values = {
-        "firma": stelle["company"], "stelle": clean_title(stelle["title"]), "studium": studium,
-        "station_satz": station_satz, "passt": _aufzaehlung(passt) if passt else "[deinen passenden Kenntnissen]",
-        "zeitraum": zeitraum or ("[ab wann und wie viele Stunden pro Woche]" if ziel.key == suchprofil.DEFAULT_KEY
-                                 else "[ab wann du nach dem Abschluss anfangen kannst]"),
-        "zielrolle": ziel.zielrolle or "[Zielrolle]", "absicht": ziel.absicht or "[welche Stelle du suchst]",
-        "ausblick": ziel.ausblick,
-    }
+    if en:
+        values = {"firma": stelle["company"], "stelle": clean_title(stelle["title"]), "studium": studium,
+                  "station_satz": station_satz,
+                  "passt": _aufzaehlung(passt, "and") if passt else "[your matching skills]",
+                  "zeitraum": "[when you can start and how many hours per week]", "zielrolle": "[target role]",
+                  "absicht": "[the kind of role you are looking for]", "ausblick": ""}
+    else:
+        values = {
+            "firma": stelle["company"], "stelle": clean_title(stelle["title"]), "studium": studium,
+            "station_satz": station_satz, "passt": _aufzaehlung(passt) if passt else "[deinen passenden Kenntnissen]",
+            "zeitraum": zeitraum or ("[ab wann und wie viele Stunden pro Woche]" if ziel.key == suchprofil.DEFAULT_KEY
+                                     else "[ab wann du nach dem Abschluss anfangen kannst]"),
+            "zielrolle": ziel.zielrolle or "[Zielrolle]", "absicht": ziel.absicht or "[welche Stelle du suchst]",
+            "ausblick": ziel.ausblick,
+        }
     text = re.sub(r"\{(\w+)\}", lambda m: str(values.get(m.group(1), m.group(0))), body)
     return re.sub(r"[ \t]+", " ", re.sub(r"\n[ \t]+", "\n", text)).strip()
 
@@ -170,12 +205,15 @@ def build_anschreiben(root: Path, cfg: dict, folder: Path, today: date | None = 
         raise BewerbungError("cv/profile.yaml fehlt (Name und Kontaktdaten für den Briefkopf).")
     stelle = meta(folder)
     today = today or date.today()
+    from . import sprache as sp
+    en = sp.fuer_bewerbung(folder) == "en"
     ort = (profile.get("adresse") or {}).get("ort") or ""
+    anrede = ANREDE_EN if en and data["anrede"] == ANREDE else data["anrede"]
     context = {
         "profile": profile, "firma": stelle["company"],
         "empfaenger": [z for z in data["empfaenger"].splitlines() if z.strip()],
-        "ort_datum": f"{ort + ', ' if ort else ''}{today:%d.%m.%Y}",
-        "betreff": f"Bewerbung als {clean_title(stelle['title'])}", "anrede": data["anrede"],
+        "ort_datum": f"{ort + ', ' if ort else ''}{sp.datum(today) if en else f'{today:%d.%m.%Y}'}",
+        "betreff": f"{'Application for' if en else 'Bewerbung als'} {clean_title(stelle['title'])}", "anrede": anrede,
         "absaetze": [a.strip() for a in re.split(r"\n\s*\n", data["text"]) if a.strip()],
         "anlagen": ["Lebenslauf"] + [a["name"] for a in anlagen(root, cfg) if a["pdfs"]],
     }
@@ -188,12 +226,14 @@ def build_anschreiben(root: Path, cfg: dict, folder: Path, today: date | None = 
             template = html_vorlage(root, designs.DESIGNS[design]["anschreiben"]
                                     or cfg["cv"].get("anschreiben_html", "cv/anschreiben.html.j2"))
             html_path = folder / "anschreiben.html"
-            html_path.write_text(pdf_html.environment(template.parent).get_template(template.name).render(
-                **context, akzent=designs.akzent(cfg)), encoding="utf-8")
+            html = pdf_html.environment(template.parent).get_template(template.name).render(
+                **context, akzent=designs.akzent(cfg))
+            html_path.write_text(sp.beschriften(html) if en else html, encoding="utf-8")
             pdf = html_pdf(html_path)
         else:
             template = root / cfg["cv"]["anschreiben_tex"]
             tex = environment(template.parent).get_template(template.name).render(**context)
+            tex = sp.beschriften(tex) if en else tex
             tex_path = folder / "anschreiben.tex"
             tex_path.write_text(tex, encoding="utf-8")
             pdf = compile_tex(tex_path, cfg["cv"]["engine"], latex_log)
@@ -208,10 +248,11 @@ def build_anschreiben(root: Path, cfg: dict, folder: Path, today: date | None = 
 
 def build_lebenslauf(root: Path, cfg: dict, folder: Path, hinweise: list | None = None,
                      ki_zuschnitt: dict | None = None) -> Path:
-    from . import designs
+    from . import designs, sprache
     try:
         pdf = build(root, cfg, stelle=meta(folder), hinweise=hinweise, ki_zuschnitt=ki_zuschnitt,
-                    design=designs.fuer_bewerbung(cfg, folder, meta(folder)))
+                    design=designs.fuer_bewerbung(cfg, folder, meta(folder)),
+                    sprache=sprache.fuer_bewerbung(folder))
     except CvBuildError as exc:
         raise BewerbungError(str(exc)) from None
     target = folder / "lebenslauf.pdf"
@@ -248,6 +289,30 @@ def build_mappe(root: Path, cfg: dict, folder: Path, today: date | None = None,
         row["status"] = "Entwurf"
     tracking.save(apps_path, rows)
     return target, fehlend
+
+
+def anzeige_sichern(root: Path, cfg: dict, folder: Path, fetcher=None) -> str:
+    """Anzeigentext im Bewerbungsordner sichern (anzeige.txt), damit er auch nach dem Löschen der Anzeige da ist.
+    Vorhandener Text bleibt; ein leerer (Seite war nicht lesbar) wird erneut versucht. Gibt den Text zurück."""
+    from . import ki
+    from .eigene_stelle import fetcher_from
+    cache = folder / "anzeige.txt"
+    if cache.is_file() and not cache.read_text(encoding="utf-8").strip():
+        cache.unlink()
+    return ki.anzeige(root, meta(folder).get("url") or "", fetcher or fetcher_from(cfg), cache)
+
+
+def anzeige_eintragen(folder: Path, text: str) -> None:
+    """Anzeigentext von Hand (z. B. von LinkedIn kopiert, das die App nicht abruft)."""
+    (folder / "anzeige.txt").write_text(text.replace("\r\n", "\n").strip(), encoding="utf-8")
+
+
+def anzeige(folder: Path) -> tuple[str, datetime | None]:
+    """(gesicherter Anzeigentext, Zeitpunkt der Sicherung) – ("", None), wenn nichts gesichert ist."""
+    cache = folder / "anzeige.txt"
+    if not cache.is_file():
+        return "", None
+    return cache.read_text(encoding="utf-8"), datetime.fromtimestamp(cache.stat().st_mtime)
 
 
 def discard(folder: Path, trash: Path | None = None) -> Path:

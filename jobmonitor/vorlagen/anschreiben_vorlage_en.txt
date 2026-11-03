@@ -1,0 +1,16 @@
+# Template for English cover letter drafts (Bewerbung → Sprache: Englisch). Lines starting with # are ignored.
+# Placeholders in {curly braces} are filled from cv_master.en.yaml, profile.yaml and the job ad:
+#   {firma} {stelle} {studium} {station_satz} {passt} {zeitraum} {zielrolle} {absicht} {ausblick}
+# Text in [square brackets] is for you to write; the app warns before building the PDF while any are left.
+# Separate paragraphs with a blank line. No personal data here (that comes from profile.yaml).
+# You can copy this file to cv/anschreiben_vorlage_en.txt and adapt it.
+
+I am applying for the position of {stelle} at {firma}. I am currently {studium} and I am looking for [the kind of role you are looking for].
+
+{station_satz} My experience with {passt} matches the requirements of your position particularly well.
+
+[Why {firma}? One or two sentences on what specifically appeals to you about the company, the team or the role.]
+
+[One concrete example: a project or task in which you already did something from the job ad, and what came of it.]
+
+[When you can start and how many hours per week.] I would be delighted to discuss in an interview how I can contribute to your team.

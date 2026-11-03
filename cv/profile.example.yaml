@@ -16,6 +16,7 @@ links:
 studium: ""               # z. B. Cyber Security Management, Hochschule Niederrhein, 5. Semester
 zeitraum: ""              # z. B. ab Sommersemester 2027, 16–20 h/Woche
 zeitraum_junior: ""       # Junior-Profil: z. B. ab Oktober 2027 in Vollzeit
+gehalt: ""                # nur für Bewerbungsportale (Kopierhilfe), z. B. 16 € pro Stunde
 # Was im PDF erscheinen soll. Schema bitte vollständig lassen.
 anzeigen:
   adresse: true

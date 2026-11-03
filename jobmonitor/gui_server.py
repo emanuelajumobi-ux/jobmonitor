@@ -77,8 +77,8 @@ def handler_for(app: App, server_ref: list):
                     app.window.show()
                 return self._send(b"ok", "text/plain; charset=utf-8")
             if not app.ready and path in ("/", "/index.html"):
-                return self._send(page("Start", '<meta http-equiv="refresh" content="1"><div class="splash">'
-                                                '<h1>Job-Monitor</h1><p>Synchronisiere mit GitHub …</p></div>'))
+                return self._send(app.uebersetzt(page("Start", '<meta http-equiv="refresh" content="1"><div class="splash">'
+                                                '<h1>Job-Monitor</h1><p>Synchronisiere mit GitHub …</p></div>')))
             alle = "alle=1" in query.split("&")
             traum = "traum=1" in query.split("&")
             if path in ("/", "/index.html"):
@@ -249,12 +249,12 @@ def handler_for(app: App, server_ref: list):
                 subprocess.run(["open", "-R", str(path)])
                 return self._send(app.index())
             if self.path == "/quit" and app.window is not None:   # App: Fenster schließen, desktop.py synchronisiert
-                self._send(page("Beendet", "<h1>Wird beendet …</h1><p>Synchronisiere mit GitHub.</p>"))
+                self._send(app.uebersetzt(page("Beendet", "<h1>Wird beendet …</h1><p>Synchronisiere mit GitHub.</p>")))
                 threading.Thread(target=app.window.destroy, daemon=True).start()
                 return
             if self.path == "/quit":
                 card = app.sync_card()
-                self._send(page("Beendet", f"<h1>Beendet</h1>{card}<p>Du kannst dieses Fenster schließen.</p>"))
+                self._send(app.uebersetzt(page("Beendet", f"<h1>Beendet</h1>{card}<p>Du kannst dieses Fenster schließen.</p>")))
                 threading.Thread(target=server_ref[0].shutdown, daemon=True).start()
                 return
             self._send(b"Nicht gefunden", "text/plain; charset=utf-8", 404)

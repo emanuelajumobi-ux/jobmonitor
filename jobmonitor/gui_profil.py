@@ -20,6 +20,7 @@ TEXT_FIELDS = [
     ("links.linkedin", "LinkedIn (optional)"), ("links.github", "GitHub (optional)"),
     ("studium", "Studium für Anschreiben (optional, sonst aus dem Master-CV)"),
     ("zeitraum", "Zeitraum für Anschreiben, z. B. „ab März 2027 mit 20 Stunden pro Woche“"),
+    ("gehalt", "Gehaltsvorstellung für Bewerbungsportale (optional), z. B. „16 € pro Stunde“"),
 ]
 BOOL_FIELDS = [("anzeigen.adresse", "Adresse"),
                ("anzeigen.geburtsdatum", "Geburtsdatum"),

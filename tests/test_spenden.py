@@ -1,4 +1,6 @@
 """Freiwillige Unterstützung: nur mit gültigem Link sichtbar, Glückwunsch beim Eintragen einer Zusage."""
+import re
+
 from jobmonitor import spenden, tracking
 from jobmonitor.gui import App
 from tests.test_bewerbung import root  # noqa: F401  (Fixture)
@@ -15,8 +17,8 @@ def test_link_nur_wenn_gueltig():
 
 def test_zusage_in_der_app(root):  # noqa: F811
     text = (root / "config.yaml").read_text(encoding="utf-8")
-    (root / "config.yaml").write_text(text.replace('spenden:\n  url: ""', 'spenden:\n  url: "https://ko-fi.com/beispiel"')
-                                      if 'spenden:\n  url: ""' in text else text + '\nspenden:\n  url: "https://ko-fi.com/beispiel"\n',
+    (root / "config.yaml").write_text(re.sub(r'spenden:\n  url: "[^"]*"', 'spenden:\n  url: "https://ko-fi.com/beispiel"', text)
+                                      if re.search(r'spenden:\n  url: "[^"]*"', text) else text + '\nspenden:\n  url: "https://ko-fi.com/beispiel"\n',
                                       encoding="utf-8")
     tracking.save(root / "applications.csv", [{"firma": "Beispiel AG", "typ": "Stelle", "status": "beworben",
                                                 "datum": "2026-10-01", "link": "https://x/1", "notizen": ""}])

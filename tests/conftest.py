@@ -32,7 +32,8 @@ def ohne_echte_ki(monkeypatch):
     """Tests rufen nie die echte Claude-API auf: kein Schlüssel aus Umgebung oder Schlüsselbund, keine WIF-Variablen,
     und jeder Aufruf, der trotzdem durchrutscht, schlägt laut fehl. Tests, die KI brauchen, setzen ki.schluessel
     bzw. llm._ask selbst."""
-    from jobmonitor import ki, llm
+    from jobmonitor import i18n, ki, llm
+    monkeypatch.setattr(i18n, "systemsprache", lambda run=None: "de")   # erster Start in Tests immer deutsch
     for var in ("ANTHROPIC_API_KEY", "ANTHROPIC_FEDERATION_RULE_ID", "ANTHROPIC_ORGANIZATION_ID",
                 "ACTIONS_ID_TOKEN_REQUEST_URL"):
         monkeypatch.delenv(var, raising=False)

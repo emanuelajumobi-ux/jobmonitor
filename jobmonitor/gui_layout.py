@@ -210,6 +210,9 @@ input:focus, textarea:focus, select:focus { outline:none; border-color:var(--tex
   box-shadow:0 0 0 3px color-mix(in srgb, var(--text) 12%, transparent); }
 input[type=checkbox], input[type=radio] { min-height:0; width:auto; accent-color:var(--text); }
 input[type=file] { padding:6px; }
+.drop-tipp { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+.row > .drop-tipp { flex-basis:100%; order:3; margin-top:0; }
+form.drop-ziel { outline:2px dashed var(--accent, #3b82f6); outline-offset:6px; border-radius:10px; }
 textarea { min-height:150px; line-height:21px; }
 label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin:14px 0 6px; }
 label.check { display:flex; align-items:center; gap:8px; color:var(--text); font-size:14px; font-weight:400; margin:6px 0; }
@@ -464,6 +467,49 @@ document.querySelectorAll('[data-copy]').forEach(b => b.addEventListener('click'
   if (navigator.clipboard) navigator.clipboard.writeText(el.value).then(done, () => { el.select(); document.execCommand('copy'); done(); });
   else { el.select(); document.execCommand('copy'); done(); }
 }));
+// Dateien ins Fenster ziehen: auf ein Formular mit Dateifeld (oder irgendwohin, wenn die Seite nur eines hat).
+// Passt die Datei zum Feld, wird sie eingesetzt und das Formular abgeschickt. Ohne das würde das Fenster die Datei
+// selbst öffnen und die App verlassen.
+const dateiFelder = [...document.querySelectorAll('input[type=file]')];
+function passt(feld, datei) {
+  const acc = (feld.accept || '').split(',').map(a => a.trim().toLowerCase()).filter(Boolean);
+  const name = datei.name.toLowerCase();
+  return !acc.length || acc.some(a => a.startsWith('.') ? name.endsWith(a) : a.endsWith('/*')
+    ? datei.type.startsWith(a.slice(0, -1)) : datei.type === a);
+}
+function zielFeld(e) {
+  const form = e.target.closest && e.target.closest('form');
+  const feld = form && form.querySelector('input[type=file]');
+  return feld || (dateiFelder.length === 1 ? dateiFelder[0] : null);
+}
+dateiFelder.forEach(f => {
+  const tipp = document.createElement('small');
+  tipp.className = 'drop-tipp'; tipp.textContent = 'oder Datei hierher ziehen';
+  f.insertAdjacentElement('afterend', tipp);
+});
+let markiert;
+document.addEventListener('dragover', e => {
+  e.preventDefault();
+  const feld = zielFeld(e), form = feld && feld.form;
+  e.dataTransfer.dropEffect = feld ? 'copy' : 'none';
+  if (markiert && markiert !== form) markiert.classList.remove('drop-ziel');
+  if (form) { form.classList.add('drop-ziel'); markiert = form; }
+});
+document.addEventListener('dragleave', e => {
+  if (markiert && !e.relatedTarget) { markiert.classList.remove('drop-ziel'); markiert = null; }
+});
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  if (markiert) { markiert.classList.remove('drop-ziel'); markiert = null; }
+  const feld = zielFeld(e), dateien = [...(e.dataTransfer.files || [])];
+  if (!feld || !dateien.length) return;
+  const ok = dateien.filter(d => passt(feld, d)).slice(0, feld.multiple ? undefined : 1);
+  if (!ok.length) { alert('Diese Datei passt hier nicht (erwartet: ' + (feld.accept || 'Datei') + ').'); return; }
+  const dt = new DataTransfer(); ok.forEach(d => dt.items.add(d));
+  feld.files = dt.files;
+  feld.dispatchEvent(new Event('change', {bubbles: true}));
+  if (feld.form.querySelectorAll('input[type=file]').length === 1 && feld.form.checkValidity()) feld.form.requestSubmit();
+});
 // PDFs in Vorschau öffnen statt im Fenster
 document.addEventListener('click', e => {
   const a = e.target.closest('a[data-open]');

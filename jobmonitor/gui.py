@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, designs, spenden, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, designs, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -139,8 +139,17 @@ class App(BewerbungenSeiten):
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
         if (knopf := gh.knopf(active)):                 # „?“ unten rechts: Hilfe zu dieser Seite
             body, extra_css = body + knopf, extra_css + gh.KNOPF_CSS
-        return layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name),
-                               extra_css, self.token, self.native)
+        seite = layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name),
+                                extra_css, self.token, self.native)
+        return self.uebersetzt(seite)
+
+    def uebersetzt(self, seite: bytes) -> bytes:
+        """Englische Oberfläche (Einstellungen → Sprache): fertige Seite übersetzen (i18n.py)."""
+        try:
+            en = i18n.sprache(load_config(self.root / "config.yaml")) == "en"
+        except Exception:
+            en = False
+        return i18n.seite(seite.decode()).encode() if en else seite
 
     def badges(self) -> dict[str, tuple[int, str]]:
         cfg = load_config(self.root / "config.yaml")
@@ -241,6 +250,12 @@ class App(BewerbungenSeiten):
         """Einrichtungs-Assistent (gui_assistent.py); ohne Formular nur die Seite."""
         ki_an = bool(ki.schluessel())
         message = ""
+        if form and form.get("aktion") == "sprache_gui":
+            try:
+                i18n.setzen(self.root, form.get("sprache", ""))
+            except gw.WartungError as exc:
+                message = f'<div class="card err">{esc(exc)}</div>'
+            form = None
         if form:
             try:
                 ergebnis = gas.ausfuehren(self.root, form, uploads or {}, ki_an)
@@ -256,7 +271,8 @@ class App(BewerbungenSeiten):
                 message = f'<div class="card"><p class="ok">{esc(ergebnis)}</p></div>'
             except (gas.AssistentError, ki.KiError, wohnort.WohnortError, gw.WartungError, CvDataError) as exc:
                 message = f'<div class="card err">{esc(exc)}</div>'
-        return self.page("Einrichten", gas.render(self.root, self.token, ki_an, message), "", gas.CSS)
+        sprache_html = i18n.karte(self.token, i18n.sprache(load_config(self.root / "config.yaml")), "/einrichten")
+        return self.page("Einrichten", gas.render(self.root, self.token, ki_an, message) + sprache_html, "", gas.CSS)
 
     def index(self, message: str = "", show_hidden: bool = False, nur_traum: bool = False, profil: str = "") -> bytes:
         """Stellen: oben der Befund, darunter die Liste nach Fit und rechts die Belege (häufigste Lücken,
@@ -480,13 +496,16 @@ class App(BewerbungenSeiten):
     def ki_cv_an(self, cfg: dict) -> bool:
         return bool(ki.settings(cfg).get("lebenslauf", True)) and bool(ki.schluessel())
 
-    def ki_lebenslauf(self, cfg: dict, stelle: dict | None, cache: Path | None = None) -> tuple[dict | None, str]:
+    def ki_lebenslauf(self, cfg: dict, stelle: dict | None, cache: Path | None = None,
+                      sprache_: str = "de") -> tuple[dict | None, str]:
         """KI-Zuschnitt für einen Lebenslauf zu `stelle` (title, company, url, anforderungen). Ohne Schlüssel oder
         bei Fehlern: (None, Hinweis) – gebaut wird dann wie bisher regelbasiert."""
         if not stelle or not self.ki_cv_an(cfg):
             return None, ""
         try:
             cv, _ = load_cv_master(self.root)
+            if sprache_ == "en":
+                cv = sprache.cv_en(self.root) or cv
             if not cv:
                 return None, ""
             anzeige = ki.anzeige(self.root, stelle.get("url") or "", fetcher_from(cfg), cache)
@@ -566,8 +585,10 @@ class App(BewerbungenSeiten):
             return None
         stelle = bw.meta(folder)
         data = bw.letter(folder)
+        lang = sprache.fuer_bewerbung(folder)
         if data is None:   # erster Besuch: Entwurf aus der Vorlage
-            bw.save_letter(folder, bw.draft(self.root, cfg, stelle), bw.ANREDE, "")
+            bw.save_letter(folder, bw.draft(self.root, cfg, stelle, lang),
+                           bw.ANREDE_EN if lang == "en" else bw.ANREDE, "")
             data = bw.letter(folder)
         try:
             cv, _ = load_cv_master(self.root)
@@ -591,11 +612,33 @@ class App(BewerbungenSeiten):
         design = designs.fuer_bewerbung(cfg, folder, stelle)
         punkte = abschicken.pruefen(folder, data, stelle, cfg, anlagen, andere,
                                     stelle.get("url") in self.offline_links(), design=design)
-        design_html = designs.auswahl_html(self.token, f"/bewerbung/{quote(slug)}", design, esc)
+        ziel = f"/bewerbung/{quote(slug)}"
+        anzeige_text, gesichert = bw.anzeige(folder)
+        try:
+            hat_en = sprache.cv_en(self.root) is not None
+        except CvDataError:
+            hat_en = True          # Fehler zeigt der Bau des Lebenslaufs an
+        design_html = (designs.auswahl_html(self.token, ziel, design, esc)
+                       + sprache.auswahl_html(self.token, ziel, lang, sprache.erkennen(anzeige_text), hat_en,
+                                              bool(ki.schluessel()), esc)
+                       + gbw.anzeige_karte(self.token, ziel, stelle, anzeige_text, gesichert)
+                       + self.portal_karte(folder, cfg, stelle, data, lang, ziel))
         body = gbw.render(slug, stelle, data, fit_line(job), bw.files(folder), anlagen, self.token, message, ki_an,
-                          abschicken.render(punkte, self.token, f"/bewerbung/{quote(slug)}", bool(ki.schluessel())),
-                          design_html)
-        return self.page("Bewerbung", body, "bewerbungen")
+                          abschicken.render(punkte, self.token, ziel, bool(ki.schluessel())), design_html)
+        return self.page("Bewerbung", body, "bewerbungen", portal.CSS + gbw.CSS)
+
+    def portal_karte(self, folder: Path, cfg: dict, stelle: dict, data: dict, lang: str, ziel: str) -> str:
+        en = lang == "en"
+        try:
+            cv = (sprache.cv_en(self.root) if en else None) or load_cv_master(self.root)[0] or {}
+        except CvDataError:
+            cv = {}
+        profile = bw.load_profile(self.root) or {}
+        zeitraum = None if en else bw.zeitraum_aus(profile, suchprofil.get(cfg, stelle.get("profil")))
+        gemerkt = portal.gekuerzt(folder)
+        grenze = int(gemerkt.get("_grenze") or 500)
+        return portal.render(portal.felder(profile, cv, data, zeitraum, en), self.token, ziel, grenze,
+                             bool(ki.schluessel()), gemerkt) + f"<script>{portal.JS}</script>"
 
     def bewerbung_post(self, slug: str, form: dict) -> bytes | None:
         cfg = load_config(self.root / "config.yaml")
@@ -619,11 +662,72 @@ class App(BewerbungenSeiten):
             subprocess.run(["open", str(folder)])
             return self.bewerbung(slug)
         if aktion == "neu":
-            bw.save_letter(folder, bw.draft(self.root, cfg, bw.meta(folder)), form.get("anrede", ""),
-                           form.get("empfaenger", ""))
+            bw.save_letter(folder, bw.draft(self.root, cfg, bw.meta(folder), sprache.fuer_bewerbung(folder)),
+                           form.get("anrede", ""), form.get("empfaenger", ""))
             return self.bewerbung(slug, '<div class="card"><p class="ok">Neuer Entwurf aus der Vorlage.</p></div>')
         if aktion == "ki":
             return self.bewerbung_ki(slug, folder, cfg, form)
+        if aktion == "vorbereiten":
+            return self.bewerbung_vorbereiten(slug, folder, cfg, form)
+        if aktion == "sprache":
+            try:
+                sprache.waehlen(folder, form.get("sprache", ""))
+            except sprache.SpracheError as exc:
+                return self.bewerbung(slug, f'<div class="card err">{esc(exc)}</div>')
+            lang = form["sprache"]
+            data = bw.letter(folder) or {}
+            stelle = bw.meta(folder)
+            info = ""
+            if data.get("text") in (bw.draft(self.root, cfg, stelle, "de"), bw.draft(self.root, cfg, stelle, "en")):
+                bw.save_letter(folder, bw.draft(self.root, cfg, stelle, lang),
+                               bw.ANREDE_EN if lang == "en" else bw.ANREDE, data.get("empfaenger", ""))
+                info = " Der noch unveränderte Entwurf ist jetzt in dieser Sprache."
+            elif lang == "en":
+                info = " Dein Anschreiben ist noch deutsch – „Entwurf mit KI“ schreibt es auf Englisch neu."
+            return self.bewerbung(slug, f'<div class="card"><p class="ok">Sprache: {sprache.SPRACHEN[lang]}.{info} '
+                                        f'„Speichern und Mappe bauen“ erzeugt die PDFs neu.</p></div>')
+        if aktion == "cv_uebersetzen":
+            try:
+                cv, _ = load_cv_master(self.root)
+                if not cv:
+                    raise ki.KiError("Keine cv_master.yaml – es gibt nichts zu übersetzen.")
+                pfad = sprache.uebersetzen(self.root, cfg, cv)
+            except (ki.KiError, sprache.SpracheError, CvDataError) as exc:
+                return self.bewerbung(slug, f'<div class="card err">{esc(exc)}</div>')
+            return self.bewerbung(slug, f'<div class="card"><p class="ok">Master-CV übersetzt: {esc(pfad.name)}. Bitte '
+                                        f'einmal durchlesen – unter <a href="/dateien">Dateien</a> kannst du '
+                                        f'Formulierungen anpassen.</p></div>')
+        if aktion == "anzeige_sichern":
+            text = bw.anzeige_sichern(self.root, cfg, folder)
+            return self.bewerbung(slug, '<div class="card"><p class="ok">Anzeige im Bewerbungsordner gesichert.</p>'
+                                        '</div>' if text else
+                                  '<div class="card err">Die Anzeige ließ sich nicht abrufen (nicht mehr online, '
+                                  'robots.txt oder eine Seite wie LinkedIn, die die App nicht abruft). Du kannst den '
+                                  'Text unten selbst einfügen.</div>')
+        if aktion == "anzeige_eintragen":
+            if not form.get("anzeige", "").strip():
+                return self.bewerbung(slug, '<div class="card err">Bitte den Anzeigentext einfügen.</div>')
+            bw.anzeige_eintragen(folder, form["anzeige"])
+            return self.bewerbung(slug, '<div class="card"><p class="ok">Anzeigentext gespeichert.</p></div>')
+        if aktion in ("portal_grenze", "portal_ki"):
+            data = portal.gekuerzt(folder)
+            grenze = int(form.get("grenze") or 500) if str(form.get("grenze", "")).isdigit() else 500
+            data["_grenze"] = grenze if grenze in portal.GRENZEN else 500
+            (folder / portal.DATEI).write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            if aktion == "portal_ki":
+                lang = sprache.fuer_bewerbung(folder)
+                feld = form.get("feld", "")
+                felder = {f["key"]: f["wert"] for f in portal.felder(
+                    bw.load_profile(self.root) or {},
+                    (sprache.cv_en(self.root) if lang == "en" else None) or load_cv_master(self.root)[0] or {},
+                    bw.letter(folder), None, lang == "en")}
+                if feld not in ("kurzprofil", "motivation") or not felder.get(feld):
+                    return self.bewerbung(slug)
+                try:
+                    portal.ki_kuerzen(self.root, cfg, folder, feld, felder[feld], data["_grenze"], lang == "en")
+                except ki.KiError as exc:
+                    return self.bewerbung(slug, f'<div class="card err">{esc(exc)}</div>')
+            return self.bewerbung(slug)
         if aktion == "design":       # eigenes Formular: nur das Design dieser Bewerbung
             try:
                 designs.waehlen(folder, form.get("design", ""))
@@ -643,7 +747,10 @@ class App(BewerbungenSeiten):
             return self.bewerbung(slug, abschicken.ki_html(ergebnis))
         bw.save_letter(folder, form.get("text", ""), form.get("anrede", ""), form.get("empfaenger", ""))
         hinweise: dict[str, list] = {}
-        zuschnitt, ki_info = (self.ki_lebenslauf(cfg, bw.meta(folder), folder / "anzeige.txt")
+        if aktion == "mappe":
+            bw.anzeige_sichern(self.root, cfg, folder)      # Anzeige für später sichern (Gespräch, Nachfassen)
+        zuschnitt, ki_info = (self.ki_lebenslauf(cfg, bw.meta(folder), folder / "anzeige.txt",
+                                                 sprache.fuer_bewerbung(folder))
                               if aktion in ("lebenslauf", "mappe") else (None, ""))
         try:
             if aktion == "anschreiben":
@@ -671,20 +778,18 @@ class App(BewerbungenSeiten):
     def bewerbung_ki(self, slug: str, folder: Path, cfg: dict, form: dict) -> bytes:
         """Anschreiben-Entwurf mit KI aus Anzeige und Master-CV; der bisherige Text bleibt als .bak daneben."""
         stelle = bw.meta(folder)
+        en = sprache.fuer_bewerbung(folder) == "en"
         try:
-            cv, _ = load_cv_master(self.root)
-            if not cv:
-                raise ki.KiError("Keine cv_master.yaml – ohne Lebenslauf kann die KI nichts belegen.")
-            anzeige = ki.anzeige(self.root, stelle.get("url") or "", fetcher_from(cfg), folder / "anzeige.txt")
-            ziel = suchprofil.get(cfg, stelle.get("profil"))
-            text = ki.anschreiben(self.root, cfg, stelle, anzeige, cv, ziel,
-                                  bw.zeitraum_aus(bw.load_profile(self.root) or {}, ziel))
+            text, anzeige = self._ki_anschreiben(cfg, folder, stelle, en)
         except (ki.KiError, CvDataError) as exc:
             return self.bewerbung(slug, f'<div class="card err">{esc(exc)}</div>')
         alt = folder / "anschreiben.json"
         if alt.is_file():
             alt.with_name("anschreiben.json.bak").write_text(alt.read_text(encoding="utf-8"), encoding="utf-8")
-        bw.save_letter(folder, text, form.get("anrede", ""), form.get("empfaenger", ""))
+        anrede = form.get("anrede", "")
+        if en and anrede.strip() in ("", bw.ANREDE):
+            anrede = bw.ANREDE_EN
+        bw.save_letter(folder, text, anrede, form.get("empfaenger", ""))
         data = bw.letter(folder)
         andere = [bw.meta(f).get("company", "") for f in bw.workspaces(self.root, cfg) if f != folder]
         quelle = ("aus Anzeigentext und Master-CV" if anzeige else
@@ -694,6 +799,63 @@ class App(BewerbungenSeiten):
                                     f'anschreiben.json.bak im Ordner.</p></div>'
                                     + pruefung_html(bw.anschreiben_check.check_text(data, stelle, cfg, andere),
                                                     "Anschreiben"))
+
+    def _ki_anschreiben(self, cfg: dict, folder: Path, stelle: dict, en: bool) -> tuple[str, str]:
+        """(KI-Anschreiben, Anzeigentext) – auf Englisch mit dem englischen Master-CV."""
+        cv, _ = load_cv_master(self.root)
+        if en:
+            cv = sprache.cv_en(self.root) or cv
+        if not cv:
+            raise ki.KiError("Keine cv_master.yaml – ohne Lebenslauf kann die KI nichts belegen.")
+        anzeige = ki.anzeige(self.root, stelle.get("url") or "", fetcher_from(cfg), folder / "anzeige.txt")
+        ziel = suchprofil.get(cfg, stelle.get("profil"))
+        text = ki.anschreiben(self.root, cfg, stelle, anzeige, cv, ziel,
+                              bw.zeitraum_aus(bw.load_profile(self.root) or {}, ziel), englisch=en)
+        return text, anzeige
+
+    def bewerbung_vorbereiten(self, slug: str, folder: Path, cfg: dict, form: dict) -> bytes:
+        """„Alles vorbereiten“: Text speichern, Anzeige sichern, Anschreiben mit KI (nur solange es noch der
+        unveränderte Entwurf ist), Lebenslauf zuschneiden und Mappe bauen – ein Klick statt vier."""
+        stelle = bw.meta(folder)
+        lang = sprache.fuer_bewerbung(folder)
+        bw.save_letter(folder, form.get("text", ""), form.get("anrede", ""), form.get("empfaenger", ""))
+        schritte, hinweise_html = [], ""
+        anzeige = bw.anzeige_sichern(self.root, cfg, folder)
+        schritte.append("Anzeige gesichert" if anzeige else "Anzeige nicht abrufbar (Text ggf. unten selbst einfügen)")
+        data = bw.letter(folder) or {}
+        unveraendert = data.get("text") == bw.draft(self.root, cfg, stelle, lang)
+        if unveraendert and ki.schluessel():
+            try:
+                text, _ = self._ki_anschreiben(cfg, folder, stelle, lang == "en")
+                anrede = data.get("anrede", "")
+                if lang == "en" and anrede in ("", bw.ANREDE):
+                    anrede = bw.ANREDE_EN
+                bw.save_letter(folder, text, anrede, data.get("empfaenger", ""))
+                schritte.append("Anschreiben mit KI entworfen")
+            except (ki.KiError, CvDataError) as exc:
+                schritte.append(f"Anschreiben aus der Vorlage (KI: {exc})")
+        elif unveraendert:
+            schritte.append("Anschreiben aus der Vorlage (für einen KI-Entwurf: KI in den Einstellungen einrichten)")
+        else:
+            schritte.append("dein Anschreiben übernommen")
+        zuschnitt, ki_info = self.ki_lebenslauf(cfg, stelle, folder / "anzeige.txt", lang)
+        hinweise: dict[str, list] = {}
+        try:
+            mappe, fehlend = bw.build_mappe(self.root, cfg, folder, hinweise=hinweise, ki_zuschnitt=zuschnitt)
+        except bw.BewerbungError as exc:
+            return self.bewerbung(slug, f'<div class="card err">Vorbereitet: {esc(" · ".join(schritte))}. Die Mappe '
+                                        f'ließ sich nicht bauen: {esc(exc)}</div>')
+        schritte.append("Lebenslauf " + ("mit KI " if zuschnitt else "") + "zugeschnitten")
+        schritte.append(f"Mappe gebaut{' (ohne ' + ', '.join(fehlend) + ')' if fehlend else ''}")
+        offen = len(bw.placeholders((bw.letter(folder) or {}).get("text", "")))
+        hinweise_html = "".join(pruefung_html(h, "Anschreiben" if was == "anschreiben" else "Lebenslauf")
+                                for was, h in hinweise.items())
+        return self.bewerbung(slug, f'<div class="card"><p class="ok">Alles vorbereitet: {esc(" · ".join(schritte))}. '
+                                    f'<a href="/bewerbung/{quote(slug)}/{quote(mappe.name)}" target="_blank" '
+                                    f'data-open>Mappe öffnen</a></p><p class="muted">Bitte das Anschreiben lesen'
+                                    f'{f" und {offen} Platzhalter ersetzen" if offen else ""}, dann „Speichern und Mappe '
+                                    f'bauen“. Für Online-Portale stehen die Felder unten unter „Für Bewerbungsportale“ '
+                                    f'zum Kopieren bereit.</p></div>{ki_info}{hinweise_html}')
 
     def resolve_file(self, url_path: str) -> Path | None:
         """Lokale Datei zu einem Link der Oberfläche (nur PDFs aus cv/out, Bewerbungsordnern, Unterlagen)."""
@@ -1026,7 +1188,8 @@ class App(BewerbungenSeiten):
     # --- Einstellungen (statt Terminal) ---
     def einstellungen(self, message: str = "") -> bytes:
         cfg = load_config(self.root / "config.yaml")
-        profile_html = (zeitplan.karte(self.root, self.token, esc, zeitplan.github_aktiv(self.root))
+        profile_html = (i18n.karte(self.token, i18n.sprache(cfg))
+                        + zeitplan.karte(self.root, self.token, esc, zeitplan.github_aktiv(self.root))
                         + wohnort.karte(self.token, cfg.get("ort") or {}, bool(ki.schluessel()), esc)
                         + gsp.render_liste(self.token, cfg, self._portale()))
         try:
@@ -1113,6 +1276,10 @@ class App(BewerbungenSeiten):
             if aktion in ("pipeline", "pipeline_ohne_mail"):
                 msg = ok(gw.pipeline_starten(self.root, aktion == "pipeline_ohne_mail"))
                 self._laeufe = None                                 # neuer Lauf soll gleich in der Liste stehen
+            elif aktion == "sprache_gui":
+                i18n.setzen(self.root, form.get("sprache", ""))
+                msg = ok("Sprache der Oberfläche gespeichert." if form.get("sprache") == "de" else
+                         "Interface language saved.")
             elif aktion == "modus":
                 wert = form.get("modus", "")
                 vorher = modus(load_config(self.root / "config.yaml"))

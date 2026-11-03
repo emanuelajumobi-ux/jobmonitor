@@ -34,11 +34,16 @@ def render(slug: str, stelle: dict, data: dict, fit_line: str, files: list[str],
           '<a class="btn ghost" href="/einstellungen#ki" title="API-Schlüssel in den Einstellungen hinterlegen">'
           'Entwurf mit KI …</a>')
     ki_cv = ' data-ki="KI schneidet den Lebenslauf auf die Stelle zu …"' if ki_an else ""
+    alles = (f'<div class="card vorbereiten row"><button form="anschreiben-form" name="aktion" value="vorbereiten"'
+             f'{' data-ki="KI bereitet die Bewerbung vor …"' if ki_an else ""}>Alles vorbereiten</button>'
+             f'<span class="muted">Anzeige sichern, {"Anschreiben mit KI entwerfen, " if ki_an else ""}Lebenslauf '
+             f'zuschneiden und die Mappe bauen – in einem Schritt. Danach liest du alles noch einmal; abgeschickt '
+             f'wird nichts.</span></div>')
     return f"""
 <h1>Bewerbung: {esc(bw.clean_title(stelle["title"]))}</h1>
 <p class="sub">{esc(stelle["company"])} · <a href="{esc(stelle["url"])}" target="_blank" rel="noopener">Anzeige</a> ·
 {esc(fit_line)}{frist_html}</p>
-{message}{warn}
+{message}{warn}{alles}
 <div class="card"><h2>Dateien</h2><div class="row">{links}</div>
 <form method="post" action="/bewerbung/{quote(slug)}" style="margin-top:10px">
 <input type="hidden" name="token" value="{token}"><button name="aktion" value="ordner" class="ghost">Ordner im Finder zeigen</button>
@@ -49,7 +54,7 @@ def render(slug: str, stelle: dict, data: dict, fit_line: str, files: list[str],
 <label class="check"><input type="checkbox" name="ausblenden" value="1"> Stelle auch ausblenden</label>
 <button name="aktion" value="verwerfen" class="ghost danger">Bewerbung verwerfen</button>
 </form></div>
-<form method="post" action="/bewerbung/{quote(slug)}"><input type="hidden" name="token" value="{token}">
+<form method="post" action="/bewerbung/{quote(slug)}" id="anschreiben-form"><input type="hidden" name="token" value="{token}">
 <div class="card"><h2>Anschreiben</h2>
 <div class="grid2"><div><label>Anrede (Ansprechperson nur, wenn die Firma sie selbst für Bewerbungen nennt)</label>
 <input name="anrede" value="{esc(data["anrede"])}"></div>
@@ -69,6 +74,33 @@ def render(slug: str, stelle: dict, data: dict, fit_line: str, files: list[str],
 {ki}</div></form>
 {design_html}
 {abschicken}"""
+
+
+def anzeige_karte(token: str, ziel: str, stelle: dict, text: str, gesichert) -> str:
+    """Gesicherter Anzeigentext (anzeige.txt im Bewerbungsordner) – bleibt, auch wenn die Anzeige offline geht."""
+    form = (f'<form method="post" action="{ziel}#anzeige"><input type="hidden" name="token" value="{token}">')
+    if text.strip():
+        return (f'<div class="card" id="anzeige"><details><summary><h2 style="display:inline">Gesicherte Anzeige</h2> '
+                f'<span class="muted">– Stand {gesichert:%d.%m.%Y}, bleibt auch, wenn die Anzeige offline geht'
+                f'</span></summary><pre class="anzeige-text">{esc(text)}</pre>{form}<button name="aktion" '
+                f'value="anzeige_eintragen" class="ghost small">Text ersetzen</button> <textarea name="anzeige" rows="4" '
+                f'placeholder="Neuen Anzeigentext einfügen, um den gesicherten zu ersetzen"></textarea></form>'
+                f'</details></div>')
+    return (f'<div class="card" id="anzeige"><h2>Anzeige sichern</h2><p class="muted">Anzeigen verschwinden oft, '
+            f'bevor das Gespräch stattfindet. Gesichert liegt der Text im Bewerbungsordner – für die '
+            f'Gesprächsvorbereitung und zum Nachlesen. „Alles vorbereiten“ und „Mappe bauen“ sichern ihn automatisch.'
+            f'</p>{form}<div class="row"><button name="aktion" value="anzeige_sichern" class="ghost small">Jetzt '
+            f'sichern</button></div><label style="margin-top:10px">Oder Text selbst einfügen (z. B. von LinkedIn, das '
+            f'die App nicht abruft)</label><textarea name="anzeige" rows="4"></textarea><button name="aktion" '
+            f'value="anzeige_eintragen" class="ghost small" style="margin-top:6px">Text speichern</button></form></div>')
+
+
+CSS = """
+.vorbereiten { gap:14px; align-items:center; flex-wrap:nowrap; } .vorbereiten button { flex:none; }
+.anzeige-text { white-space:pre-wrap; font:inherit; font-size:13px; max-height:420px; overflow:auto;
+  background:var(--soft, rgba(0,0,0,.03)); padding:12px; border-radius:8px; }
+#anzeige summary { cursor:pointer; list-style:none; } #anzeige summary::-webkit-details-marker { display:none; }
+"""
 
 
 def list_card(root: Path, cfg: dict) -> str:
