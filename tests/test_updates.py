@@ -4,7 +4,7 @@ from datetime import date
 
 from jobmonitor import __version__, updates
 
-CFG = {"updates": {"enabled": True, "repo": "emanuelajumobi-ux/job-monitor-app"}}
+CFG = {"updates": {"enabled": True, "repo": "emanuelajumobi-ux/jobmonitor"}}
 
 
 class Antwort:
@@ -12,7 +12,7 @@ class Antwort:
         self.status_code, self._tag = status, tag
 
     def json(self):
-        return {"tag_name": self._tag, "html_url": "https://github.com/emanuelajumobi-ux/job-monitor-app/releases/x",
+        return {"tag_name": self._tag, "html_url": "https://github.com/emanuelajumobi-ux/jobmonitor/releases/x",
                 "body": "Neu: Update-Hinweis\n<script>"}
 
 
@@ -28,7 +28,7 @@ def test_pruefen_einmal_am_tag(tmp_path):
         aufrufe.append(url)
         return Antwort("v99.0.0")
     neu = updates.pruefen(tmp_path, CFG, get, date(2026, 11, 3))
-    assert neu["version"] == "99.0.0" and aufrufe == ["https://api.github.com/repos/emanuelajumobi-ux/job-monitor-app/releases/latest"]
+    assert neu["version"] == "99.0.0" and aufrufe == ["https://api.github.com/repos/emanuelajumobi-ux/jobmonitor/releases/latest"]
     assert updates.pruefen(tmp_path, CFG, get, date(2026, 11, 3))["version"] == "99.0.0" and len(aufrufe) == 1
     html = updates.hinweis(neu)
     assert "Version 99.0.0 ist da" in html and f"du hast {__version__}" in html and "&lt;script&gt;" in html

@@ -5,8 +5,8 @@ Berufserfahrung –, bewertet, wie gut sie zu deinem Lebenslauf passen, und hilf
 Gesprächsvorbereitung und Nachfassen. Alles läuft auf deinem Rechner. **Bewerbungen und Mails an Firmen schickst du
 immer selbst ab** – die App liefert nur Hinweise und Entwürfe.
 
-**Fertige App für Mac und Windows:** [Downloads](https://github.com/emanuelajumobi-ux/job-monitor-app/releases/latest)
-(nicht signiert; Anleitung im [Download-Repo](https://github.com/emanuelajumobi-ux/job-monitor-app)).
+**Fertige App für Mac und Windows:** [Downloads](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest) –
+siehe [Installieren](#installieren).
 
 ## Was die App macht
 
@@ -17,6 +17,18 @@ immer selbst ab** – die App liefert nur Hinweise und Entwürfe.
   „passt“ und „fehlt“; optional liest eine KI die Anforderungen und Eckdaten (Stunden, Vergütung, Remote, Start).
 - **Bewerben:** Lebenslauf und Anschreiben als PDF (LaTeX oder HTML), Prüfung vor dem Abschicken, Gesprächsvorbereitung,
   Nachfass-Entwürfe, Rückblick und Lücken-Auswertung mit Lernplan.
+
+## Installieren
+
+1. Unter **[Releases](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest)** `Job-Monitor-Mac.zip` oder
+   `Job-Monitor-Windows.zip` laden und entpacken. Mac: `Job-Monitor.app` in den Programme-Ordner ziehen. Windows: Ordner
+   an einen festen Ort legen und `Job-Monitor.exe` starten.
+2. Beim ersten Start fragt das System nach, weil die App nicht signiert ist – **Mac:** Öffnen versuchen, dann
+   Systemeinstellungen → Datenschutz & Sicherheit → „Trotzdem öffnen“. **Windows:** „Weitere Informationen“ →
+   „Trotzdem ausführen“.
+3. Der Einrichtungs-Assistent führt durch Angaben, Wohnort, Suchwunsch und Lebenslauf.
+4. **Updates** zeigt die App selbst an: neue Version laden und die alte ersetzen – deine Daten im Ordner
+   Dokumente/Job-Monitor bleiben erhalten.
 
 ## Grundsätze
 

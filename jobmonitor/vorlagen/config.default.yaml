@@ -331,7 +331,7 @@ traumprofil:
 # Neue Versionen: einmal am Tag die öffentliche Versionsliste bei GitHub abfragen (nur in der installierten App)
 updates:
   enabled: true
-  repo: emanuelajumobi-ux/job-monitor-app
+  repo: emanuelajumobi-ux/jobmonitor
 
 gui:                          # nur lokal: Oberfläche (Job-Monitor.app / make gui)
   manuell_pruefen_tage: 14    # Erinnerung, Karriereseiten unter „manuell prüfen“ wieder selbst anzusehen
