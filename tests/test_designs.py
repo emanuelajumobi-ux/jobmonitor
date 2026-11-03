@@ -56,3 +56,9 @@ def test_in_der_app(root):  # noqa: F811
     assert "Unbekanntes Design" in app.bewerbung_post(folder.name, {"aktion": "design", "design": "x"}).decode()
     assert "Designs für Lebenslauf und Anschreiben" in app.master().decode()
     assert "Max Muster" in app.design_vorschau("modern").decode() and app.design_vorschau("x") is None
+
+
+def test_vorschau_mit_seitenrand():
+    html = designs.mit_seitenrand('<html><head><style>@page { size: A4; margin: 15mm 18mm; }</style></head></html>')
+    assert "@media screen" in html and "padding:15mm 18mm;" in html
+    assert designs.mit_seitenrand("<html><head></head></html>") == "<html><head></head></html>"

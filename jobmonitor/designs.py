@@ -102,8 +102,22 @@ def vorschau_html(root: Path, cfg: dict, key: str) -> str:
         profile = {**profile, "foto": "/unterlagen/foto"}
     rel = DESIGNS[key]["lebenslauf"] or (cfg.get("cv") or {}).get("vorlage_html", "cv/template.html.j2")
     vorlage = html_vorlage(root, rel)
-    return pdf_html.environment(vorlage.parent).get_template(vorlage.name).render(
+    html = pdf_html.environment(vorlage.parent).get_template(vorlage.name).render(
         cv=complete_cv(cv or {}), profile=profile, stelle=None, akzent=akzent(cfg))
+    return mit_seitenrand(html)
+
+
+PAGE_RAND = re.compile(r"@page\s*\{[^}]*?margin:\s*([^;}]+)")
+
+
+def mit_seitenrand(html: str) -> str:
+    """Den Seitenrand aus @page (gilt nur beim Drucken ins PDF) auch am Bildschirm zeigen – sonst klebt die Schrift
+    in der Vorschau am Rand."""
+    m = PAGE_RAND.search(html)
+    if not m:
+        return html
+    stil = f"<style>@media screen {{ html {{ background:#fff; }} body {{ padding:{m.group(1).strip()}; }} }}</style>"
+    return html.replace("</head>", stil + "</head>", 1) if "</head>" in html else stil + html
 
 
 def auswahl_html(token: str, ziel: str, aktuell: str, esc, hinweis: str = "") -> str:
