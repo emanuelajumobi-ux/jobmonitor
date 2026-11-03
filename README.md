@@ -19,20 +19,29 @@ siehe [Installieren](#installieren).
   je Suchprofil oder Bewerbung wählbar), Prüfung vor dem Abschicken, Gesprächsvorbereitung,
   Nachfass-Entwürfe, Rückblick und Lücken-Auswertung mit Lernplan.
 
+## Brauche ich GitHub?
+
+Nein. Die App läuft komplett auf deinem Rechner: Die tägliche Suche plant sie selbst (Einstellungen → Zeitplan),
+Downloads und Updates kommen von dieser Seite. GitHub brauchst du nur, wenn du am Code mitarbeiten oder die Suche als
+GitHub Action in einem eigenen, privaten Repo laufen lassen willst.
+
 ## KI: dein eigener Schlüssel – empfohlen
 
 Die App funktioniert ohne KI. **Das meiste holst du aber mit KI heraus:** Sie liest die Anforderungen und Eckdaten
 jeder Anzeige (genauerer Fit), legt Suchprofile für dein Fach an, übernimmt deinen Lebenslauf aus einem PDF, schneidet
 Lebensläufe auf die Stelle zu, schreibt Anschreiben-Entwürfe und bereitet Gespräche vor.
 
-- **Die KI kommt von dir, nicht vom Entwickler.** Die App hat keinen eigenen Zugang und keinen Server. Du legst in der
-  [Anthropic Console](https://console.anthropic.com) einen eigenen Claude-API-Schlüssel an und hinterlegst ihn in der
-  App (Einstellungen → KI). Er liegt im Schlüsselbund bzw. in der Windows-Anmeldeinformationsverwaltung.
-- **Kosten trägst du über dein Anthropic-Konto**, abgerechnet nach Verbrauch. Wie viel das ist, hängt davon ab, wie
+- **Die KI kommt von dir, nicht vom Entwickler.** Die App hat keinen eigenen Zugang und keinen Server. Empfohlen ist
+  **Claude** (die App ist darauf abgestimmt; in der App führt eine Schritt-für-Schritt-Anleitung durch die Einrichtung).
+  Möglich sind auch **OpenAI, Google Gemini, Mistral** und **Ollama** (läuft kostenlos auf deinem Rechner, nichts
+  verlässt ihn). Den Schlüssel hinterlegst du unter Einstellungen → KI; er liegt im Schlüsselbund bzw. in der
+  Windows-Anmeldeinformationsverwaltung.
+- **Kosten trägst du über dein Konto beim Anbieter**, abgerechnet nach Verbrauch (bei Claude über vorher gekauftes
+  Guthaben – kein Abo). Wie viel das ist, hängt davon ab, wie
   viele Stellen täglich neu dazukommen und wie oft du Entwürfe erstellen lässt. Für Aufrufe aus der Oberfläche gibt es
   ein Monatslimit (Standard 60, `ki.max_aufrufe_monat`); die tägliche Suche nutzt ein günstiges Modell und zeigt ihren
   Verbrauch in den Einstellungen.
-- **Deine Daten gehen direkt an Anthropic**, nie an den Entwickler dieser App. Gesendet werden Anzeigentexte und dein
+- **Deine Daten gehen direkt an den Anbieter**, nie an den Entwickler dieser App. Gesendet werden Anzeigentexte und dein
   Master-CV ohne persönliche Angaben (Name, Adresse, Telefon, E-Mail und Foto bleiben lokal).
 
 ## Installieren

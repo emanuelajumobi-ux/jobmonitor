@@ -86,11 +86,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "gui":
         from .gui import serve
         return serve(ROOT, args.port, open_browser=not args.no_browser)
-    if not os.environ.get("GITHUB_ACTIONS") and not os.environ.get("ANTHROPIC_API_KEY"):
-        # Lokaler Lauf (Zeitplan, Probelauf): KI-Schlüssel aus dem macOS-Schlüsselbund, falls hinterlegt
-        from . import ki
-        if (schluessel := ki.schluessel()):
-            os.environ["ANTHROPIC_API_KEY"] = schluessel
+    if not os.environ.get("GITHUB_ACTIONS"):
+        # Lokaler Lauf (Zeitplan, Probelauf): KI-Schlüssel des gewählten Anbieters aus dem Schlüsselbund
+        from . import ki, llm
+        from .config import load_config
+        try:
+            llm.einstellen(load_config(ROOT / "config.yaml"))
+        except OSError:
+            pass
+        variable = "ANTHROPIC_API_KEY" if llm.ANBIETER == "claude" else "KI_API_KEY"
+        if not os.environ.get(variable) and (schluessel := ki.schluessel()) and schluessel != "lokal":
+            os.environ[variable] = schluessel
     if not os.environ.get("GITHUB_ACTIONS"):
         from . import mailzugang        # Postfach aus dem Assistenten (lokale Läufe ohne .env)
         mailzugang.umgebung_setzen(ROOT)

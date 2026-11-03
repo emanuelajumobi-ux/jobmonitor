@@ -6,7 +6,7 @@ from __future__ import annotations
 import html
 from datetime import date, datetime
 
-from . import anki, antworten, anzeigen_check, kalender, ki, nachfassen, tracking
+from . import anki, antworten, anzeigen_check, kalender, ki, nachfassen, spenden, tracking
 from . import bewerbung as bw
 from . import gui_bewerbung as gbw
 from . import gui_bewerbungen as gb
@@ -228,7 +228,9 @@ class BewerbungenSeiten:
             if a.termin and row["termin"] == a.termin:
                 msg += f" Gesprächstermin {a.termin[8:10]}.{a.termin[5:7]}. um {a.termin[11:16]} Uhr eingetragen."
         gb.erledigen(self.root, a.schluessel)
-        return self.bewerbungen(f'<div class="card"><p class="ok">{esc(msg)}</p></div>')
+        gruss = (spenden.zusage(load_config(self.root / "config.yaml"), a.firma)
+                 if form.get("aktion") == "uebernehmen" and a.status == "Zusage" else "")
+        return self.bewerbungen(f'<div class="card"><p class="ok">{esc(msg)}</p></div>{gruss}')
 
     def nachgefasst(self, form: dict) -> bytes:
         path = self.root / "applications.csv"
@@ -243,8 +245,12 @@ class BewerbungenSeiten:
 
     def bewerbungen_save(self, form: dict) -> bytes:
         path = self.root / "applications.csv"
+        vorher = {r.get("link"): r.get("status") for r in tracking.load(path)}
         rows, changes = gb.apply(tracking.load(path), form, date.today())
         if changes:
             tracking.save(path, rows)
         msg = f"{changes} Änderung(en) gespeichert." if changes else "Keine Änderungen."
-        return self.bewerbungen(f'<div class="card"><p class="ok">{msg}</p></div>', bool(form.get("alle")))
+        neu_zugesagt = [r for r in rows if r.get("status") == "Zusage" and vorher.get(r.get("link")) != "Zusage"]
+        gruss = (spenden.zusage(load_config(self.root / "config.yaml"), neu_zugesagt[0].get("firma", ""))
+                 if neu_zugesagt else "")
+        return self.bewerbungen(f'<div class="card"><p class="ok">{msg}</p></div>{gruss}', bool(form.get("alle")))

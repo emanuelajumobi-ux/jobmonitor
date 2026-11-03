@@ -23,6 +23,18 @@ AUDIENCE = "https://api.anthropic.com"
 TOKEN_ALTER = 240          # GitHub-OIDC-Tokens gelten ~5 Minuten; vorher neu holen
 
 
+# Aktiver KI-Anbieter (ki_anbieter.py) und seine Modelle {schnell, gut}; gesetzt von einstellen(cfg)
+ANBIETER = "claude"
+MODELLE: dict[str, str] = {}
+
+
+def einstellen(cfg: dict) -> None:
+    """Anbieter und Modelle aus config.yaml → ki übernehmen (Pipeline-Lauf und Oberfläche)."""
+    global ANBIETER, MODELLE
+    from . import ki_anbieter
+    ANBIETER, MODELLE = ki_anbieter.aus_config(cfg)
+
+
 def foederation() -> bool:
     """WIF in GitHub Actions eingerichtet (Regel und Organisation gesetzt, OIDC-Token anforderbar)?"""
     return bool(os.environ.get("ANTHROPIC_FEDERATION_RULE_ID") and os.environ.get("ANTHROPIC_ORGANIZATION_ID")
@@ -30,7 +42,11 @@ def foederation() -> bool:
 
 
 def verfuegbar() -> bool:
-    """Kann die Pipeline die KI nutzen (API-Schlüssel oder WIF)?"""
+    """Kann die Pipeline die KI nutzen (API-Schlüssel oder WIF; bei anderen Anbietern KI_API_KEY bzw. Ollama)?"""
+    if ANBIETER != "claude":
+        from . import ki_anbieter
+        return bool(MODELLE.get("schnell") and (os.environ.get("KI_API_KEY")
+                                               or ki_anbieter.ANBIETER[ANBIETER].get("ohne_schluessel")))
     return bool(os.environ.get("ANTHROPIC_API_KEY")) or foederation()
 
 
@@ -108,6 +124,22 @@ def _ask(model: str, prompt: str, effort: str = "low", max_tokens: int = 4000, a
     """Eine Frage, eine Antwort. api_key: sonst ANTHROPIC_API_KEY. usage: bekommt (Eingabe-, Ausgabe-Tokens).
     system: gleichbleibender Teil (Anweisungen, Begriffsliste), wird zwischengespeichert (Prompt-Caching) –
     weitere Aufrufe im selben Lauf zahlen dafür nur einen Bruchteil."""
+    if ANBIETER != "claude":            # OpenAI, Gemini, Mistral, Ollama: OpenAI-kompatible Schnittstelle
+        from . import ki_anbieter
+        modell = MODELLE.get("schnell" if "haiku" in model else "gut") or MODELLE.get("gut") or MODELLE.get("schnell")
+        if not modell:
+            log.warning("KI: für %s sind noch keine Modelle gewählt (Einstellungen → KI)", ANBIETER)
+            return None
+        schluessel = api_key or os.environ.get("KI_API_KEY")
+        nutzung: list = []
+        antwort = ki_anbieter.fragen(ANBIETER, schluessel, modell, prompt, system, max_tokens, nutzung)
+        for ein, aus in nutzung:
+            NUTZUNG["aufrufe"] += 1
+            NUTZUNG["eingabe"] += ein
+            NUTZUNG["ausgabe"] += aus
+        if usage is not None:
+            usage += nutzung
+        return antwort
     import anthropic  # nur laden, wenn KI wirklich aktiv ist
 
     try:

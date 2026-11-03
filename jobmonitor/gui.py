@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, designs, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, designs, spenden, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -28,6 +28,8 @@ from . import fristen
 from . import gui_bewerbung as gbw
 from . import gui_hilfe as gh
 from . import gui_dateien as gdt
+from . import gui_ki as gki
+from . import ki_anbieter as gki_anbieter
 from . import gui_layout as layout
 from . import gui_bewerbungen as gb
 from . import gui_firmen as gf
@@ -41,7 +43,7 @@ from . import gui_assistent as gas
 from . import gui_profil as gp
 from . import gui_unterlagen as gu
 from . import gui_wartung as gw
-from . import cv_aktuell, erinnerungen, ki, lernpfade, sicherung, suchprofil, tracking, traumjob
+from . import cv_aktuell, erinnerungen, ki, lernpfade, llm, sicherung, suchprofil, tracking, traumjob
 from . import fit_begriffe as fb
 from .gui_sync import sync
 from .config import MODI, load_companies, load_config, modus
@@ -110,6 +112,10 @@ class App(BewerbungenSeiten):
         self.notice = ""        # Ergebnis der Synchronisierung beim Start (einmal oben anzeigen)
         self.erinnert: set[str] = set()   # schon in Apple-Erinnerungen eingetragen (erinnerungen.py)
         self.aufgaben = gw.Aufgaben(root)  # Hintergrund-Aufgaben der Seite Einstellungen
+        try:
+            llm.einstellen(load_config(root / "config.yaml"))   # KI-Anbieter (ki_anbieter.py)
+        except Exception:
+            pass
         self.native = False                # im App-Fenster (desktop.py): durchscheinende Seitenleiste
         self.new_ids: set[str] = set()   # Stellen, die seit dem letzten Besuch dazugekommen sind
         self.trash: Path | None = None   # None = macOS-Papierkorb (~/.Trash); Tests setzen einen eigenen Ordner
@@ -125,7 +131,9 @@ class App(BewerbungenSeiten):
             log.exception("Zähler für die Seitenleiste nicht berechnet")
             badges = {}
         try:
-            traum = load_config(self.root / "config.yaml").get("traumprofil") or {}
+            cfg = load_config(self.root / "config.yaml")
+            llm.einstellen(cfg)                       # KI-Anbieter für Knöpfe und Hinweise dieser Seite
+            traum = cfg.get("traumprofil") or {}
         except Exception:
             traum = {}
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
@@ -1027,9 +1035,12 @@ class App(BewerbungenSeiten):
             state.close()
         except Exception:   # alte oder fehlende Datenbank: Zeile weglassen
             pipe = {}
-        ki_html = gw.ki_karte(self.token, ki.herkunft(), ki.nutzung(self.root), ki.settings(cfg),
-                              gw.pipeline_ki(pipe, date.today().strftime("%Y-%m"), ki.settings(cfg)))
-        sich = gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
+        llm.einstellen(cfg)
+        ki_html = gki.karte(self.token, cfg, ki.herkunft(), ki.nutzung(self.root),
+                            int(ki.settings(cfg)["max_aufrufe_monat"]),
+                            gw.pipeline_ki(pipe, date.today().strftime("%Y-%m"), ki.settings(cfg)),
+                            getattr(self, "_ki_modelle", None))
+        sich = spenden.karte(cfg) + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
                                   len(sicherung.inhalt(self.root)))
         github = zeitplan.github_aktiv(self.root)
         postfach = (f'<div class="card" id="postfach"><h2>Postfach</h2>'
@@ -1149,9 +1160,28 @@ class App(BewerbungenSeiten):
             elif aktion == "sicherung_ordner":
                 subprocess.run(["open", str(self.sicherung_ziel)])
                 msg = ""
+            elif aktion == "ki_anbieter":
+                gki.speichern(self.root, form.get("anbieter", ""))
+                llm.einstellen(load_config(self.root / "config.yaml"))
+                self._ki_modelle = None
+                msg = ok(f"Anbieter: {gki.ANBIETER[llm.ANBIETER]['name']}. "
+                         + ("Jetzt den Schlüssel eintragen." if not ki.schluessel() else "Schlüssel ist schon hinterlegt."))
+            elif aktion == "ki_modelle_laden":
+                schluessel = ki.schluessel()
+                self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, None if schluessel == "lokal" else schluessel)
+                msg = ok(f"{len(self._ki_modelle)} Modelle geladen – passende sind vorausgewählt, bitte übernehmen.")
+            elif aktion == "ki_modelle":
+                gki.speichern(self.root, llm.ANBIETER, {"schnell": form.get("schnell", ""), "gut": form.get("gut", "")})
+                llm.einstellen(load_config(self.root / "config.yaml"))
+                self._ki_modelle = None
+                msg = ok("Modelle übernommen. Die KI-Knöpfe sind jetzt aktiv.")
             elif aktion == "ki_schluessel":
                 ki.schluessel_speichern(form.get("schluessel", ""))
-                msg = ok("API-Schlüssel im macOS-Schlüsselbund gespeichert. Die KI-Knöpfe sind jetzt aktiv.")
+                if llm.ANBIETER != "claude" and not llm.MODELLE.get("schnell"):
+                    self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, ki.schluessel())
+                    msg = ok("Schlüssel gespeichert und geprüft. Jetzt die Modelle übernehmen.")
+                else:
+                    msg = ok("Schlüssel sicher gespeichert. Die KI-Knöpfe sind jetzt aktiv.")
             elif aktion == "ki_entfernen":
                 ki.schluessel_loeschen()
                 msg = ok("API-Schlüssel aus dem Schlüsselbund entfernt.")
@@ -1183,7 +1213,7 @@ class App(BewerbungenSeiten):
             else:
                 msg = '<div class="card err">Unbekannte Aktion.</div>'
         except (gw.WartungError, bn.BenachrichtigungError, ki.KiError, sicherung.SicherungError,
-                wohnort.WohnortError, zeitplan.ZeitplanError, mailzugang.MailError, subprocess.SubprocessError, OSError) as exc:
+                wohnort.WohnortError, zeitplan.ZeitplanError, mailzugang.MailError, gki_anbieter.AnbieterError, subprocess.SubprocessError, OSError) as exc:
             msg = f'<div class="card err">{esc(exc)}</div>'
         return self.einstellungen(msg)
 
@@ -1289,6 +1319,9 @@ class App(BewerbungenSeiten):
                           f'Lauf aussortiert. {esc(hoch)}</p></div>')
 
     # --- Master-CV ---
+    def ki_anleitung(self) -> bytes:
+        return self.page("Claude einrichten", gki.ANLEITUNG, "einstellungen", gki.CSS)
+
     def design_vorschau(self, key: str) -> bytes | None:
         """Lebenslauf im Design als HTML mit deinen Daten (iframe in der Galerie)."""
         if not designs.gueltig(key):

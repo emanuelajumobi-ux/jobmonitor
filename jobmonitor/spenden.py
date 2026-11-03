@@ -1,0 +1,39 @@
+"""Freiwillige Unterstützung des Projekts: Link in den Einstellungen und – freundlich, einmal – wenn jemand eine Zusage
+einträgt. Nichts davon ist Pflicht oder schaltet etwas frei; die App bleibt kostenlos.
+
+Der Link steht in config.yaml → spenden.url (z. B. GitHub Sponsors, Ko-fi oder PayPal.me). Ist er leer, zeigt die App
+nichts an.
+"""
+from __future__ import annotations
+
+from html import escape
+
+ERLAUBT = ("https://github.com/sponsors/", "https://ko-fi.com/", "https://www.paypal.com/", "https://paypal.me/",
+           "https://www.paypal.me/", "https://buymeacoffee.com/", "https://www.buymeacoffee.com/",
+           "https://liberapay.com/")
+
+
+def url(cfg: dict) -> str:
+    wert = str((cfg.get("spenden") or {}).get("url") or "").strip()
+    return wert if wert.startswith(ERLAUBT) else ""
+
+
+def karte(cfg: dict) -> str:
+    link = url(cfg)
+    if not link:
+        return ""
+    return (f'<div class="card" id="unterstuetzen"><h2>Job-Monitor unterstützen</h2><p>Job-Monitor ist kostenlos und '
+            f'quelloffen und wird in der Freizeit entwickelt. Wenn dir die App hilft, freut sich der Entwickler über '
+            f'eine kleine Unterstützung – freiwillig, die App bleibt für alle kostenlos.</p>'
+            f'<a class="btn ghost small" href="{escape(link)}" target="_blank" rel="noopener">Unterstützen</a></div>')
+
+
+def zusage(cfg: dict, firma: str) -> str:
+    """Glückwunsch beim Eintragen einer Zusage – mit dezenter Bitte, falls ein Link gesetzt ist."""
+    link = url(cfg)
+    bitte = (f'<p class="muted">Hat dir Job-Monitor dabei geholfen? Dann freut sich der Entwickler über eine kleine '
+             f'Unterstützung – ganz freiwillig. <a href="{escape(link)}" target="_blank" rel="noopener">Unterstützen</a>'
+             f'</p>' if link else "")
+    return (f'<div class="card zusage"><h2>Herzlichen Glückwunsch zur Zusage{f" bei {escape(firma)}" if firma else ""}!'
+            f'</h2><p>Viel Erfolg beim Start. Offene Bewerbungen bei anderen Firmen kannst du jetzt zurückziehen oder '
+            f'auf „verworfen“ setzen.</p>{bitte}</div>')

@@ -179,6 +179,7 @@ def ki_nachholen(state: State, cv: dict | None, cfg: dict, fetcher: Fetcher, ki_
 
 def run(opts: Options) -> int:
     cfg = load_config(opts.root / "config.yaml")
+    llm.einstellen(cfg)                 # KI-Anbieter und Modelle (ki_anbieter.py)
     companies_doc = load_companies(opts.root / "companies.yaml")
     now = datetime.now(ZoneInfo(cfg["run"]["timezone"]))
     today = now.date()

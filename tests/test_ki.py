@@ -161,7 +161,7 @@ def test_einstellungen_ki(root, monkeypatch):  # noqa: F811
     html = app.einstellungen().decode()
     assert 'id="ki"' in html and 'type="password" name="schluessel"' in html and "0 von höchstens" in html
     html = app.einstellungen_post({"aktion": "ki_schluessel", "schluessel": "sk-ant-x"}).decode()
-    assert "im macOS-Schlüsselbund gespeichert" in html and gespeichert == ["sk-ant-x"]
+    assert "Schlüssel sicher gespeichert" in html and gespeichert == ["sk-ant-x"]
     assert "sk-ant-x" not in html                                        # Schlüssel wird nie angezeigt
     monkeypatch.setattr(ki, "herkunft", lambda run=None: "Schlüsselbund")
     assert "Schlüssel entfernen" in app.einstellungen().decode()

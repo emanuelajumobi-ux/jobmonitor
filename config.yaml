@@ -429,6 +429,10 @@ traumprofil:
   security: [security, sicherheit, iam, identity, identitäts, zero trust, siem, sentinel, defender, soc,
              vulnerability, schwachstellen, pentest, zugriffs, berechtigungs, conditional access, mfa]
 
+# Freiwillige Unterstützung (Einstellungen und Glückwunsch bei einer Zusage); leer = nichts anzeigen
+spenden:
+  url: ""
+
 gui:                          # nur lokal: Oberfläche (Job-Monitor.app / make gui)
   manuell_pruefen_tage: 14    # Erinnerung, Karriereseiten unter „manuell prüfen“ wieder selbst anzusehen
 

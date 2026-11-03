@@ -39,18 +39,31 @@ def settings(cfg: dict) -> dict:
     return {**DEFAULTS, **(cfg.get("ki") or {})}
 
 
-# --- Schlüssel ---
+# --- Schlüssel (je KI-Anbieter, siehe ki_anbieter.py; aktiver Anbieter: llm.ANBIETER) ---
+def _dienst() -> str:
+    from . import llm
+    return DIENST if llm.ANBIETER == "claude" else f"job-monitor-{llm.ANBIETER}"
+
+
+def _env() -> str:
+    from . import llm
+    return "ANTHROPIC_API_KEY" if llm.ANBIETER == "claude" else "KI_API_KEY"
+
+
 def schluessel(run=subprocess.run) -> str | None:
-    if os.environ.get("ANTHROPIC_API_KEY"):
-        return os.environ["ANTHROPIC_API_KEY"]
+    from . import ki_anbieter, llm
+    if os.environ.get(_env()):
+        return os.environ[_env()]
+    if ki_anbieter.ANBIETER[llm.ANBIETER].get("ohne_schluessel"):
+        return "lokal"                       # Ollama braucht keinen Schlüssel
     if sys.platform != "darwin":
         tresor = _keyring()        # Windows: Anmeldeinformationsverwaltung
         try:
-            return (tresor.get_password(DIENST, "job-monitor") or None) if tresor else None
+            return (tresor.get_password(_dienst(), "job-monitor") or None) if tresor else None
         except Exception:
             return None
     try:
-        proc = run(["security", "find-generic-password", "-s", DIENST, "-w"], capture_output=True, text=True,
+        proc = run(["security", "find-generic-password", "-s", _dienst(), "-w"], capture_output=True, text=True,
                    timeout=10)
     except (OSError, subprocess.SubprocessError):
         return None
@@ -69,22 +82,25 @@ def _keyring():
 
 
 def herkunft(run=subprocess.run) -> str:
-    if os.environ.get("ANTHROPIC_API_KEY"):
+    if os.environ.get(_env()):
         return ".env"
     return "Schlüsselbund" if schluessel(run) else ""
 
 
 def schluessel_speichern(wert: str, run=subprocess.run) -> None:
+    from . import llm
     wert = wert.strip()
-    if not re.fullmatch(r"sk-ant-[A-Za-z0-9_\-]{20,}", wert):
+    if llm.ANBIETER == "claude" and not re.fullmatch(r"sk-ant-[A-Za-z0-9_\-]{20,}", wert):
         raise KiError("Das sieht nicht nach einem Claude-API-Schlüssel aus (beginnt mit „sk-ant-“).")
+    if not re.fullmatch(r"[A-Za-z0-9_\-.:]{16,300}", wert):
+        raise KiError("Das sieht nicht nach einem API-Schlüssel aus – bitte vollständig und ohne Leerzeichen kopieren.")
     if sys.platform != "darwin":
         tresor = _keyring()
         if tresor is None:
-            raise KiError("Kein Schlüsselspeicher auf diesem System – bitte ANTHROPIC_API_KEY in die Datei .env.")
-        tresor.set_password(DIENST, "job-monitor", wert)
+            raise KiError(f"Kein Schlüsselspeicher auf diesem System – bitte {_env()} in die Datei .env.")
+        tresor.set_password(_dienst(), "job-monitor", wert)
         return
-    proc = run(["security", "add-generic-password", "-U", "-s", DIENST, "-a", "job-monitor", "-w", wert],
+    proc = run(["security", "add-generic-password", "-U", "-s", _dienst(), "-a", "job-monitor", "-w", wert],
                capture_output=True, text=True, timeout=10)
     if proc.returncode != 0:
         raise KiError("Schlüssel nicht im Schlüsselbund gespeichert.")
@@ -94,11 +110,11 @@ def schluessel_loeschen(run=subprocess.run) -> None:
     if sys.platform != "darwin":
         tresor = _keyring()
         try:
-            tresor and tresor.delete_password(DIENST, "job-monitor")
+            tresor and tresor.delete_password(_dienst(), "job-monitor")
         except Exception:
             pass
         return
-    run(["security", "delete-generic-password", "-s", DIENST], capture_output=True, text=True, timeout=10)
+    run(["security", "delete-generic-password", "-s", _dienst()], capture_output=True, text=True, timeout=10)
 
 
 # --- lokaler Speicher: Nutzung, Anzeigentexte, Vorbereitungen ---
@@ -158,9 +174,12 @@ def cv_text(cv: dict) -> str:
 def fragen(root: Path, cfg: dict, prompt: str, effort: str = "medium", max_tokens: int = 6000, ask=None,
            heute: date | None = None) -> str:
     s = settings(cfg)
+    llm.einstellen(cfg)
     key = schluessel()
     if not key:
         raise KiError("Kein API-Schlüssel hinterlegt (Einstellungen → KI).")
+    if key == "lokal":
+        key = None
     monat = (heute or date.today()).strftime("%Y-%m")
     if nutzung(root, heute)["aufrufe"] >= int(s["max_aufrufe_monat"]):
         raise KiError(f"Monatslimit von {s['max_aufrufe_monat']} KI-Aufrufen erreicht (config.yaml → "

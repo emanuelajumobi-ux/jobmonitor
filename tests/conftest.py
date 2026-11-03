@@ -36,6 +36,9 @@ def ohne_echte_ki(monkeypatch):
     for var in ("ANTHROPIC_API_KEY", "ANTHROPIC_FEDERATION_RULE_ID", "ANTHROPIC_ORGANIZATION_ID",
                 "ACTIONS_ID_TOKEN_REQUEST_URL"):
         monkeypatch.delenv(var, raising=False)
+    monkeypatch.setattr(llm, "ANBIETER", "claude")              # gewählter KI-Anbieter gilt nur je Test
+    monkeypatch.setattr(llm, "MODELLE", {})
+    monkeypatch.delenv("KI_API_KEY", raising=False)
     monkeypatch.setattr(ki, "schluessel", lambda run=None: None)
     monkeypatch.setattr(ki, "herkunft", lambda run=None: "")
 

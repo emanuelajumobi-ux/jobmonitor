@@ -330,6 +330,10 @@ traumprofil:
   security: [security, sicherheit, iam, identity, identitäts, zero trust, siem, sentinel, defender, soc,
              vulnerability, schwachstellen, pentest, zugriffs, berechtigungs, conditional access, mfa]
 
+# Freiwillige Unterstützung (Einstellungen und Glückwunsch bei einer Zusage); leer = nichts anzeigen
+spenden:
+  url: ""
+
 # Neue Versionen: einmal am Tag die öffentliche Versionsliste bei GitHub abfragen (nur in der installierten App)
 updates:
   enabled: true
