@@ -116,12 +116,20 @@ KEIN_REMOTE = re.compile(r"\b(?:kein|keine|nein|nicht|vor ort|präsenz)\b", re.I
 
 
 def eckdaten_filter(e: dict) -> dict[str, str]:
-    """Werte für den Eckdaten-Filter der Stellenliste: h = kleinste genannte Wochenstundenzahl, r = Remote (1/0),
-    t = Abschlussarbeit (1). Leer heißt „steht nicht in der Anzeige“ – solche Stellen bleiben beim Filtern sichtbar."""
-    m = STUNDEN.search(str(e.get("stunden") or ""))
+    """Werte für die Eckdaten-Filter der Stellenliste: h = kleinste genannte Wochenstundenzahl, r = Remote (1/0),
+    t = Abschlussarbeit (1), v = Vergütung bzw. Gehalt genannt (1), vz = Vollzeit (1/0), tz = Teilzeit möglich (1/0).
+    Leer heißt „steht nicht in der Anzeige“ – solche Stellen bleiben bei Stunden, Remote, Voll- und Teilzeit
+    sichtbar."""
+    text = str(e.get("stunden") or "")
+    m = STUNDEN.search(text)
     remote = str(e.get("remote") or "")
-    return {"h": m.group(1) if m else "", "r": ("0" if KEIN_REMOTE.search(remote) else "1") if remote else "",
-            "t": "1" if e.get("abschlussarbeit") else ""}
+    h = int(m.group(1)) if m else None
+    voll = "1" if re.search(r"vollzeit", text, re.I) or (h is not None and h >= 35) else ("0" if h is not None else "")
+    teil = ("1" if re.search(r"teilzeit", text, re.I) or (h is not None and h < 35) else
+            ("0" if voll == "1" and not re.search(r"teilzeit", text, re.I) else ""))
+    return {"h": str(h) if h is not None else "", "r": ("0" if KEIN_REMOTE.search(remote) else "1") if remote else "",
+            "t": "1" if e.get("abschlussarbeit") else "", "v": "1" if e.get("verguetung") else "",
+            "vz": voll, "tz": teil}
 
 
 def ki_anforderungen(job: Job, begriffe: dict, model: str, ask=None) -> tuple[dict[str, float], list[str], dict] | None:

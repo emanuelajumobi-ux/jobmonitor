@@ -434,7 +434,7 @@ spenden:
   url: "https://www.paypal.me/EmanuelAjumobi"
 
 gui:                          # nur lokal: Oberfläche (Job-Monitor.app / make gui)
-  darstellung: dunkel         # auto | hell | dunkel (Einstellungen → Darstellung)
+  darstellung: dunkel         # auto | hell | dunkel (Schalter unten in der Seitenleiste)
   sprache: de                 # Oberfläche: de | en (Einstellungen → Sprache)
   manuell_pruefen_tage: 14    # Erinnerung, Karriereseiten unter „manuell prüfen“ wieder selbst anzusehen
 

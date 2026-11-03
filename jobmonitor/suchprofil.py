@@ -41,6 +41,16 @@ STUFEN: dict[str, dict] = {
 }
 
 
+def stufe_von(p) -> str:
+    """Karrierestufe eines Profils; ältere Profile ohne Angabe nach ihrem Namen (werkstudent, junior …)."""
+    if p.stufe in STUFEN:
+        return p.stufe
+    key = f"{p.key} {p.name}".lower()
+    if "junior" in key or "einstieg" in key or "trainee" in key:
+        return "einstieg"
+    return next((s for s in STUFEN if s in key), "")
+
+
 @dataclass
 class Profil:
     key: str

@@ -61,13 +61,21 @@ PORT = 8790                   # nicht 8765: den nutzt AnkiConnect
 PDF_NAME = re.compile(r"^[\w.-]+\.pdf$")
 
 
-# Eckdaten-Filter der Stellenliste (gui_layout.JS): Stellen ohne Angabe bleiben bei Stunden und Remote sichtbar
-ECK_FILTER = ('<div class="eckfilter" role="group" aria-label="Nach Eckdaten filtern">'
-              '<label><input type="checkbox" data-eck="h" value="20"> bis 20 h/Woche</label>'
-              '<label><input type="checkbox" data-eck="r"> Remote möglich</label>'
-              '<label><input type="checkbox" data-eck="t"> Abschlussarbeit möglich</label>'
-              '<span class="muted">Ohne Angabe in der Anzeige bleibt eine Stelle sichtbar (außer bei Abschlussarbeit).'
-              '</span></div>')
+# Eckdaten-Filter der Stellenliste (gui_layout.JS) – je Karrierestufe die passenden. Ohne Angabe in der Anzeige bleibt
+# eine Stelle bei Stunden, Remote, Voll- und Teilzeit sichtbar; „Abschlussarbeit“ und „Vergütung“ verlangen die Angabe.
+ECK = {"h": "bis 20 h/Woche", "vz": "Vollzeit", "tz": "Teilzeit möglich", "r": "Remote möglich",
+       "t": "Abschlussarbeit möglich", "v": "Vergütung angegeben"}
+ECK_STUFE = {"werkstudent": ["h", "r", "t"], "praktikum": ["r", "v", "t"], "abschlussarbeit": ["r", "v"],
+             "ausbildung": ["v", "tz"], "einstieg": ["vz", "r", "v"], "berufserfahren": ["tz", "r", "v"],
+             "": ["r", "v"]}
+
+
+def eck_filter(stufen: list[str]) -> str:
+    keys = list(dict.fromkeys(k for s in stufen or [""] for k in ECK_STUFE.get(s, ECK_STUFE[""])))
+    boxen = "".join(f'<label><input type="checkbox" data-eck="{k}"> {ECK[k]}</label>' for k in keys)
+    return (f'<div class="eckfilter" role="group" aria-label="Nach Eckdaten filtern">{boxen}<span class="muted">'
+            f'Ohne Angabe in der Anzeige bleibt eine Stelle sichtbar (außer bei Abschlussarbeit und Vergütung).'
+            f'</span></div>')
 
 
 def esc(value) -> str:
@@ -386,6 +394,9 @@ class App(BewerbungenSeiten):
                         f'– in der Liste mit „neu“ markiert.</p></div>')
 
         tab = "hidden" if show_hidden else "traum" if nur_traum else f"profil:{profil}" if profil else "alle"
+        stufen = [suchprofil.stufe_von(p) for p in suchprofil.alle(cfg)
+                  if (p.key == profil if profil else p.enabled)]
+        eck_html = eck_filter(stufen)
         tabs = [("alle", "/", "Alle", len(sichtbar))]
         tabs += [(f"profil:{key}", f"/?profil={quote(key)}", name, sum(1 for d in sichtbar if d["profil"] == key))
                  for key, name in namen.items()]
@@ -436,7 +447,7 @@ class App(BewerbungenSeiten):
 {message}{heute}
 <nav class="filters" aria-label="Stellen filtern">{tabs_html}<label class="search">{layout.icon("search", 16)}
 <input id="filter" placeholder="Titel, Firma, Skill oder ID" aria-label="Stellen durchsuchen"></label></nav>
-{ECK_FILTER}
+{eck_html}
 <div class="board"><section aria-label="Stellen">{groups}</section>
 <aside class="rail"><div class="card"><div class="head"><h2>Häufigste Lücken</h2><a href="/luecken">Auswertung ›</a></div>
 {luecken_html}</div>
@@ -520,7 +531,7 @@ class App(BewerbungenSeiten):
                        ki="KI schneidet den Lebenslauf auf die Stelle zu …" if self._ki_cv else "")
         search = " ".join([d["title"], d["company"], d["id"], profil_name or "", *reqs]).lower()   # Suchfeld oben
         ef = fit.eckdaten_filter(d.get("eckdaten") or {})
-        return f"""<article class="job{" expired" if abgelaufen else ""}" data-s="{esc(search)}" data-h="{ef["h"]}" data-r="{ef["r"]}" data-t="{ef["t"]}">
+        return f"""<article class="job{" expired" if abgelaufen else ""}" data-s="{esc(search)}" data-h="{ef["h"]}" data-r="{ef["r"]}" data-t="{ef["t"]}" data-v="{ef["v"]}" data-vz="{ef["vz"]}" data-tz="{ef["tz"]}">
 <div style="min-width:0"><h3><a href="{esc(d["url"])}" target="_blank" rel="noopener" title="Anzeige öffnen · ID {esc(d["id"])}">{esc(d["title"])}</a></h3>
 <div class="meta">{"".join(meta)}</div></div>{req}{fitnum}
 <div class="actions"><a class="btn ghost small" href="/bewerbung?job={esc(d["id"])}">Bewerbung</a>{cv}{bell}{mark}{hide}</div></article>"""

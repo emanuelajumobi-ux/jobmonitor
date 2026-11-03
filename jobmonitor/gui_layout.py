@@ -470,12 +470,13 @@ window.addEventListener('pageshow', () => {   // zurück-Navigation: Zustand zur
 });
 // Stellen filtern: Suchfeld plus Eckdaten (bis 20 h, Remote, Abschlussarbeit); die Auswahl merkt sich der Browser
 const q = document.getElementById('filter'), ecks = [...document.querySelectorAll('[data-eck]')];
+const REGEL = {h: d => d.h === undefined || d.h === '' || +d.h <= 20, r: d => d.r !== '0', t: d => d.t === '1',
+               v: d => d.v === '1', vz: d => d.vz !== '0', tz: d => d.tz !== '0'};
 function filtern() {
-  const v = q ? q.value.toLowerCase() : '', an = Object.fromEntries(ecks.map(c => [c.dataset.eck, c.checked]));
+  const v = q ? q.value.toLowerCase() : '', an = ecks.filter(c => c.checked).map(c => c.dataset.eck);
   document.querySelectorAll('[data-s]').forEach(el => {
     const d = el.dataset;
-    el.hidden = !d.s.includes(v) || (an.h && d.h !== undefined && d.h !== '' && +d.h > 20)
-      || (an.r && d.r === '0') || (an.t && d.t !== '1');
+    el.hidden = !d.s.includes(v) || an.some(k => REGEL[k] && !REGEL[k](d));
   });
 }
 if (q) q.addEventListener('input', filtern);

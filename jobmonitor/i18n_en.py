@@ -30,7 +30,10 @@ TEXTE: dict[str, str] = {
     "Heute bewerben": "Apply today", "Stellen filtern": "Filter jobs", "Stellen durchsuchen": "Search jobs",
     "Titel, Firma, Skill oder ID": "Title, company, skill or ID", "Nach Eckdaten filtern": "Filter by key facts",
     "bis 20 h/Woche": "up to 20 h/week", "Remote möglich": "Remote possible",
-    "Abschlussarbeit möglich": "Thesis possible", "Nach Fit": "By fit", "Eckdaten": "Key facts",
+    "Abschlussarbeit möglich": "Thesis possible", "Vollzeit": "Full-time", "Teilzeit möglich": "Part-time possible",
+    "Vergütung angegeben": "Pay stated",
+    "Ohne Angabe in der Anzeige bleibt eine Stelle sichtbar (außer bei Abschlussarbeit und Vergütung).":
+        "Without information in the ad, a job stays visible (except for thesis and pay).", "Nach Fit": "By fit", "Eckdaten": "Key facts",
     "Eckdaten laut Anzeige (von der KI gelesen)": "Key facts from the ad (read by the AI)",
     "Fit, Frist und Frische zusammen": "Fit, deadline and freshness combined",
     "frisch – früh bewerben lohnt sich": "fresh – applying early pays off", "Neue Version": "New version",

@@ -32,10 +32,23 @@ def mit_ki(monkeypatch):
 
 def test_eckdaten_filter():
     assert fit.eckdaten_filter({"stunden": "16–20 h/Woche", "remote": "bis 3 Tage/Woche", "abschlussarbeit": True}) \
-        == {"h": "16", "r": "1", "t": "1"}
+        == {"h": "16", "r": "1", "t": "1", "v": "", "vz": "0", "tz": "1"}
     assert fit.eckdaten_filter({"stunden": "25-30 Wochenstunden", "remote": "kein Homeoffice"}) \
-        == {"h": "25", "r": "0", "t": ""}
-    assert fit.eckdaten_filter({"stunden": "Teilzeit"}) == {"h": "", "r": "", "t": ""}
+        == {"h": "25", "r": "0", "t": "", "v": "", "vz": "0", "tz": "1"}
+    assert fit.eckdaten_filter({"stunden": "Teilzeit"}) == {"h": "", "r": "", "t": "", "v": "", "vz": "", "tz": "1"}
+    assert fit.eckdaten_filter({"stunden": "Vollzeit, 40 h", "verguetung": "52.000 €"}) \
+        == {"h": "40", "r": "", "t": "", "v": "1", "vz": "1", "tz": "0"}
+
+
+def test_filter_je_karrierestufe(root):  # noqa: F811
+    from jobmonitor import gui, suchprofil
+    assert 'data-eck="h"' in gui.eck_filter(["werkstudent"]) and 'data-eck="vz"' not in gui.eck_filter(["werkstudent"])
+    einstieg = gui.eck_filter(["einstieg"])
+    assert 'data-eck="vz"' in einstieg and 'data-eck="v"' in einstieg and 'data-eck="h"' not in einstieg
+    beide = gui.eck_filter(["werkstudent", "einstieg"])
+    assert beide.count('data-eck="r"') == 1 and 'data-eck="h"' in beide and 'data-eck="vz"' in beide
+    p = suchprofil.Profil(key="junior", name="Junior", rollen={})
+    assert suchprofil.stufe_von(p) == "einstieg"
 
 
 def test_filter_in_der_stellenliste(root):  # noqa: F811
