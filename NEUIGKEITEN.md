@@ -3,6 +3,10 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.2.1
+
+- **Windows: Start abgesichert.** Lässt sich das App-Fenster nicht öffnen (z. B. fehlt die Microsoft-Komponente WebView2), öffnet die App die Oberfläche im Browser, statt still abzubrechen. Andere Fehler beim Start zeigt Windows jetzt als Meldung mit dem Ort der Protokolldatei.
+
 ## 1.2.0
 
 - **Passende Firmen finden:** Auf der Seite Firmen stellt die KI eine Liste von Arbeitgebern in deiner Nähe zusammen, die zu Lebenslauf und Suchprofilen passen – auch ohne aktuelle Ausschreibung. Karriereseite prüfen, mit einem Klick hinzufügen.

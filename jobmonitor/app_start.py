@@ -25,21 +25,41 @@ def _protokoll(home: Path) -> None:
     sys.stderr = sys.stderr or datei
 
 
+def _meldung(text: str) -> None:
+    """Windows: Fehler beim Start als Meldungsfenster zeigen – sonst sieht man nach dem Doppelklick gar nichts.
+    Nur beim Start per Doppelklick (ohne Argumente) und nicht in GitHub Actions (dort würde der Dialog hängen)."""
+    if sys.platform != "win32" or len(sys.argv) > 1 or os.environ.get("CI"):
+        return
+    try:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(0, text, "Job-Monitor", 0x10)
+    except Exception:
+        pass
+
+
 def main() -> int:
     os.environ.setdefault("JOBMONITOR_HOME", str(Path.home() / "Documents" / "Job-Monitor"))
-    _protokoll(Path(os.environ["JOBMONITOR_HOME"]).expanduser())
+    home = Path(os.environ["JOBMONITOR_HOME"]).expanduser()
+    _protokoll(home)
+    log = home / ".gui_aufgaben" / "app.log"
     try:
-        return _start()
+        code = _start()
     except SystemExit as exc:
-        return int(exc.code or 0) if isinstance(exc.code, int) or exc.code is None else 1
-    except BaseException:
+        code = int(exc.code or 0) if isinstance(exc.code, int) or exc.code is None else 1
+    except BaseException as exc:
         import traceback
         traceback.print_exc()
+        _meldung(f"Job-Monitor konnte nicht starten:\n\n{type(exc).__name__}: {exc}\n\nDetails stehen in:\n{log}\n\n"
+                 "Bitte diese Datei (ohne persönliche Daten) unter „Fehler melden“ oder per Nachricht schicken.")
         return 1
+    if code:
+        _meldung(f"Job-Monitor wurde mit Fehler {code} beendet.\n\nDetails stehen in:\n{log}")
+    return code
 
 
 def _start() -> int:
-    from jobmonitor import erststart
+    from jobmonitor import __version__, erststart
+    print(f"Job-Monitor {__version__} · {sys.platform} · Start mit {sys.argv[1:] or ['desktop']}", flush=True)
     from jobmonitor.__main__ import main as cli      # erst jetzt: config.ROOT liest JOBMONITOR_HOME beim Import
     from jobmonitor.config import ROOT
     erststart.vorbereiten(ROOT)                      # legt nur Fehlendes an, auch vor Zeitplan-Läufen

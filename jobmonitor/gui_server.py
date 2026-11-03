@@ -75,7 +75,8 @@ def handler_for(app: App, server_ref: list):
                 if app.window is not None:
                     app.window.restore()
                     app.window.show()
-                return self._send(b"ok", "text/plain; charset=utf-8")
+                    return self._send(b"ok", "text/plain; charset=utf-8")
+                return self._send(b"browser", "text/plain; charset=utf-8")   # läuft ohne Fenster (desktop._im_browser)
             if not app.ready and path in ("/", "/index.html"):
                 return self._send(app.uebersetzt(page("Start", '<meta http-equiv="refresh" content="1"><div class="splash">'
                                                 '<h1>Job-Monitor</h1><p>Synchronisiere mit GitHub …</p></div>')))

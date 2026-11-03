@@ -170,7 +170,9 @@ def run(root: Path, port: int = PORT) -> int:
         return serve(root, port)
     if already_running(port):
         try:
-            urllib.request.urlopen(f"http://127.0.0.1:{port}/fokus", timeout=2).read()
+            if urllib.request.urlopen(f"http://127.0.0.1:{port}/fokus", timeout=2).read() == b"browser":
+                import webbrowser
+                webbrowser.open(f"http://127.0.0.1:{port}/")   # erste Instanz läuft im Browser: Tab erneut öffnen
         except OSError:
             pass
         return 0
