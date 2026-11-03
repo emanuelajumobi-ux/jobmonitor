@@ -26,6 +26,8 @@ from . import gui_bericht as gbe
 from . import fit
 from . import fristen
 from . import gui_bewerbung as gbw
+from . import gui_hilfe as gh
+from . import gui_dateien as gdt
 from . import gui_layout as layout
 from . import gui_bewerbungen as gb
 from . import gui_firmen as gf
@@ -127,6 +129,8 @@ class App(BewerbungenSeiten):
         except Exception:
             traum = {}
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
+        if (knopf := gh.knopf(active)):                 # „?“ unten rechts: Hilfe zu dieser Seite
+            body, extra_css = body + knopf, extra_css + gh.KNOPF_CSS
         return layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name),
                                extra_css, self.token, self.native)
 
@@ -1033,7 +1037,7 @@ class App(BewerbungenSeiten):
         body = gw.render(self.token, profile_html + postfach, self.aufgaben, gw.fehlende_pakete(), gw.protokoll(),
                          message, bn.status(), modus(cfg), ki_html, sich, github,
                          version_html=updates.karte(self.root, cfg, self.token))
-        return self.page("Einstellungen", body, "einstellungen")
+        return self.page("Einstellungen", body, "einstellungen", gdt.CSS)
 
     def _portale(self) -> int:
         """Aktive Stellenwerk-Portale (für die Schätzung der Abrufe je Lauf)."""
@@ -1187,20 +1191,35 @@ class App(BewerbungenSeiten):
               von: str = "") -> bytes | None:
         if name not in gw.DATEIEN:
             return None
+        path = self.root / name
         if text is None:
-            path = self.root / name
             text = path.read_text(encoding="utf-8") if path.exists() else ""
-        return self.page(name, gw.render_datei(self.token, name, text, message, suche, von),
-                         "firmen" if name == "companies.yaml" or von else "einstellungen")
+        bak = path.with_name(path.name + ".bak").exists()
+        return self.page(gdt.INFOS.get(name, (name,))[0],
+                         gdt.editor_html(self.token, name, text, message, suche, von, bak, gdt.fehler_zeile(message)),
+                         "firmen" if name == "companies.yaml" or von else "einstellungen", gdt.CSS)
 
     def datei_post(self, form: dict) -> bytes | None:
         """Speichern schließt den Editor: zurück zu Firmen (companies.yaml oder von „Quellen beobachten“ aus, dann mit
         Vermerk „wird überprüft“) bzw. zu den Einstellungen."""
         name, text, von = form.get("name", ""), form.get("text", ""), form.get("von", "")
+        if form.get("aktion") == "wiederherstellen":    # .bak zurückholen; die jetzige Fassung wird zur Sicherung
+            if name not in gw.DATEIEN:
+                return None
+            bak = (self.root / name).with_name((self.root / name).name + ".bak")
+            if not bak.exists():
+                return self.datei(name, '<div class="card err">Es gibt keine vorherige Fassung.</div>')
+            try:
+                gw.speichern(self.root, name, bak.read_text(encoding="utf-8"))
+            except gw.WartungError as exc:
+                return self.datei(name, gdt.fehler_html(str(exc)))
+            return self.datei(name, '<div class="card"><p class="ok">Vorherige Fassung wiederhergestellt. Die Fassung '
+                                    'davor liegt jetzt als Sicherung bereit (noch einmal klicken holt sie zurück).</p>'
+                                    '</div>')
         try:
             gw.speichern(self.root, name, text)
         except gw.WartungError as exc:   # Eingabe behalten, damit nichts verloren geht
-            return self.datei(name, f'<div class="card err">Nicht gespeichert: {esc(exc)}</div>', text, von=von)
+            return self.datei(name, gdt.fehler_html(str(exc)), text, von=von)
         if von:
             gf.vermerken(self.root, von, date.today())
         msg = (f'<div class="card"><p class="ok">{esc(name)} gespeichert (alter Stand als .bak). Wird beim '

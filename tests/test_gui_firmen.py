@@ -120,9 +120,9 @@ def test_beobachten_mit_aktionen(tmp_path):
     assert 'href="https://zurich.de/karriere"' in html and "Karriereseite öffnen" in html
     assert "/einstellungen/datei?name=companies.yaml&amp;suche=name%3A%20Zurich" in html
     assert "/einstellungen/datei?name=config.yaml&amp;suche=bundesagentur%3A" in html
-    seite = gw.render_datei("t", "companies.yaml", "firmen:\n  - name: Zurich\n", suche="name: Zurich")
-    assert 'data-suche="name: Zurich"' in seite and "setSelectionRange" in seite
-    assert "setSelectionRange" not in gw.render_datei("t", "companies.yaml", "x")
+    from jobmonitor import gui_dateien as gdt
+    seite = gdt.editor_html("t", "companies.yaml", "firmen:\n  - name: Zurich\n", suche="name: Zurich")
+    assert 'value="name: Zurich"' in seite and "finden(true)" in seite
 
 
 def test_vermerk_nach_aenderung(tmp_path, monkeypatch):

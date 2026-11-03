@@ -54,15 +54,25 @@ def test_editor_has_upload_field(root):  # noqa: F811
 
 
 def test_help_page(root):  # noqa: F811
+    import re
     assert ("hilfe", "Anleitung", "/hilfe", "System") in layout.NAV
     html = gh.render()
-    for anker, titel, _ in gh.ABSCHNITTE:
-        assert f'href="#{anker}"' in html and f'id="{anker}"' in html and titel in html
+    ids = re.findall(r'id="([^"]+)"', html)
+    assert len(ids) == len(set(ids))                                           # keine doppelten Anker
+    for ziel in re.findall(r'href="#([^"]+)"', html):                          # Inhaltsverzeichnis zeigt auf echte Abschnitte
+        assert ziel in ids, ziel
+    for anker in gh.HILFE_ZU_SEITE.values():                                   # „?“-Knopf jeder Seite hat ein Ziel
+        assert anker in ids, anker
+    for anker, frage, _, _ in gh.AUFGABEN:
+        assert f'id="{anker}"' in html and frage.replace("'", "&#x27;") in html
     # Links der Anleitung zeigen auf echte Seiten der App
     for href in ("/", "/bewerbungen", "/eigene", "/master", "/unterlagen", "/profil", "/luecken", "/firmen",
-                 "/einstellungen"):
+                 "/einstellungen", "/einrichten"):
         assert f'href="{href}"' in html
-    assert "nie etwas verschickt" in html
+    assert "schickst immer du selbst" in html and 'id="hilfe-suche"' in html
+    app = App(root, compile_pdf=False)
+    assert 'class="hilfe-knopf" href="/hilfe#seite-bewerbungen"' in app.bewerbungen().decode()
+    assert "hilfe-knopf" not in app.page("Anleitung", "", "hilfe").decode()
 
 
 def test_zeugnisse_und_zertifikate_sortiert(root):  # noqa: F811

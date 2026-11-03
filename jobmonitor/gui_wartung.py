@@ -165,7 +165,9 @@ def pruefen(name: str, text: str) -> None:
         try:
             data = YAML(typ="safe").load(text)
         except Exception as exc:   # ruamel wirft verschiedene Fehlerklassen
-            raise WartungError(f"Kein gültiges YAML: {str(exc).splitlines()[0][:200]}") from None
+            marke = getattr(exc, "problem_mark", None) or getattr(exc, "context_mark", None)
+            zeile = f" (Zeile {marke.line + 1})" if marke is not None else ""
+            raise WartungError(f"Kein gültiges YAML{zeile}: {str(exc).splitlines()[0][:200]}") from None
         if not isinstance(data, dict):
             raise WartungError("Die Datei muss aus Schlüssel: Wert-Einträgen bestehen.")
         if art == "config":
@@ -429,11 +431,9 @@ Alle Quellen dauern einige Minuten.</p>
 {_form(token, "probelauf", "Probelauf starten", f'<select name="quelle" style="width:auto;margin-right:8px">{optionen}</select>')}
 {_aufgabe_html(a.get("probelauf"))}</div>"""
 
-    dateien = "".join(f'<li><a href="/einstellungen/datei?name={esc(n)}">{esc(n)}</a> – '
-                      f'<span class="muted">{esc(t)}</span></li>' for n, (t, _) in DATEIEN.items())
+    from .gui_dateien import uebersicht_html
     einst = f"""{profile_html}
-<div class="card"><h2>Dateien bearbeiten</h2><p class="muted">Für alles, was es nicht als eigenes Formular gibt.
-Vor dem Speichern wird geprüft; der alte Stand bleibt als .bak daneben.</p><ul>{dateien}</ul></div>"""
+{uebersicht_html()}"""
 
     aufraeumen = _form(token, "cv_out", "Alte Lebenslauf-Dateien aufräumen", ghost=True,
                        confirm="Alle Dateien in cv/out in den Papierkorb verschieben? Bewerbungsordner bleiben.")
@@ -458,30 +458,3 @@ Vor dem Speichern wird geprüft; der alte Stand bleibt als .bak daneben.</p><ul>
     return (f'<h1>Einstellungen</h1><p class="sub">Alles, was du sonst im Terminal machen würdest.</p>{message}'
             f'{suche}{pipeline}{note}{ki_html}{probe}{einst}{sicherung_html}{app}<div class="card">{log_html or "<p class=muted>Noch kein Protokoll.</p>"}'
             f'</div>{refresh}')
-
-
-def render_datei(token: str, name: str, text: str, message: str = "", suche: str = "", von: str = "") -> str:
-    titel = DATEIEN[name][0]
-    zurueck = "/firmen" if name == "companies.yaml" or von else "/einstellungen"
-    return f"""<h1>{esc(name)}</h1><p class="sub">{esc(titel)} · <a href="{zurueck}">zurück</a></p>{message}
-<form method="post" action="/einstellungen/datei"><input type="hidden" name="token" value="{token}">
-<input type="hidden" name="name" value="{esc(name)}"><input type="hidden" name="von" value="{esc(von)}">
-<div class="card"><textarea id="datei" name="text" rows="30" spellcheck="false" class="code"
-data-suche="{esc(suche)}">{esc(text)}</textarea></div>
-<div class="sticky row"><button>Prüfen und speichern</button><a class="btn ghost" href="{zurueck}">Abbrechen</a>
-</div></form>{SPRUNG_JS if suche else ""}"""
-
-
-# Editor an die gesuchte Stelle (z. B. „name: inovex“) scrollen und sie markieren
-SPRUNG_JS = """<script>
-(() => {
-  const ta = document.getElementById('datei'), such = ta.dataset.suche;
-  const i = such ? ta.value.indexOf(such) : -1;
-  if (i < 0) return;
-  const zeile = ta.value.slice(0, i).split('\\n').length - 1;
-  const hoehe = parseFloat(getComputedStyle(ta).lineHeight) || 20;
-  ta.focus({preventScroll: true});
-  ta.setSelectionRange(i, i + such.length);
-  ta.scrollTop = Math.max(0, (zeile - 3) * hoehe);
-})();
-</script>"""

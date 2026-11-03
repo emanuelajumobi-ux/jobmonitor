@@ -270,7 +270,7 @@ def render_liste(token: str, cfg: dict, n_portale: int) -> str:
             f'<td>{"<span class=ok>an</span>" if p.enabled else "<span class=muted>aus</span>"}</td>'
             f'<td class="act"><a class="btn ghost small" href="/einstellungen/suchprofil?key={esc(p.key)}">'
             f'Bearbeiten</a> {schalter}</td></tr>')
-    return f"""<div class="card"><div class="row" style="justify-content:space-between;align-items:center">
+    return f"""<div class="card" id="suchprofile"><div class="row" style="justify-content:space-between;align-items:center">
 <h2 style="margin:0">Suchprofile</h2><a class="btn small" href="/einstellungen/suchprofil">Neues Suchprofil</a></div>
 <p class="muted">Gilt ab dem nächsten Lauf der Pipeline. Aktiv: {aktiv} von höchstens {suchprofil.MAX_AKTIV}.
 Pro Lauf {_abrufe(suchprofil.anfragen(cfg, n_portale))} (Suchen plus nachgeladene Anzeigentexte).</p>

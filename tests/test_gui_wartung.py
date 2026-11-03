@@ -135,7 +135,8 @@ def test_companies_yaml_bearbeiten(tmp_path):
     (tmp_path / "companies.yaml").write_text(gut, encoding="utf-8")
     gw.speichern(tmp_path, "companies.yaml", gut.replace("A", "B"))
     assert (tmp_path / "companies.yaml.bak").read_text(encoding="utf-8") == gut
-    assert 'href="/firmen">zurück' in gw.render_datei("t", "companies.yaml", gut)
+    from jobmonitor import gui_dateien as gdt
+    assert 'href="/firmen">Zurück' in gdt.editor_html("t", "companies.yaml", gut)
 
 
 def test_laeufe_nachgeladen_und_zwischengespeichert(root, monkeypatch):  # noqa: F811
