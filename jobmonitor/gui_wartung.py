@@ -383,7 +383,7 @@ Ausgabe-Tokens.</p>{pipeline}<p class="muted">Die Kosten in Euro siehst du in de
 
 def render(token: str, profile_html: str, aufgaben: Aufgaben, fehlend: list[str], log_text: str, message: str = "",
            mitteilung: dict | None = None, suchmodus: str = "aktiv", ki_html: str = "", sicherung_html: str = "",
-           github: bool = True, mac: bool | None = None, version_html: str = "") -> str:
+           github: bool = True, mac: bool | None = None, version_html: str = "", aus: frozenset = frozenset()) -> str:
     """`github`: Suche läuft über GitHub Actions (sonst lokaler Zeitplan); `mac`: die tägliche Mitteilung zur
     GitHub-Pipeline gibt es nur dort (ohne Angabe: dieses System)."""
     mac = sys.platform == "darwin" if mac is None else mac
@@ -424,7 +424,7 @@ style="width:auto" onchange="if (this.form.an.checked) this.form.requestSubmit()
 <p class="muted" style="margin-top:8px">Status: {hinweis}</p>
 <div class="row">{_form(token, "mitteilung_test", "Probe-Mitteilung senden", ghost=True)}</div></div>""" if mac else ""
 
-    optionen = "".join(f'<option value="{k}">{esc(v)}</option>' for k, v in QUELLEN.items())
+    optionen = "".join(f'<option value="{k}">{esc(v)}</option>' for k, v in QUELLEN.items() if k not in aus)
     probe = f"""<div class="card"><h2>Probelauf auf diesem Rechner</h2>
 <p class="muted">Fragt die Quellen ab und zeigt den Bericht, ohne etwas zu speichern oder eine Mail zu schicken.
 Alle Quellen dauern einige Minuten.</p>

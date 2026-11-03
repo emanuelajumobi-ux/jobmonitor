@@ -69,14 +69,26 @@ def travel_minutes(location: str, distance_km: float | None = None, tabelle: dic
     return best
 
 
+def zentrum(ort: dict | None) -> str | None:
+    """Wohnort aus config.yaml → ort. Fehlt der Eintrag ganz, gilt Köln (Einstellungen von vor dem Wohnort-Feld);
+    ist er leer, ist noch kein Wohnort festgelegt (neue Nutzer bis zum Einrichtungs-Assistenten)."""
+    ort = ort or {}
+    if "zentrum" not in ort:
+        return "Köln"
+    return str(ort.get("zentrum") or "").strip() or None
+
+
 def location_points(location: str, remote: bool, cfg: dict, distance_km: float | None = None) -> tuple[int, str] | None:
-    """(Punkte, Beschreibung) oder None, wenn Ort nicht passt."""
+    """(Punkte, Beschreibung) oder None, wenn Ort nicht passt. Ohne festgelegten Wohnort zählen nur Remote-Stellen."""
+    if zentrum(cfg) is None:
+        return (cfg["punkte_remote"], "Remote/Homeoffice") if remote and not (
+            cfg.get("remote_nur_deutschland", True) and im_ausland(location, None)) else None
     tabelle = cfg.get("fahrzeiten") or None
     minutes = travel_minutes(location, distance_km, tabelle)
     max_min = cfg["max_fahrzeit_min"]
     if minutes is not None and minutes <= max_min:
         if minutes == 0:
-            return cfg["punkte_koeln"], cfg.get("zentrum") or "Köln"
+            return cfg["punkte_koeln"], zentrum(cfg) or "Köln"
         if minutes <= 45:
             return cfg["punkte_umkreis"], f"{location} (~{minutes} min)"
         return cfg["punkte_grenze"], f"{location} (~{minutes} min, Grenze)"

@@ -77,7 +77,7 @@ class AdzunaSource:
             result.notes.append("kein Zugang (ADZUNA_APP_ID/ADZUNA_APP_KEY nicht gesetzt) – übersprungen")
             return result
         for begriff in self.suchbegriffe:
-            params = {"app_id": z[0], "app_key": z[1], "what": begriff, "where": self.cfg.get("wo", "Köln"),
+            params = {"app_id": z[0], "app_key": z[1], "what": begriff, "where": self.cfg.get("wo") or "Deutschland",
                       "distance": self.cfg.get("umkreis_km", 50), "max_days_old": self.cfg.get("tage", 7),
                       "results_per_page": self.cfg.get("je_seite", 50), "sort_by": "date"}
             try:

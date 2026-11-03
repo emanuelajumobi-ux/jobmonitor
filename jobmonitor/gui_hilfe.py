@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from html import escape
 
+from . import feedback
+
 # Seite der App (aktiver Menüpunkt) → passender Abschnitt der Anleitung
 HILFE_ZU_SEITE = {"stellen": "seite-stellen", "traum": "seite-stellen", "bewerbungen": "seite-bewerbungen",
                   "eigene": "eigene-stelle", "rueckblick": "seite-rueckblick", "firmen": "seite-firmen",
@@ -291,6 +293,7 @@ placeholder="Hilfe durchsuchen, z. B. Design, Postfach, Fit" aria-label="Hilfe d
 <div class="card" id="dateien"><h3>Dateien und Ordner</h3><table class="hilfe-tabelle">{dateien}</table></div>
 <h2 id="hintergrund" class="hilfe-gruppe">Hintergrund</h2>{hintergrund}
 <h2 id="fragen" class="hilfe-gruppe">Probleme lösen</h2><div class="card"><dl>{fragen}</dl></div>
+{feedback.karte()}
 <p class="muted" id="hilfe-nichts" hidden>Nichts gefunden. Andere Wörter versuchen – oder unter Einstellungen →
 Protokoll nach einer Fehlermeldung sehen.</p>
 </div></div>{JS}"""

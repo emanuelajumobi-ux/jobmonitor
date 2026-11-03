@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, designs, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -292,6 +292,11 @@ class App(BewerbungenSeiten):
         if self.notice:
             message, self.notice = self.notice + message, ""
         cfg = load_config(self.root / "config.yaml")
+        from .location import zentrum
+        if zentrum(cfg.get("ort")) is None:
+            message += ('<div class="card info row" style="justify-content:space-between"><p>Noch kein Wohnort '
+                        'festgelegt – bis dahin zählen nur Remote-Stellen.</p><a class="btn small" '
+                        'href="/einstellungen#wohnort">Wohnort festlegen</a></div>')
         self._ki_cv = self.ki_cv_an(cfg)
         apps = tracking.load(self.root / "applications.csv")
         self._apps = apps
@@ -492,7 +497,7 @@ class App(BewerbungenSeiten):
 <input type="hidden" name="art" value="eigene">
 <div class="card"><h2>Anzeige</h2>
 <label>Anzeigentext (einfach aus der Anzeige kopieren, erste Zeile = Titel)</label>
-<textarea name="text" rows="12" placeholder="Werkstudent Cloud (m/w/d)&#10;Deine Aufgaben: …"></textarea>
+<textarea name="text" rows="12" placeholder="Werkstudent Marketing (m/w/d)&#10;Deine Aufgaben: …"></textarea>
 <label>… oder Link zur Anzeige (nur Firmen-Karriereseiten, nicht LinkedIn/StepStone/Indeed)</label>
 <input name="url" placeholder="https://firma.de/jobs/…">
 <div class="grid2"><div><label>Firma (Pflicht)</label><input name="firma" required></div>
@@ -1186,8 +1191,9 @@ class App(BewerbungenSeiten):
         covered = covered_terms(cv or {}, cfg["fit"]["begriffe"])
         base, rows = gl.analyse(details, covered, cfg["fit"])
         n = sum(1 for d in details if len(d["anforderungen"]) >= cfg["fit"]["min_anforderungen"])
+        traum_an = bool(traum_cfg) and traum_cfg.get("enabled", True) is not False
         umschalten = ('<a href="/luecken">alle Stellen</a>' if nur_traum
-                      else f'<a href="/luecken?traum=1">nur {esc(traum_name)}</a>')
+                      else f'<a href="/luecken?traum=1">nur {esc(traum_name)}</a>' if traum_an else "")
         scope = f"nur {esc(traum_name)}-Stellen" if nur_traum else "alle gefundenen Stellen"
         lern = gl.render_vorschlaege(lernpfade.vorschlaege(rows, lernpfade.load(self.root), cv or {}), self.token)
         lern = self._lernplan_karte(nur_traum) + lern
@@ -1224,14 +1230,16 @@ class App(BewerbungenSeiten):
                             int(ki.settings(cfg)["max_aufrufe_monat"]),
                             gw.pipeline_ki(pipe, date.today().strftime("%Y-%m"), ki.settings(cfg)),
                             getattr(self, "_ki_modelle", None))
-        sich = spenden.karte(cfg) + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
+        sich = spenden.karte(cfg) + feedback.karte() + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
                                   len(sicherung.inhalt(self.root)))
         github = zeitplan.github_aktiv(self.root)
         postfach = (f'<div class="card" id="postfach"><h2>Postfach</h2>'
                     f'{mailzugang.formular(self.root, self.token, esc, "/einstellungen")}</div>' if not github else "")
         body = gw.render(self.token, profile_html + postfach, self.aufgaben, gw.fehlende_pakete(), gw.protokoll(),
                          message, bn.status(), modus(cfg), ki_html, sich, github,
-                         version_html=updates.karte(self.root, cfg, self.token))
+                         version_html=updates.karte(self.root, cfg, self.token),
+                         aus=frozenset(k for k, v in (cfg.get("sources") or {}).items()
+                                       if isinstance(v, dict) and v.get("enabled") is False))
         return self.page("Einstellungen", body, "einstellungen", gdt.CSS)
 
     def _portale(self) -> int:

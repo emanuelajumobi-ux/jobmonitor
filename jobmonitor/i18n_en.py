@@ -231,7 +231,7 @@ TEXTE: dict[str, str] = {
         "… or link to the ad (company career pages only, not LinkedIn/StepStone/Indeed)",
     "Link für die Bewerbungsliste (optional, bei Text)": "Link for the application list (optional, with text)",
     "Fit prüfen und Lebenslauf erstellen": "Check fit and create CV",
-    "Werkstudent Cloud (m/w/d) Deine Aufgaben: …": "Working student Cloud (m/f/d) Your tasks: …",
+    "Werkstudent Marketing (m/w/d) Deine Aufgaben: …": "Working student Marketing (m/f/d) Your tasks: …",
     "Allgemeiner Lebenslauf": "General CV",
 
     # --- Profil und Unterlagen ---
@@ -306,6 +306,15 @@ TEXTE: dict[str, str] = {
     "ganz freiwillig.": "Did Job-Monitor help you get there? Then the developer would appreciate a small contribution "
                         "– entirely voluntary.",
     "Was ist neu": "What's new",
+    "Noch kein Wohnort festgelegt – bis dahin zählen nur Remote-Stellen.":
+        "No home location set yet – until then only remote jobs count.", "Wohnort festlegen": "Set home location",
+    "noch nicht festgelegt": "not set yet", "bis dahin zählen nur Remote-Stellen": "until then only remote jobs count",
+    "Feedback": "Feedback", "Fehler melden": "Report a bug", "Idee vorschlagen": "Suggest an idea",
+    "Etwas funktioniert nicht oder du hast eine Idee? Der Knopf öffnet eine vorausgefüllte Seite auf GitHub "
+    "(öffentlich, kostenloses Konto nötig). Mitgeschickt werden nur Version und Betriebssystem – du liest alles und "
+    "sendest selbst.": "Something does not work or you have an idea? The button opens a prefilled page on GitHub "
+                       "(public, free account needed). Only version and operating system are included – you read "
+                       "everything and submit it yourself.",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":
@@ -355,7 +364,7 @@ TEXTE: dict[str, str] = {
         "saving; the old version stays next to it as .bak.",
     "Als Datei bearbeiten": "Edit as file", "Seite blockiert automatische Abrufe (HTTP 403)":
         "Page blocks automatic requests (HTTP 403)", "keine maschinenlesbaren Stellen gefunden":
-        "no machine-readable jobs found", "Neue Firma": "New company", "z. B. IT-Beratung": "e.g. IT consulting",
+        "no machine-readable jobs found", "Neue Firma": "New company", "z. B. Leipzig, Remote": "e.g. Leipzig, Remote", "z. B. IT-Beratung": "e.g. IT consulting",
     "https://firma.de/karriere/jobs": "https://company.com/careers/jobs",
     "https://firma.de/jobs/…": "https://company.com/jobs/…",
 
@@ -630,8 +639,8 @@ TEXTE: dict[str, str] = {
     "KI legt das Suchprofil an …": "AI is creating the search profile …", "Lebenslauf anlegen": "Create CV",
     "Lebenslauf übernehmen": "Import CV", "KI liest deinen Lebenslauf …": "AI is reading your CV …",
     "Was suchst du? In ein, zwei Sätzen": "What are you looking for? In one or two sentences",
-    "z. B. Werkstudentenjob im Bereich Data Engineering oder KI, gern mit Python, in Köln oder remote":
-        "e.g. working student job in data engineering or AI, ideally with Python, in Cologne or remote",
+    "z. B. Werkstudentenjob im Bereich Data Engineering oder KI, gern mit Python, in deiner Stadt oder remote":
+        "e.g. working student job in data engineering or AI, ideally with Python, in your city or remote",
     "z. B. Werkstudent im Controlling oder Finanzbereich, gern mit Excel und SAP":
         "e.g. working student in controlling or finance, ideally with Excel and SAP",
     "Karrierestufe": "Career level", "Ausbildung / duales Studium": "Apprenticeship / dual study",
@@ -1107,6 +1116,8 @@ MUSTER: list[tuple[str, str]] = [
     ("{n} (+{n} optional)", "{} (+{} optional)"), ("Sprache: {}.{}", "Language: {}.{}"),
     ("Alles vorbereitet: {}", "Everything prepared: {}"),
     ("{n} Firmen", "{} companies"),
+    ("{} … aus config.yaml (filter.fach). Richtig für Profile im selben Bereich.",
+     "{} … from config.yaml (filter.fach). Right for profiles in the same area."),
     ("Glückwunsch zur Einladung bei {}!", "Congratulations on the invitation from {}!"),
     ("Liste vom {}: {n} noch offen (hinzugefügte und ignorierte sind ausgeblendet).",
      "List from {}: {} still open (added and ignored ones are hidden)."),

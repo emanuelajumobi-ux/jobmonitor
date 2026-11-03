@@ -24,7 +24,7 @@ sources:
     api_key: "jobboerse-jobsuche"   # öffentlicher Schlüssel der Web-App, kein Geheimnis
     detail_api_version: v4      # jobdetails gibt es (Stand 31.10.2026) nur noch unter v4
     max_details: 25             # Anzeigentexte je Lauf nachladen (nur neue, gefilterte Treffer, für den Fit)
-    wo: "Köln"
+    wo: ""                    # Suchort; setzt Einstellungen → Wohnort
     umkreis_km: 50
     veroeffentlicht_seit_tage: 14
     page_size: 50
@@ -50,7 +50,7 @@ sources:
   # Secrets) – ohne beide wird sie übersprungen. „Personal job search“ ist laut Bedingungen erlaubt.
   adzuna:
     enabled: false            # aus: voller Zugang kostet 8 £/Monat (Testzugang nur 25 Abfragen), Stand 03.11.2026
-    wo: "Köln"
+    wo: ""                    # Suchort; setzt Einstellungen → Wohnort
     umkreis_km: 50
     tage: 7                   # nur Anzeigen der letzten N Tage
     max_begriffe: 8           # je Suchprofil die ersten N BA-Suchbegriffe (= Abfragen je Profil und Lauf)
@@ -183,6 +183,7 @@ filter:
       Wird vom Einrichtungs-Assistenten aus deinem Suchwunsch gesetzt.
 
 ort:
+  zentrum: ""                 # Wohnort (Einrichtungs-Assistent bzw. Einstellungen → Wohnort); leer = nur Remote
   max_fahrzeit_min: 60
   punkte_koeln: 15
   punkte_umkreis: 10          # bis 45 min

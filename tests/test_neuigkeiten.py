@@ -35,3 +35,13 @@ def test_erste_einladung_nur_einmal(tmp_path):
     erste = spenden.einladung(tmp_path, cfg, "Beispiel AG")
     assert "Glückwunsch zur Einladung bei Beispiel AG" in erste and "ko-fi.com/test" in erste
     assert spenden.einladung(tmp_path, cfg, "Andere GmbH") == ""
+
+
+def test_feedback_link_ohne_persoenliches():
+    from urllib.parse import parse_qs, urlsplit
+    from jobmonitor import feedback
+    teile = urlsplit(feedback.link("fehler"))
+    q = parse_qs(teile.query)
+    assert teile.netloc == "github.com" and teile.path == "/emanuelajumobi-ux/jobmonitor/issues/new"
+    assert q["title"] == ["[Fehler] "] and __version__ in q["body"][0] and "keine persönlichen Daten" in q["body"][0]
+    assert "Fehler melden" in feedback.karte() and "Idee vorschlagen" in feedback.karte()

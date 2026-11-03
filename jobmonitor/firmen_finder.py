@@ -33,7 +33,8 @@ def _ziele(cfg: dict) -> str:
 def prompt(cfg: dict, cv_text: str, vorhandene: list[str], wunsch: str, anzahl: int) -> str:
     from .gui_firmen import KATEGORIEN
     ort = cfg.get("ort") or {}
-    zentrum = ort.get("zentrum") or "Köln"
+    from .location import zentrum as wohnort
+    zentrum = wohnort(ort) or "(noch nicht festgelegt – nenne Firmen mit Remote-Möglichkeit in Deutschland)"
     return (
         "Du hilfst bei der Jobsuche: Stelle eine Liste von Arbeitgebern zusammen, deren Karriereseiten man beobachten "
         "sollte, weil dort regelmäßig passende Stellen ausgeschrieben werden könnten.\n\n"

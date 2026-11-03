@@ -305,6 +305,7 @@ def render_formular(token: str, cfg: dict, key: str, n_portale: int, fehler: str
     if eingabe is not None:
         f["enabled"] = bool(eingabe.get("enabled"))
     andere = [p for p in suchprofil.aktive(cfg) if p.key != key]
+    gemeinsam = ", ".join(w for w in list(((cfg.get("filter") or {}).get("fach") or {}))[:5]) or "–"
     basis = suchprofil.anfragen(cfg, n_portale, andere)
     src = cfg.get("sources") or {}
     ba, sw = src.get("bundesagentur") or {}, src.get("stellenwerk") or {}
@@ -337,7 +338,7 @@ def render_formular(token: str, cfg: dict, key: str, n_portale: int, fehler: str
 <div class="card info"><h2>Mit KI ausfüllen</h2>
 <label for="wunsch">Was suchst du? In ein, zwei Sätzen</label>
 <textarea id="wunsch" name="wunsch" rows="2" style="min-height:0"
-placeholder="z. B. Werkstudentenjob im Bereich Data Engineering oder KI, gern mit Python, in Köln oder remote">{esc(f.get("wunsch", ""))}</textarea>
+placeholder="z. B. Werkstudentenjob im Bereich Data Engineering oder KI, gern mit Python, in deiner Stadt oder remote">{esc(f.get("wunsch", ""))}</textarea>
 <div class="row" style="margin-top:10px">{ki_knopf}</div></div>
 <div class="card"><h2>Grunddaten</h2>
 <div class="grid2"><div><label for="name">Name</label><input id="name" name="name" value="{esc(f["name"])}" required
@@ -374,8 +375,8 @@ placeholder="Langfristig möchte ich …"></div></div></div>
 <div class="card"><h2>Fachgebiet</h2>
 <p class="muted">Bestimmt, welche Stellen inhaltlich passen und wie hoch ihr Score ist.</p>
 <label class="modus{"" if eigen else " an"}" style="margin-bottom:8px"><input type="radio" name="fachgebiet"
-value="gemeinsam"{"" if eigen else " checked"}><b>Gemeinsam mit den anderen Profilen</b><span class="muted">Cloud,
-Azure, IAM, DevOps, IT-Security … aus config.yaml (filter.fach). Richtig für Profile im selben Bereich.</span></label>
+value="gemeinsam"{"" if eigen else " checked"}><b>Gemeinsam mit den anderen Profilen</b><span class="muted">{esc(gemeinsam)} …
+aus config.yaml (filter.fach). Richtig für Profile im selben Bereich.</span></label>
 <label class="modus{" an" if eigen else ""}"><input type="radio" name="fachgebiet" value="eigen"{" checked" if eigen else ""}>
 <b>Eigenes Fachgebiet</b><span class="muted">Für ein anderes Feld, z. B. Data Science oder Netzwerktechnik. Dann
 zählen nur diese Stichwörter, die IT-Prüfungen des gemeinsamen Fachgebiets entfallen.</span></label>

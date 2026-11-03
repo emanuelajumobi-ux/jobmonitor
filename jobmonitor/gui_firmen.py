@@ -327,7 +327,7 @@ und klick danach auf „Besucht“.</p>{manual_html}</div>
 <input name="karriereseite_url" placeholder="https://firma.de/karriere/jobs" required></div>
 <div><label>Kategorie</label><select name="kategorie">{options}</select></div>
 <div><label>Branche (optional)</label><input name="branche" placeholder="z. B. IT-Beratung"></div>
-<div><label>Standorte (mit Komma getrennt)</label><input name="standorte" placeholder="Köln, Remote"></div>
+<div><label>Standorte (mit Komma getrennt)</label><input name="standorte" placeholder="z. B. Leipzig, Remote"></div>
 <div><label>Fokus (mit Komma getrennt)</label><input name="fokus" placeholder="Cloud, IAM, Security"></div>
 </div>
 <label>Notizen (optional)</label><input name="notizen">

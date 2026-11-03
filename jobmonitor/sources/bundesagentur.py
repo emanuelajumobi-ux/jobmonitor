@@ -115,7 +115,8 @@ class BundesagenturSource:
             base["angebotsart"] = self.cfg["angebotsart"]
         for term in self.cfg["suchbegriffe"]:
             try:
-                data = self._search({**base, "was": term, "wo": self.cfg["wo"], "umkreis": self.cfg["umkreis_km"]})
+                ort = {"wo": self.cfg["wo"], "umkreis": self.cfg["umkreis_km"]} if self.cfg.get("wo") else {}
+                data = self._search({**base, "was": term, **ort})
                 result.jobs += parse_results(data)
                 if self.cfg.get("bundesweit_remote"):
                     data = self._search({**base, "was": term})

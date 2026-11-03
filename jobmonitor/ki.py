@@ -400,6 +400,11 @@ def nachfass_entwuerfe(root: Path) -> dict[str, tuple[str, str]]:
 
 
 # --- Mit KI ausfüllen: Suchprofil ---
+def zentrum(ort):
+    from .location import zentrum as wohnort
+    return wohnort(ort)
+
+
 def suchprofil_vorschlag(root: Path, cfg: dict, name: str, wunsch: str, cv: dict, max_begriffe: int,
                          ask=None) -> dict:
     """Formularfelder für ein Suchprofil (gui_suchprofile) aus einer kurzen Beschreibung des Wunsches."""
@@ -407,7 +412,7 @@ def suchprofil_vorschlag(root: Path, cfg: dict, name: str, wunsch: str, cv: dict
     beispiel = next(iter((cfg.get("profile") or {}).values()), {})
     antwort = llm.json_aus(fragen(root, cfg, (
         "Lege ein Suchprofil für einen Job-Monitor an, der deutsche Stellenbörsen (Bundesagentur für Arbeit, "
-        f"Stellenwerk) durchsucht. Gesucht wird im Raum {(cfg.get('ort') or {}).get('zentrum') or 'Köln'}.\n\n"
+        f"Stellenwerk) durchsucht. Gesucht wird im Raum {zentrum(cfg.get('ort')) or 'Deutschland'}.\n\n"
         f"NAME DES PROFILS: {name or '(frei)'}\nWAS GESUCHT WIRD: {wunsch}\n\n"
         f"GEMEINSAMES FACHGEBIET DER ANDEREN PROFILE (Stichwörter): {fach}\n"
         f"BEISPIEL EINES BESTEHENDEN PROFILS (Rollen-Wörter): {json.dumps(beispiel.get('rollen') or {}, ensure_ascii=False)}\n\n"

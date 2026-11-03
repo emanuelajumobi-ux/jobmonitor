@@ -95,9 +95,12 @@ def speichern(root: Path, stadt: str, tabelle: dict[str, int]) -> Path:
 
 
 def karte(token: str, ort_cfg: dict, ki_an: bool, esc) -> str:
-    zentrum = ort_cfg.get("zentrum") or "Köln"
+    from .location import zentrum as wohnort
+    zentrum = wohnort(ort_cfg)
     n = len(ort_cfg.get("fahrzeiten") or {}) or None
-    stand = (f"{n} Orte im Umkreis (eigene Tabelle)" if n else "eingebaute Tabelle für Köln und Umgebung")
+    stand = (f"{n} Orte im Umkreis (eigene Tabelle)" if n else "eingebaute Tabelle für Köln und Umgebung"
+             if zentrum else "bis dahin zählen nur Remote-Stellen")
+    zentrum = zentrum or "noch nicht festgelegt"
     knopf = (f'<button name="aktion" value="wohnort" class="small" data-ki="KI schätzt die Fahrzeiten …">Fahrzeiten '
              f'mit KI erstellen</button>' if ki_an else
              '<a href="#ki">Dafür API-Schlüssel hinterlegen</a>')
