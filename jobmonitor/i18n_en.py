@@ -315,6 +315,15 @@ TEXTE: dict[str, str] = {
     "sendest selbst.": "Something does not work or you have an idea? The button opens a prefilled page on GitHub "
                        "(public, free account needed). Only version and operating system are included – you read "
                        "everything and submit it yourself.",
+    "Erst einmal ansehen?": "Have a look first?", "Demo ansehen": "View demo", "Demo beenden": "End demo",
+    "Die Demo zeigt die App mit erfundenen Beispieldaten – Stellen, Fit, Bewerbungen, Lebenslauf-Designs. Deine eigenen "
+    "Daten bleiben unberührt; „Demo beenden“ führt zurück hierher.": "The demo shows the app with made-up sample data – "
+                                                                    "jobs, fit, applications, CV designs. Your own data "
+                                                                    "stays untouched; “End demo” brings you back here.",
+    "Demo": "Demo", "– erfundene Beispieldaten, nichts davon ist echt. Suchen und Synchronisieren sind aus.":
+        "– made-up sample data, none of it is real. Searching and syncing are off.",
+    "In der Demo nicht verfügbar – erst „Demo beenden“.": "Not available in the demo – “End demo” first.",
+    "In der Demo wird nichts synchronisiert.": "Nothing is synced in the demo.",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":

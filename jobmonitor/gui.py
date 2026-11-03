@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, demo, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -122,6 +122,7 @@ class App(BewerbungenSeiten):
         self.ready = True       # False, solange die App-Version beim Start noch synchronisiert
         self.window = None      # pywebview-Fenster, wenn als App gestartet (desktop.py)
         self.sync_hint = ""     # „Synchronisiert 09:14“ unten in der Seitenleiste
+        self.echt: Path | None = None   # im Demo-Modus: der eigene Datenordner (root zeigt solange auf die Demo)
 
     def page(self, title: str, body: str, active: str = "", extra_css: str = "") -> bytes:
         """Seite mit Seitenleiste; Zähler zeigen, wo es Neues gibt."""
@@ -137,6 +138,8 @@ class App(BewerbungenSeiten):
         except Exception:
             cfg, traum = {}, {}
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
+        if self.echt is not None:
+            body = demo.banner(self.token) + body
         if (knopf := gh.knopf(active)):                 # „?“ unten rechts: Hilfe zu dieser Seite
             body, extra_css = body + knopf, extra_css + gh.KNOPF_CSS
         seite = layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name,
@@ -209,8 +212,21 @@ class App(BewerbungenSeiten):
         self.new_ids = current - seen if seen is not None else set()
         path.write_text(json.dumps(sorted(current | (seen or set()))), encoding="utf-8")
 
+    def demo_starten(self) -> bytes:
+        if self.echt is None:
+            self.echt = self.root
+        self.root = demo.anlegen()
+        return self.index()
+
+    def demo_beenden(self) -> bytes:
+        if self.echt is not None:
+            self.root, self.echt = self.echt, None
+        return self.einrichten() if not erststart.eingerichtet(self.root) else self.index()
+
     def sync_card(self) -> str:
         from datetime import datetime
+        if self.echt is not None:
+            return '<div class="card"><p class="muted">In der Demo wird nichts synchronisiert.</p></div>'
         result = sync(self.root)
         self.sync_hint = (f"Synchronisiert {datetime.now():%H:%M}" if result.ok
                           else "Synchronisieren fehlgeschlagen")
@@ -279,7 +295,8 @@ class App(BewerbungenSeiten):
                 message = f'<div class="card"><p class="ok">{esc(ergebnis)}</p></div>'
             except (gas.AssistentError, ki.KiError, wohnort.WohnortError, gw.WartungError, CvDataError) as exc:
                 message = f'<div class="card err">{esc(exc)}</div>'
-        sprache_html = i18n.karte(self.token, i18n.sprache(load_config(self.root / "config.yaml")), "/einrichten")
+        sprache_html = (i18n.karte(self.token, i18n.sprache(load_config(self.root / "config.yaml")), "/einrichten")
+                        + (demo.einstieg(self.token) if self.echt is None else ""))
         return self.page("Einrichten", gas.render(self.root, self.token, ki_an, message) + sprache_html, "", gas.CSS)
 
     def index(self, message: str = "", show_hidden: bool = False, nur_traum: bool = False, profil: str = "") -> bytes:
@@ -1301,6 +1318,9 @@ class App(BewerbungenSeiten):
     def einstellungen_post(self, form: dict) -> bytes:
         aktion = form.get("aktion", "")
         ok = lambda text: f'<div class="card"><p class="ok">{esc(text)}</p></div>'  # noqa: E731
+        if self.echt is not None and aktion in ("pipeline", "pipeline_ohne_mail", "probelauf", "zeitplan_an",
+                                                "sicherung", "sicherung_ordner", "app", "pakete", "mail"):
+            return self.einstellungen('<div class="card err">In der Demo nicht verfügbar – erst „Demo beenden“.</div>')
         try:
             if aktion in ("pipeline", "pipeline_ohne_mail"):
                 msg = ok(gw.pipeline_starten(self.root, aktion == "pipeline_ohne_mail"))
