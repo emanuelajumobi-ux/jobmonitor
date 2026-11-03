@@ -80,13 +80,23 @@ def hinweis(neu: dict | None) -> str:
     if not neu:
         return ""
     url = neu["url"] if neu.get("url", "").startswith("https://github.com/") else ""
-    notizen = escape(neu.get("notizen", "")[:600]).replace("\n", "<br>")
+    notizen = notizen_html(neu.get("notizen", ""))
     return (f'<div class="card info"><div class="row" style="justify-content:space-between;gap:12px"><p style="margin:0">'
             f'<b>Version {escape(neu["version"])} ist da</b> (du hast {escape(__version__)}). Neue App laden und die '
             f'alte ersetzen – deine Daten bleiben.</p>'
             + (f'<a class="btn small" href="{escape(url)}" target="_blank" rel="noopener">Herunterladen</a>' if url else "")
-            + '</div>' + (f'<details><summary>Was ist neu</summary><p class="muted">{notizen}</p></details>'
-                          if notizen else "") + '</div>')
+            + '</div>' + (f'<details><summary>Was ist neu</summary>{notizen}</details>' if notizen else "") + '</div>')
+
+
+def notizen_html(text: str) -> str:
+    """Release-Text (Abschnitt aus NEUIGKEITEN.md) als kleine Liste; die Installationshinweise danach entfallen."""
+    import re
+    text = text.split("Installieren:")[0].strip()[:2500]
+    punkte = [z.strip()[2:] for z in text.splitlines() if z.strip().startswith(("- ", "* "))]
+    fett = lambda t: re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", escape(t))  # noqa: E731
+    if punkte:
+        return '<ul class="muted">' + "".join(f"<li>{fett(p)}</li>" for p in punkte) + "</ul>"
+    return f'<p class="muted">{fett(text)}</p>' if text else ""
 
 
 def karte(root: Path, cfg: dict, token: str) -> str:

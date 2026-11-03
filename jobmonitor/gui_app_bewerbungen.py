@@ -177,7 +177,7 @@ class BewerbungenSeiten:
         row = next((r for r in rows if r.get("link") == form.get("link")), None)
         if row is None:
             return self.bewerbungen('<div class="card err">Eintrag nicht gefunden.</div>')
-        aktion = form.get("aktion")
+        aktion, gruss = form.get("aktion"), ""
         try:
             if aktion == "setzen":
                 start = datetime.fromisoformat(form.get("termin", ""))
@@ -186,6 +186,7 @@ class BewerbungenSeiten:
                     row["status"] = "Antwort"
                 tracking.save(path, rows)
                 msg = f"{row['firma']}: Gespräch am {start:%d.%m.%Y um %H:%M} Uhr eingetragen."
+                gruss = spenden.einladung(self.root, load_config(self.root / "config.yaml"), row["firma"])
             elif aktion == "kalender":
                 start = datetime.fromisoformat(row.get("termin") or "")
                 titel = (row.get("notizen") or "").splitlines()[0] if row.get("notizen") else ""
@@ -204,7 +205,7 @@ class BewerbungenSeiten:
             return self.bewerbungen('<div class="card err">Bitte Datum und Uhrzeit angeben.</div>')
         except kalender.KalenderError as exc:
             return self.bewerbungen(f'<div class="card err">{esc(exc)}</div>')
-        return self.bewerbungen(f'<div class="card"><p class="ok">{esc(msg)}</p></div>')
+        return self.bewerbungen(f'<div class="card"><p class="ok">{esc(msg)}</p></div>{gruss}')
 
     def antwort(self, form: dict) -> bytes:
         """Erkannte Antwort übernehmen (Status setzen) oder nur abhaken."""
@@ -228,8 +229,11 @@ class BewerbungenSeiten:
             if a.termin and row["termin"] == a.termin:
                 msg += f" Gesprächstermin {a.termin[8:10]}.{a.termin[5:7]}. um {a.termin[11:16]} Uhr eingetragen."
         gb.erledigen(self.root, a.schluessel)
-        gruss = (spenden.zusage(load_config(self.root / "config.yaml"), a.firma)
-                 if form.get("aktion") == "uebernehmen" and a.status == "Zusage" else "")
+        gruss = ""
+        if form.get("aktion") == "uebernehmen" and a.status == "Zusage":
+            gruss = spenden.zusage(load_config(self.root / "config.yaml"), a.firma)
+        elif form.get("aktion") == "uebernehmen" and a.art == "einladung":
+            gruss = spenden.einladung(self.root, load_config(self.root / "config.yaml"), a.firma)
         return self.bewerbungen(f'<div class="card"><p class="ok">{esc(msg)}</p></div>{gruss}')
 
     def nachgefasst(self, form: dict) -> bytes:

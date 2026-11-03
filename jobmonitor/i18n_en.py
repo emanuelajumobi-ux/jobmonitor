@@ -297,6 +297,15 @@ TEXTE: dict[str, str] = {
     "Karriereseite mit": ": the AI creates a list of employers near you that match your CV and search profiles – open "
                          "the career page with",
     "öffnen, dann": ", then",
+    "Glückwunsch zur Einladung!": "Congratulations on the invitation!",
+    "Deine erste Einladung zum Gespräch – das ist ein großer Schritt. Unter „Gespräche“ hilft dir":
+        "Your first interview invitation – that is a big step. Under “Interviews”,",
+    "mit wahrscheinlichen Fragen und passenden Beispielen aus deinem Lebenslauf.":
+        "helps you with likely questions and matching examples from your CV.",
+    "Hat dir Job-Monitor auf dem Weg dahin geholfen? Dann freut sich der Entwickler über eine kleine Unterstützung – "
+    "ganz freiwillig.": "Did Job-Monitor help you get there? Then the developer would appreciate a small contribution "
+                        "– entirely voluntary.",
+    "Was ist neu": "What's new",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":
@@ -1098,6 +1107,7 @@ MUSTER: list[tuple[str, str]] = [
     ("{n} (+{n} optional)", "{} (+{} optional)"), ("Sprache: {}.{}", "Language: {}.{}"),
     ("Alles vorbereitet: {}", "Everything prepared: {}"),
     ("{n} Firmen", "{} companies"),
+    ("Glückwunsch zur Einladung bei {}!", "Congratulations on the invitation from {}!"),
     ("Liste vom {}: {n} noch offen (hinzugefügte und ignorierte sind ausgeblendet).",
      "List from {}: {} still open (added and ignored ones are hidden)."),
     ("{n} passende Firmen gefunden – unten unter „Passende Firmen finden“. Karriereseite prüfen, dann hinzufügen.",
