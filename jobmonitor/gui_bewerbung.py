@@ -16,7 +16,7 @@ def esc(value) -> str:
 
 
 def render(slug: str, stelle: dict, data: dict, fit_line: str, files: list[str], anlagen: list[dict],
-           token: str, message: str = "", ki_an: bool = False, abschicken: str = "") -> str:
+           token: str, message: str = "", ki_an: bool = False, abschicken: str = "", design_html: str = "") -> str:
     offen = bw.placeholders(data["text"])
     frist_txt = fristen.label(stelle.get("frist"), date.today())
     frist_html = f' · <b class="{"err" if "abgelaufen" in frist_txt else ""}">{esc(frist_txt)}</b>' if frist_txt else ""
@@ -67,6 +67,7 @@ def render(slug: str, stelle: dict, data: dict, fit_line: str, files: list[str],
 <button name="aktion" value="speichern" class="ghost">Nur speichern</button>
 <button name="aktion" value="neu" class="ghost" onclick="return confirm('Text durch einen neuen Entwurf aus der Vorlage ersetzen?')">Neuer Entwurf aus Vorlage</button>
 {ki}</div></form>
+{design_html}
 {abschicken}"""
 
 

@@ -1,0 +1,54 @@
+<!doctype html>
+{% import "_teile.html.j2" as t %}
+<html lang="de"><head><meta charset="utf-8"><title>Lebenslauf {{ profile.name }}</title>
+<style>
+/* Design „Kompakt“: tabellarischer Lebenslauf mit Zeitspalte links und Foto rechts oben – klar und gut lesbar. */
+@page { size: A4; margin: 15mm 18mm 15mm; }
+:root { --a: {{ akzent }}; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; font-family: Arial, "Helvetica Neue", Helvetica, sans-serif; font-size: 10pt; line-height: 1.4; color: #111; }
+.kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 8mm; margin-bottom: 4mm; }
+h1 { font-size: 20pt; margin: 0 0 1mm; color: #111; } .titel { font-size: 11pt; color: var(--a); margin: 0 0 4mm; font-weight: 600; }
+.foto { width: 35mm; height: 45mm; object-fit: cover; border: 0.3mm solid #ccc; }
+table.daten { border-collapse: collapse; } table.daten td { padding: 0.4mm 4mm 0.4mm 0; vertical-align: top; }
+table.daten td:first-child { color: #555; white-space: nowrap; }
+h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: 0.8px; color: white; background: var(--a); padding: 1.2mm 2.5mm;
+     margin: 6mm 0 2.5mm; break-after: avoid; }
+table.lauf { width: 100%; border-collapse: collapse; }
+table.lauf td { vertical-align: top; padding: 1.4mm 0; border-bottom: 0.2mm solid #e5e5e5; }
+table.lauf td.zeit { width: 36mm; color: #444; padding-right: 4mm; white-space: nowrap; }
+table.lauf b { display: block; } .ort { color: #444; }
+ul { margin: 0.8mm 0 0; padding-left: 4mm; } li { margin: 0.4mm 0; } p { margin: 0; }
+
+/* Überschrift nie allein am Seitenende: unsichtbar Platz für die ersten Zeilen darunter reservieren */
+h2 { break-inside: avoid; page-break-inside: avoid; }
+h2::after { content: ""; display: block; height: 28mm; margin-bottom: -28mm; }
+</style></head><body>
+<div class="kopf"><div>
+<h1>{{ profile.name }}</h1>
+<p class="titel">Lebenslauf{% if stelle %} – Bewerbung als {{ stelle.title }}{% endif %}</p>
+<table class="daten">
+{% if profile.anzeigen.adresse and profile.adresse.ort %}<tr><td>Anschrift</td><td>{{ t.adresse(profile) }}</td></tr>{% endif %}
+{% if profile.telefon %}<tr><td>Telefon</td><td>{{ profile.telefon }}</td></tr>{% endif %}
+{% if profile.email %}<tr><td>E-Mail</td><td>{{ profile.email }}</td></tr>{% endif %}
+{% if profile.anzeigen.geburtsdatum and profile.geburtsdatum %}<tr><td>Geboren</td><td>{{ profile.geburtsdatum }}</td></tr>{% endif %}
+</table></div>
+{{ t.foto(profile) }}</div>
+{% if cv.profil %}<h2>Kurzprofil</h2><p>{{ cv.profil }}</p>{% endif %}
+{% if cv.stationen %}<h2>Berufserfahrung</h2><table class="lauf">
+{% for s in cv.stationen %}<tr><td class="zeit">{{ t.zeitraum(s.von, s.get('bis')) }}</td><td><b>{{ s.rolle }}</b><span class="ort">{{ s.organisation }}</span>
+{% if s.get('aufgaben') %}<ul>{% for a in s.get('aufgaben') %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}</td></tr>{% endfor %}</table>{% endif %}
+{% if cv.ausbildung %}<h2>Schule und Ausbildung</h2><table class="lauf">
+{% for e in cv.ausbildung %}<tr><td class="zeit">{{ t.zeitraum(e.get('von'), e.get('bis')) }}</td><td><b>{{ e.abschluss }}</b><span class="ort">{{ e.institution }}</span>
+{% if e.get('punkte') %}<ul>{% for p in e.get('punkte') %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}</td></tr>{% endfor %}</table>{% endif %}
+{% if cv.projekte %}<h2>Projekte</h2><table class="lauf">
+{% for p in cv.projekte if p.im_cv is not false %}<tr><td class="zeit">{% if p.get('zeitraum') %}{{ p.get('zeitraum') }}{% elif p.get('status') == 'geplant' %}geplant{% endif %}</td><td><b>{{ p.name }}</b>
+{% if p.get('beschreibung') %}<p>{{ p.get('beschreibung') }}</p>{% endif %}{% if p.get('technologien') %}<span class="ort">{{ p.get('technologien') | join(', ') }}</span>{% endif %}</td></tr>{% endfor %}</table>{% endif %}
+{% if cv.zertifikate %}<h2>Weiterbildung</h2><table class="lauf">
+{% for z in cv.zertifikate if z.im_cv is not false %}<tr><td class="zeit">{{ t.zertifikat_datum(z) }}</td><td><b>{{ z.name }}</b>{% if z.get('zusatz') %}<span class="ort">{{ z.get('zusatz') }}</span>{% endif %}</td></tr>{% endfor %}</table>{% endif %}
+{% if cv.kenntnisse or cv.sprachen %}<h2>Kenntnisse und Sprachen</h2><table class="lauf">
+{% for k in cv.kenntnisse %}<tr><td class="zeit">{{ k.kategorie }}</td><td>{{ k.eintraege | map(attribute='name') | join(', ') }}</td></tr>{% endfor %}
+{% if cv.sprachen %}<tr><td class="zeit">Sprachen</td><td>{% for s in cv.sprachen %}{{ s.sprache }} ({{ s.niveau }}){% if not loop.last %}, {% endif %}{% endfor %}</td></tr>{% endif %}
+{% if cv.interessen %}<tr><td class="zeit">Interessen</td><td>{{ cv.interessen | join(', ') }}</td></tr>{% endif %}
+</table>{% endif %}
+</body></html>

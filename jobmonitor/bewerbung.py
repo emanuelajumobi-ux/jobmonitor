@@ -181,12 +181,15 @@ def build_anschreiben(root: Path, cfg: dict, folder: Path, today: date | None = 
     }
     latex_log: list[str] = []
     try:
-        if pdf_format(cfg["cv"]) == "html":
+        from . import designs
+        design = designs.fuer_bewerbung(cfg, folder, stelle)
+        if design != "klassisch" or pdf_format(cfg["cv"]) == "html":
             from . import pdf_html
-            template = html_vorlage(root, cfg["cv"].get("anschreiben_html", "cv/anschreiben.html.j2"))
+            template = html_vorlage(root, designs.DESIGNS[design]["anschreiben"]
+                                    or cfg["cv"].get("anschreiben_html", "cv/anschreiben.html.j2"))
             html_path = folder / "anschreiben.html"
-            html_path.write_text(pdf_html.environment(template.parent).get_template(template.name).render(**context),
-                                 encoding="utf-8")
+            html_path.write_text(pdf_html.environment(template.parent).get_template(template.name).render(
+                **context, akzent=designs.akzent(cfg)), encoding="utf-8")
             pdf = html_pdf(html_path)
         else:
             template = root / cfg["cv"]["anschreiben_tex"]
@@ -205,8 +208,10 @@ def build_anschreiben(root: Path, cfg: dict, folder: Path, today: date | None = 
 
 def build_lebenslauf(root: Path, cfg: dict, folder: Path, hinweise: list | None = None,
                      ki_zuschnitt: dict | None = None) -> Path:
+    from . import designs
     try:
-        pdf = build(root, cfg, stelle=meta(folder), hinweise=hinweise, ki_zuschnitt=ki_zuschnitt)
+        pdf = build(root, cfg, stelle=meta(folder), hinweise=hinweise, ki_zuschnitt=ki_zuschnitt,
+                    design=designs.fuer_bewerbung(cfg, folder, meta(folder)))
     except CvBuildError as exc:
         raise BewerbungError(str(exc)) from None
     target = folder / "lebenslauf.pdf"

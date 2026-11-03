@@ -42,7 +42,7 @@ def mappe(folder: Path) -> Path | None:
 
 
 def pruefen(folder: Path, data: dict, stelle: dict, cfg: dict, anlagen: list[dict], andere: list[str],
-            offline: bool = False, heute: date | None = None) -> list[Punkt]:
+            offline: bool = False, heute: date | None = None, design: str = "klassisch") -> list[Punkt]:
     grenzen = {**DEFAULTS, **((cfg.get("bewerbung") or {}).get("abschicken") or {})}
     out: list[Punkt] = []
     offen = bw.placeholders(data.get("text") or "")
@@ -71,6 +71,9 @@ def pruefen(folder: Path, data: dict, stelle: dict, cfg: dict, anlagen: list[dic
     frist = fristen.label(stelle.get("frist"), heute or date.today())
     if frist and "abgelaufen" not in frist:      # abgelaufene Frist meldet schon der Anschreiben-Prüfer
         out.append(Punkt(True, f"Frist: {frist}"))
+    from .designs import ats_warnung
+    if (warnung := ats_warnung(design, stelle.get("url") or "")):
+        out.append(Punkt(False, warnung))
     if offline:
         out.append(Punkt(False, "Die Anzeige ist laut letzter Prüfung nicht mehr online – vielleicht schon besetzt"))
     return out

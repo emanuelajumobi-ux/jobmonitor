@@ -205,8 +205,12 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
               f'<div class="grid2">{felder}</div><p class="muted">Steht nur im Kopf deiner PDFs. Bleibt auf diesem '
               f'Rechner, geht nie an eine KI.</p><button class="small">Speichern</button></form>')
     kschritt = ('<p class="ok">KI ist eingerichtet: Suchprofil und Lebenslauf füllt sie für dich aus.</p>' if ki_an else
-                '<p>Mit einem eigenen Claude-API-Schlüssel füllt die KI Suchprofil und Lebenslauf aus und schreibt '
-                'Anschreiben-Entwürfe. Ohne geht alles auch, nur mit mehr Tipparbeit.</p>'
+                '<p><b>Empfohlen:</b> Mit KI holst du das meiste aus der App heraus – genauerer Fit, Suchprofil und '
+                'Lebenslauf werden für dich ausgefüllt, Anschreiben und Gesprächsvorbereitung entworfen. Ohne geht alles '
+                'auch, nur mit mehr Tipparbeit.</p><p class="muted">Die KI nutzt <b>deinen eigenen</b> '
+                'Claude-API-Schlüssel (<a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic '
+                'Console</a>); die Kosten laufen über dein Anthropic-Konto, nach Verbrauch. Die App hat keinen eigenen '
+                'Zugang, und deine Daten gehen direkt an Anthropic, nie an den Entwickler.</p>'
                 '<a class="btn ghost small" href="/einstellungen#ki">Schlüssel hinterlegen</a>')
     zentrum = (cfg.get("ort") or {}).get("zentrum") or ""
     ort = (f'<form method="post" action="/einrichten" class="row" style="gap:8px;flex-wrap:wrap">{hidden}'

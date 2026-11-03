@@ -378,6 +378,8 @@ cv:                           # nur lokal: make cv
   engine: pdflatex            # pdflatex | xelatex | lualatex (nach deiner Vorlage)
   format: latex               # latex = deine .tex-Vorlagen | html = cv/*.html.j2 ohne LaTeX | auto = LaTeX wenn installiert
   vorlage_html: cv/template.html.j2
+  design: klassisch            # klassisch | modern | kreativ | kompakt | akademisch (je Suchprofil/Bewerbung änderbar)
+  akzentfarbe: "#1F4E79"      # Farbe für Überschriften und Flächen der HTML-Designs
   anschreiben_html: cv/anschreiben.html.j2
   max_projekte_zugeschnitten: 4
   # Lebenslauf-Prüfer: Hinweise nach jedem Bau (make cv und Oberfläche). Überschreitungen sind Hinweise, kein Fehler.

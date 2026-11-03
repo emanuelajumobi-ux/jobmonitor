@@ -163,7 +163,8 @@ def _slug(text: str) -> str:
 
 
 def build(root: Path, cfg: dict, job_id: str | None = None, compile_pdf: bool = True,
-          stelle: dict | None = None, hinweise: list | None = None, ki_zuschnitt: dict | None = None) -> Path:
+          stelle: dict | None = None, hinweise: list | None = None, ki_zuschnitt: dict | None = None,
+          design: str | None = None) -> Path:
     """Erzeugt cv/out/lebenslauf[-firma-id].tex (+ .pdf). Gibt den Pfad der Hauptdatei zurück.
 
     `job_id`: Stelle aus dem Bericht (state/seen.sqlite). `stelle`: selbst angegebene Stelle als
@@ -219,9 +220,13 @@ def build(root: Path, cfg: dict, job_id: str | None = None, compile_pdf: bool = 
         log.warning("Foto aus profile.yaml nicht gefunden, PDF ohne Foto.")
         profile = {**profile, "foto": ""}
 
-    if pdf_format(ccfg) == "html":
+    from . import designs
+    design = designs.gueltig(design) or designs.fuer_bewerbung(cfg, None, detail)
+    if design != "klassisch" or pdf_format(ccfg) == "html":
         from . import pdf_html
-        template = html_vorlage(root, ccfg.get("vorlage_html", "cv/template.html.j2"))
+        template = html_vorlage(root, designs.DESIGNS[design]["lebenslauf"] or ccfg.get("vorlage_html",
+                                                                                       "cv/template.html.j2"))
+        extra = {**extra, "akzent": designs.akzent(cfg)}
         html_path = out_dir / f"{name}.html"
         html_path.write_text(pdf_html.environment(template.parent).get_template(template.name).render(
             cv=complete_cv(cv), profile=profile, **extra), encoding="utf-8")

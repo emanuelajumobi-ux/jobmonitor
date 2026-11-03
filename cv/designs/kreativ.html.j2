@@ -1,0 +1,56 @@
+<!doctype html>
+{% import "_teile.html.j2" as t %}
+<html lang="de"><head><meta charset="utf-8"><title>Lebenslauf {{ profile.name }}</title>
+<style>
+/* Design „Kreativ“: farbiger Kopf mit großem Foto, Projekte vor den Stationen, Schlagworte als Marken. */
+@page { size: A4; margin: 12mm 0 14mm; }    /* WebKit kennt kein eigenes @page :first – gleicher Rand überall */
+:root { --a: {{ akzent }}; }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; font-family: "Avenir Next", "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-size: 9.8pt; line-height: 1.45; color: #222; }
+header { background: var(--a); color: white; padding: 14mm 16mm 11mm; display: flex; align-items: center; gap: 9mm; }
+header .foto { width: 38mm; height: 38mm; object-fit: cover; border-radius: 50%; border: 1.2mm solid rgba(255,255,255,.85); flex: none; }
+h1 { font-size: 27pt; line-height: 1.05; margin: 0 0 3mm; font-weight: 700; letter-spacing: -0.4px; }
+header ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 1mm 5mm; font-size: 9pt; opacity: .95; }
+main { padding: 8mm 16mm 0; }
+.profil { font-size: 11pt; line-height: 1.5; margin: 0 0 6mm; color: #333; }
+h2 { font-size: 13pt; color: var(--a); margin: 7mm 0 3mm; padding-bottom: 1mm;
+     border-bottom: 0.5mm solid color-mix(in srgb, var(--a) 30%, white); }
+.projekte { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.karte { border: 0.3mm solid #e2e2e2; border-left: 1.2mm solid var(--a); border-radius: 1.5mm; padding: 3mm 3.5mm; break-inside: avoid; }
+.karte b { display: block; font-size: 10.4pt; } .karte .zeit { font-size: 8.6pt; color: #888; }
+.marken { display: flex; flex-wrap: wrap; gap: 1.2mm; margin-top: 1.6mm; }
+.marken span { background: color-mix(in srgb, var(--a) 12%, white); color: var(--a); border-radius: 5mm; padding: 0.4mm 2.4mm; font-size: 8.2pt; }
+.eintrag { margin: 0 0 4mm; display: grid; grid-template-columns: 30mm 1fr; gap: 4mm; }
+.eintrag .zeit { color: #888; font-size: 8.8pt; padding-top: 0.6mm; }
+.eintrag b { font-size: 10.2pt; } .ort { color: var(--a); font-weight: 600; }
+ul.punkte { margin: 1mm 0 0; padding-left: 4.2mm; } ul.punkte li { margin: 0.5mm 0; }
+.zwei { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.kenntnis { margin: 0 0 2mm; } .kenntnis b { display: block; font-size: 9pt; } .kenntnis span { color: #555; }
+p { margin: 0; }
+
+/* Überschrift nie allein am Seitenende: unsichtbar Platz für die ersten Zeilen darunter reservieren */
+h2 { break-inside: avoid; page-break-inside: avoid; }
+h2::after { content: ""; display: block; height: 28mm; margin-bottom: -28mm; }
+</style></head><body>
+<header>{{ t.foto(profile) }}<div><h1>{{ profile.name }}</h1><ul>{{ t.kontakt_liste(profile) }}</ul></div></header>
+<main>
+{% if cv.profil %}<p class="profil">{{ cv.profil }}</p>{% endif %}
+{% set projekte = cv.projekte | selectattr('im_cv', 'ne', false) | list if cv.projekte else [] %}
+{% if projekte %}<h2><span>Projekte</span></h2><div class="projekte">
+{% for p in projekte %}<div class="karte"><b>{{ p.name }}</b><span class="zeit">{% if p.get('zeitraum') %}{{ p.get('zeitraum') }}{% elif p.get('status') == 'geplant' %}geplant{% endif %}</span>
+{% if p.get('beschreibung') %}<p>{{ p.get('beschreibung') }}</p>{% endif %}
+{% if p.get('technologien') %}<div class="marken">{% for x in p.get('technologien') %}<span>{{ x }}</span>{% endfor %}</div>{% endif %}</div>{% endfor %}
+</div>{% endif %}
+{% if cv.stationen %}<h2><span>Erfahrung</span></h2>
+{% for s in cv.stationen %}<div class="eintrag"><div class="zeit">{{ t.zeitraum(s.von, s.get('bis')) }}</div><div><b>{{ s.rolle }}</b><div class="ort">{{ s.organisation }}</div>
+{% if s.get('aufgaben') %}<ul class="punkte">{% for a in s.get('aufgaben') %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}</div></div>{% endfor %}{% endif %}
+{% if cv.ausbildung %}<h2><span>Ausbildung</span></h2>
+{% for e in cv.ausbildung %}<div class="eintrag"><div class="zeit">{{ t.zeitraum(e.get('von'), e.get('bis')) }}</div><div><b>{{ e.abschluss }}</b><div class="ort">{{ e.institution }}</div>
+{% if e.get('punkte') %}<ul class="punkte">{% for p in e.get('punkte') %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}</div></div>{% endfor %}{% endif %}
+<div class="zwei">
+<div>{% if cv.kenntnisse %}<h2><span>Können</span></h2>{{ t.kenntnisse(cv) }}{% endif %}</div>
+<div>{% if cv.sprachen %}<h2><span>Sprachen</span></h2>{{ t.sprachen(cv) }}{% endif %}
+{% if cv.zertifikate %}<h2><span>Zertifikate</span></h2>{% for z in cv.zertifikate if z.im_cv is not false %}<div class="kenntnis"><b>{{ z.name }}</b><span>{{ t.zertifikat_datum(z) }}</span></div>{% endfor %}{% endif %}
+{% if cv.interessen %}<h2><span>Interessen</span></h2><div class="marken">{% for i in cv.interessen %}<span>{{ i }}</span>{% endfor %}</div>{% endif %}</div>
+</div>
+</main></body></html>

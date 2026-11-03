@@ -88,6 +88,10 @@ def handler_for(app: App, server_ref: list):
                 return self._send(app.master())
             if path == "/einrichten":
                 return self._send(app.einrichten())
+            if path.startswith("/designs/vorschau/"):
+                html = app.design_vorschau(path.removeprefix("/designs/vorschau/"))
+                if html is not None:
+                    return self._send(html)
             if path == "/bewerbungen":
                 return self._send(app.bewerbungen(show_hidden=alle))
             if path == "/luecken":

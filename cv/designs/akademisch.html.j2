@@ -1,0 +1,40 @@
+<!doctype html>
+{% import "_teile.html.j2" as t %}
+<html lang="de"><head><meta charset="utf-8"><title>Lebenslauf {{ profile.name }}</title>
+<style>
+/* Design „Akademisch“: Studium und Projekte zuerst, Serifenschrift, zentrierter Kopf, sehr ruhig. */
+@page { size: A4; margin: 18mm 20mm; }
+:root { --a: {{ akzent }}; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Iowan Old Style", Charter, Georgia, "Times New Roman", serif; font-size: 10.4pt; line-height: 1.42; color: #111; }
+header { text-align: center; margin-bottom: 5mm; }
+h1 { font-size: 21pt; font-weight: normal; letter-spacing: 1.5px; margin: 0 0 1.5mm; font-variant: small-caps; }
+header ul { list-style: none; margin: 0; padding: 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 0 4mm; font-size: 9.4pt; color: #333; }
+h2 { font-size: 11pt; font-variant: small-caps; letter-spacing: 1px; font-weight: normal; color: var(--a);
+     border-bottom: 0.3mm solid #999; padding-bottom: 0.6mm; margin: 6mm 0 2.5mm; break-after: avoid; }
+.eintrag { margin: 0 0 3mm; }
+.kopf { display: flex; justify-content: space-between; gap: 8px; } .zeit { white-space: nowrap; color: #333; }
+.ort { font-style: italic; } ul.punkte { margin: 0.8mm 0 0; padding-left: 4.5mm; } ul.punkte li { margin: 0.4mm 0; }
+.kenntnis { margin: 0 0 1.2mm; } .kenntnis b { font-weight: 600; } .kenntnis b::after { content: ": "; }
+p { margin: 0; }
+
+/* Überschrift nie allein am Seitenende: unsichtbar Platz für die ersten Zeilen darunter reservieren */
+h2 { break-inside: avoid; page-break-inside: avoid; }
+h2::after { content: ""; display: block; height: 28mm; margin-bottom: -28mm; }
+</style></head><body>
+<header><h1>{{ profile.name }}</h1><ul>{{ t.kontakt_liste(profile) }}</ul></header>
+{% if cv.profil %}<h2>Profil</h2><p>{{ cv.profil }}</p>{% endif %}
+{% if cv.ausbildung %}<h2>Studium und Ausbildung</h2>
+{% for e in cv.ausbildung %}<div class="eintrag"><div class="kopf"><b>{{ e.abschluss }}</b><span class="zeit">{{ t.zeitraum(e.get('von'), e.get('bis')) }}</span></div>
+<div class="ort">{{ e.institution }}</div>{% if e.get('punkte') %}<ul class="punkte">{% for p in e.get('punkte') %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}{% endif %}
+{% if cv.projekte %}<h2>Projekte und Forschung</h2>
+{% for p in cv.projekte if p.im_cv is not false %}<div class="eintrag"><div class="kopf"><b>{{ p.name }}</b><span class="zeit">{% if p.get('zeitraum') %}{{ p.get('zeitraum') }}{% elif p.get('status') == 'geplant' %}geplant{% endif %}</span></div>
+{% if p.get('beschreibung') %}<p>{{ p.get('beschreibung') }}</p>{% endif %}{% if p.get('technologien') %}<div class="ort">{{ p.get('technologien') | join(', ') }}</div>{% endif %}</div>{% endfor %}{% endif %}
+{% if cv.stationen %}<h2>Praxiserfahrung</h2>
+{% for s in cv.stationen %}<div class="eintrag"><div class="kopf"><b>{{ s.rolle }}</b><span class="zeit">{{ t.zeitraum(s.von, s.get('bis')) }}</span></div>
+<div class="ort">{{ s.organisation }}</div>{% if s.get('aufgaben') %}<ul class="punkte">{% for a in s.get('aufgaben') %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}{% endif %}
+{% if cv.zertifikate %}<h2>Zertifikate und Weiterbildung</h2>
+{% for z in cv.zertifikate if z.im_cv is not false %}<div class="eintrag"><div class="kopf"><b>{{ z.name }}</b><span class="zeit">{{ t.zertifikat_datum(z) }}</span></div>{% if z.get('zusatz') %}<div class="ort">{{ z.get('zusatz') }}</div>{% endif %}</div>{% endfor %}{% endif %}
+{% if cv.kenntnisse %}<h2>Methoden und Werkzeuge</h2>{{ t.kenntnisse(cv) }}{% endif %}
+{% if cv.sprachen %}<h2>Sprachen</h2>{{ t.sprachen(cv) }}{% endif %}
+</body></html>

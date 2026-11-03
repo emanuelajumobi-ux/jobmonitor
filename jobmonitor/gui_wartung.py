@@ -369,9 +369,10 @@ def ki_karte(token: str, herkunft: str, nutzung: dict, s: dict, pipeline: str = 
 <input id="ki_key" type="password" name="schluessel" autocomplete="off" spellcheck="false" placeholder="sk-ant-…"
 required></div><button>Im Schlüsselbund speichern</button></form>"""
     return f"""<div class="card" id="ki"><h2>KI (Claude)</h2>
-<p class="muted">Nur auf Knopfdruck: „Entwurf mit KI“ beim Anschreiben und „Mit KI vorbereiten“ bei Gesprächen.
-Gesendet werden der Anzeigentext und dein Master-CV – nie Name, Adresse, Foto oder andere Angaben aus profile.yaml.
-Die KI verschickt nichts.</p>{schluessel}
+<p class="muted">Die KI nutzt <b>deinen eigenen</b> Claude-API-Schlüssel aus der
+<a href="https://console.anthropic.com" target="_blank" rel="noopener">Anthropic Console</a>; die Kosten laufen über dein
+Anthropic-Konto, nach Verbrauch. Gesendet werden Anzeigentexte und dein Master-CV direkt an Anthropic – nie Name,
+Adresse, Foto oder andere Angaben aus profile.yaml, nie an den Entwickler dieser App. Die KI verschickt nichts.</p>{schluessel}
 <p class="muted" style="margin-top:8px">Diese App: Modell {esc(s["model"])} ·
 diesen Monat {nutzung["aufrufe"]} von höchstens {esc(s["max_aufrufe_monat"])} Aufrufen · {zahl(nutzung["eingabe"])} Eingabe- und {zahl(nutzung["ausgabe"])}
 Ausgabe-Tokens.</p>{pipeline}<p class="muted">Die Kosten in Euro siehst du in der Anthropic Console unter Usage.</p>

@@ -1,0 +1,35 @@
+{# Gemeinsame Bausteine der Designs (cv/designs/*.html.j2). Inhalt wie cv/template.html.j2, nur anders angeordnet. #}
+{% macro zeitraum(von, bis) -%}
+{% if von and bis %}{{ von }} – {{ bis }}{% elif bis %}{{ bis }}{% elif von %}seit {{ von }}{% endif %}
+{%- endmacro %}
+
+{% macro adresse(profile) -%}
+{{ [profile.adresse.strasse, [profile.adresse.plz, profile.adresse.ort] | select | join(' ')] | select | join(', ') }}
+{%- endmacro %}
+
+{% macro kontakt_liste(profile) -%}
+{% set adr = adresse(profile) %}
+{% for wert in [adr if (profile.anzeigen.adresse and profile.adresse.ort) else '', profile.telefon, profile.email,
+                ('geboren am ' ~ profile.geburtsdatum) if (profile.anzeigen.geburtsdatum and profile.geburtsdatum) else '',
+                profile.links.linkedin, profile.links.github] | select %}<li>{{ wert }}</li>{% endfor %}
+{%- endmacro %}
+
+{% macro kenntnisse(cv) -%}
+{% for k in cv.kenntnisse %}
+{% set sicher = k.eintraege | rejectattr('level', 'equalto', 'Grundkenntnisse') | map(attribute='name') | list %}
+{% set basis = k.eintraege | selectattr('level', 'equalto', 'Grundkenntnisse') | map(attribute='name') | list %}
+<div class="kenntnis"><b>{{ k.kategorie }}</b><span>{{ sicher | join(', ') }}{% if basis %}{% if sicher %}; {% endif %}Grundkenntnisse in {{ basis | join(', ') }}{% endif %}</span></div>
+{% endfor %}
+{%- endmacro %}
+
+{% macro sprachen(cv) -%}
+{% for s in cv.sprachen %}<div class="kenntnis"><b>{{ s.sprache }}</b><span>{{ s.niveau }}</span></div>{% endfor %}
+{%- endmacro %}
+
+{% macro zertifikat_datum(z) -%}
+{% if z.get('status') == 'erreicht' %}{{ z.get('datum') }}{% elif z.get('status') == 'in_arbeit' %}in Arbeit{% if z.get('datum') %}, {{ z.get('datum') }}{% endif %}{% else %}geplant{% endif %}
+{%- endmacro %}
+
+{% macro foto(profile, klasse='foto') -%}
+{% if profile.anzeigen.foto and profile.foto %}<img class="{{ klasse }}" src="{{ profile.foto }}" alt="">{% endif %}
+{%- endmacro %}

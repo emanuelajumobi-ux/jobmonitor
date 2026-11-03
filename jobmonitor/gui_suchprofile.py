@@ -28,6 +28,11 @@ FACH_STANDARD = 8
 MIN_FACH = 3
 
 
+def _design_keys() -> set[str]:
+    from .designs import DESIGNS
+    return set(DESIGNS)
+
+
 class SuchprofilError(Exception):
     pass
 
@@ -92,7 +97,8 @@ def aus_formular(form: dict, cfg: dict) -> tuple[str, dict]:
                    "zielrolle": (form.get("zielrolle") or "").strip(), "absicht": (form.get("absicht") or "").strip(),
                    "ausblick": (form.get("ausblick") or "").strip(),
                    "angebotsart": ART.get(form.get("art"), ART["alle"])[0],
-                   "stufe": form.get("stufe") if form.get("stufe") in suchprofil.STUFEN else ""}
+                   "stufe": form.get("stufe") if form.get("stufe") in suchprofil.STUFEN else "",
+                   "design": form.get("design") if form.get("design") in _design_keys() else ""}
     try:
         daten["rollen"] = _gewichte(form.get("rollen", ""), ROLLE_STANDARD, "Rollen-Wörter")
         if not daten["rollen"]:
@@ -199,7 +205,7 @@ def speichern(root: Path, key: str, daten: dict) -> None:
     doc = _yaml().load(text)
     alt = (doc.get("profile") or {}).get(key)
     profil = alt if isinstance(alt, CommentedMap) else CommentedMap()
-    for feld in ("enabled", "name", "stufe", "zielrolle", "absicht", "ausblick", "angebotsart", "rollen"):
+    for feld in ("enabled", "name", "stufe", "design", "zielrolle", "absicht", "ausblick", "angebotsart", "rollen"):
         _setzen(profil, feld, daten[feld] if feld != "enabled" else bool(daten[feld]))
     such = profil.get("suchbegriffe") if isinstance(profil.get("suchbegriffe"), CommentedMap) else CommentedMap()
     for q, begriffe in daten["suchbegriffe"].items():
@@ -277,6 +283,7 @@ def _profil_formdaten(raw: dict) -> dict:
     return {"name": raw.get("name", ""), "enabled": raw.get("enabled", True) is not False,
             "zielrolle": raw.get("zielrolle", ""), "absicht": raw.get("absicht", ""),
             "ausblick": raw.get("ausblick", ""), "art": art, "stufe": raw.get("stufe") or "",
+            "design": raw.get("design") or "",
             "rollen": "\n".join(f"{k}: {v}" for k, v in (raw.get("rollen") or {}).items()),
             "such_bundesagentur": "\n".join(such.get("bundesagentur") or []),
             "such_stellenwerk": "\n".join(such.get("stellenwerk") or []),
@@ -286,6 +293,7 @@ def _profil_formdaten(raw: dict) -> dict:
 
 
 NEU = {"name": "", "enabled": True, "zielrolle": "", "absicht": "", "ausblick": "", "art": "studium", "stufe": "",
+       "design": "",
        "rollen": "werkstudent: 30\nworking student: 30\npraktikum: 18", "such_bundesagentur": "",
        "such_stellenwerk": "", "fachgebiet": "gemeinsam", "fach": "", "fit_begriffe": ""}
 
@@ -307,6 +315,9 @@ def render_formular(token: str, cfg: dict, key: str, n_portale: int, fehler: str
                   for k, (_, label) in ART.items())
     stufen = "".join(f'<option value="{k}"{" selected" if f.get("stufe") == k else ""}>{esc(v["name"])}</option>'
                      for k, v in suchprofil.STUFEN.items())
+    from . import designs
+    design_optionen = "".join(f'<option value="{k}"{" selected" if f.get("design") == k else ""}>{esc(d["name"])} – '
+                              f'{esc(d["passt"])}</option>' for k, d in designs.DESIGNS.items())
     fehler_html = ("".join(f"<p>{esc(z)}</p>" for z in fehler.splitlines()) if fehler else "")
     loeschen = ("" if not key or key == suchprofil.DEFAULT_KEY else
                 f'<button class="ghost" name="aktion" value="loeschen" formnovalidate '
@@ -336,6 +347,9 @@ placeholder="z. B. Praktikum Security"></div>
 <select id="stufe" name="stufe" data-vorlagen="{esc(json.dumps({k: {"art": v["art"], "rollen": v["rollen"]} for k, v in suchprofil.STUFEN.items()}))}">
 <option value="">– keine Vorlage –</option>{stufen}</select>
 <p class="muted">„Berufserfahren“ schließt Stellen mit senior, lead oder leiter im Titel nicht mehr aus.</p>
+<label for="design">Design für Lebenslauf und Anschreiben</label><select id="design" name="design">
+<option value="">automatisch (nach Karrierestufe)</option>{design_optionen}</select>
+<p class="muted"><a href="/master#designs">Designs ansehen</a> · je Bewerbung lässt es sich noch umstellen.</p>
 <label class="switch" style="margin-top:12px"><input type="checkbox" role="switch" name="enabled" value="1"
 {" checked" if f["enabled"] else ""}><span class="track"></span><span>Aktiv (wird bei jedem Lauf abgefragt)</span></label>
 <label for="zielrolle">Zielrolle für Anschreiben</label><input id="zielrolle" name="zielrolle" value="{esc(f["zielrolle"])}"

@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, designs, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -576,10 +576,13 @@ class App(BewerbungenSeiten):
         ki_an = bool(ki.schluessel()) and self.ki_cv_an(cfg)
         anlagen = bw.anlagen(self.root, cfg)
         andere = [bw.meta(f).get("company", "") for f in bw.workspaces(self.root, cfg) if f != folder]
+        design = designs.fuer_bewerbung(cfg, folder, stelle)
         punkte = abschicken.pruefen(folder, data, stelle, cfg, anlagen, andere,
-                                    stelle.get("url") in self.offline_links())
+                                    stelle.get("url") in self.offline_links(), design=design)
+        design_html = designs.auswahl_html(self.token, f"/bewerbung/{quote(slug)}", design, esc)
         body = gbw.render(slug, stelle, data, fit_line(job), bw.files(folder), anlagen, self.token, message, ki_an,
-                          abschicken.render(punkte, self.token, f"/bewerbung/{quote(slug)}", bool(ki.schluessel())))
+                          abschicken.render(punkte, self.token, f"/bewerbung/{quote(slug)}", bool(ki.schluessel())),
+                          design_html)
         return self.page("Bewerbung", body, "bewerbungen")
 
     def bewerbung_post(self, slug: str, form: dict) -> bytes | None:
@@ -609,6 +612,14 @@ class App(BewerbungenSeiten):
             return self.bewerbung(slug, '<div class="card"><p class="ok">Neuer Entwurf aus der Vorlage.</p></div>')
         if aktion == "ki":
             return self.bewerbung_ki(slug, folder, cfg, form)
+        if aktion == "design":       # eigenes Formular: nur das Design dieser Bewerbung
+            try:
+                designs.waehlen(folder, form.get("design", ""))
+            except ValueError as exc:
+                return self.bewerbung(slug, f'<div class="card err">{esc(exc)}</div>')
+            name = designs.DESIGNS[form["design"]]["name"]
+            return self.bewerbung(slug, f'<div class="card"><p class="ok">Design „{esc(name)}“ gewählt. „Speichern und '
+                                        f'Mappe bauen“ erzeugt die PDFs neu.</p></div>')
         if aktion == "ki_pruefen":   # eigenes Formular ohne Textfeld: nichts speichern
             stelle = bw.meta(folder)
             try:
@@ -1259,6 +1270,15 @@ class App(BewerbungenSeiten):
                           f'Lauf aussortiert. {esc(hoch)}</p></div>')
 
     # --- Master-CV ---
+    def design_vorschau(self, key: str) -> bytes | None:
+        """Lebenslauf im Design als HTML mit deinen Daten (iframe in der Galerie)."""
+        if not designs.gueltig(key):
+            return None
+        try:
+            return designs.vorschau_html(self.root, load_config(self.root / "config.yaml"), key).encode()
+        except Exception as exc:     # z. B. noch kein Master-CV
+            return f"<p style='font:14px sans-serif;padding:20px'>Keine Vorschau: {esc(exc)}</p>".encode()
+
     def master(self, data: dict | None = None, message: str = "") -> bytes:
         cfg = load_config(self.root / "config.yaml")
         data = gm.load(self.root) if data is None else data
@@ -1303,10 +1323,11 @@ durchgestrichenen Begriff schon? Anklicken, Level wählen – er landet in der p
 <div id="editor"></div>
 <div class="sticky row"><button name="aktion" value="speichern">Speichern</button>
 <a class="btn ghost" href="/master">Änderungen verwerfen</a>{ki_knopf}</div></form>
+{designs.galerie_html(esc)}
 <script type="application/json" id="schema">{json.dumps(gm.SCHEMA).replace("</", "<\\/")}</script>
 <script type="application/json" id="data">{json.dumps(data, ensure_ascii=False).replace("</", "<\\/")}</script>
 <script>{gm.EDITOR_JS}</script>"""
-        return self.page("Master-CV", body, "master", gm.EDITOR_CSS)
+        return self.page("Master-CV", body, "master", gm.EDITOR_CSS + designs.CSS)
 
     def master_save(self, form: dict) -> bytes:
         raw = form.get("data", "")

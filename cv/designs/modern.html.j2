@@ -1,0 +1,53 @@
+<!doctype html>
+{% import "_teile.html.j2" as t %}
+<html lang="de"><head><meta charset="utf-8"><title>Lebenslauf {{ profile.name }}</title>
+<style>
+/* Design „Modern“: zwei Spalten. Links (getönt) Kontakt, Kenntnisse, Sprachen; rechts Profil und Stationen. */
+@page { size: A4; margin: 12mm 0; }
+:root { --a: {{ akzent }}; --tint: color-mix(in srgb, var(--a) 9%, white); }
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html { background: linear-gradient(to right, var(--tint) 66mm, white 66mm); }
+body { margin: 0; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 9.6pt; line-height: 1.42; color: #1d1d1f; }
+.seite { display: grid; grid-template-columns: 66mm 1fr; }
+.links { padding: 4mm 7mm 0 10mm; }
+.rechts { padding: 4mm 14mm 0 10mm; }
+.foto { width: 34mm; height: 34mm; object-fit: cover; border-radius: 50%; display: block; margin: 0 auto 8mm; }
+h1 { font-size: 23pt; line-height: 1.1; margin: 0 0 2mm; color: var(--a); letter-spacing: -0.3px; }
+.ziel { font-size: 11pt; color: #555; margin: 0 0 7mm; }
+h2 { font-size: 9pt; text-transform: uppercase; letter-spacing: 1.2px; color: var(--a); margin: 7mm 0 2.5mm; break-after: avoid; }
+.links h2:first-of-type { margin-top: 0; }
+ul.kontakt { list-style: none; padding: 0; margin: 0; } ul.kontakt li { margin: 0 0 1.6mm; word-break: break-word; }
+.kenntnis { margin: 0 0 2.4mm; } .kenntnis b { display: block; font-size: 8.6pt; } .kenntnis span { color: #444; }
+.eintrag { margin: 0 0 4.5mm; }
+.kopf { display: flex; justify-content: space-between; gap: 8px; } .kopf b { font-size: 10.2pt; }
+.zeit { color: #777; white-space: nowrap; font-size: 8.8pt; }
+.ort { color: var(--a); font-weight: 600; margin: 0.4mm 0 1mm; }
+ul { margin: 1mm 0 0; padding-left: 4.2mm; } li { margin: 0.6mm 0; } p { margin: 0; }
+
+/* Überschrift nie allein am Seitenende: unsichtbar Platz für die ersten Zeilen darunter reservieren */
+h2 { break-inside: avoid; page-break-inside: avoid; }
+h2::after { content: ""; display: block; height: 28mm; margin-bottom: -28mm; }
+</style></head><body><div class="seite">
+<aside class="links">
+{{ t.foto(profile) }}
+<h2>Kontakt</h2><ul class="kontakt">{{ t.kontakt_liste(profile) }}</ul>
+{% if cv.kenntnisse %}<h2>Kenntnisse</h2>{{ t.kenntnisse(cv) }}{% endif %}
+{% if cv.sprachen %}<h2>Sprachen</h2>{{ t.sprachen(cv) }}{% endif %}
+{% if cv.zertifikate %}<h2>Zertifikate</h2>
+{% for z in cv.zertifikate if z.im_cv is not false %}<div class="kenntnis"><b>{{ z.name }}</b><span>{{ t.zertifikat_datum(z) }}</span></div>{% endfor %}{% endif %}
+{% if cv.interessen %}<h2>Interessen</h2><p>{{ cv.interessen | join(', ') }}</p>{% endif %}
+</aside>
+<main class="rechts">
+<h1>{{ profile.name }}</h1>
+{% if stelle %}<p class="ziel">Bewerbung als {{ stelle.title }}</p>{% else %}<p class="ziel"></p>{% endif %}
+{% if cv.profil %}<h2>Profil</h2><p>{{ cv.profil }}</p>{% endif %}
+{% if cv.stationen %}<h2>Berufserfahrung</h2>
+{% for s in cv.stationen %}<div class="eintrag"><div class="kopf"><b>{{ s.rolle }}</b><span class="zeit">{{ t.zeitraum(s.von, s.get('bis')) }}</span></div>
+<div class="ort">{{ s.organisation }}</div>{% if s.get('aufgaben') %}<ul>{% for a in s.get('aufgaben') %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}{% endif %}
+{% if cv.ausbildung %}<h2>Ausbildung</h2>
+{% for e in cv.ausbildung %}<div class="eintrag"><div class="kopf"><b>{{ e.abschluss }}</b><span class="zeit">{{ t.zeitraum(e.get('von'), e.get('bis')) }}</span></div>
+<div class="ort">{{ e.institution }}</div>{% if e.get('punkte') %}<ul>{% for p in e.get('punkte') %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}{% endif %}
+{% if cv.projekte %}<h2>Projekte</h2>
+{% for p in cv.projekte if p.im_cv is not false %}<div class="eintrag"><div class="kopf"><b>{{ p.name }}</b><span class="zeit">{% if p.get('zeitraum') %}{{ p.get('zeitraum') }}{% elif p.get('status') == 'geplant' %}geplant{% endif %}</span></div>
+{% if p.get('technologien') %}<div class="ort">{{ p.get('technologien') | join(' · ') }}</div>{% endif %}{% if p.get('beschreibung') %}<p>{{ p.get('beschreibung') }}</p>{% endif %}</div>{% endfor %}{% endif %}
+</main></div></body></html>

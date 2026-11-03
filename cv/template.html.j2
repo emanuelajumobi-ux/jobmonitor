@@ -20,6 +20,10 @@ h2 { font-size: 13pt; color: var(--accent); margin: 14px 0 6px; padding-bottom: 
 .unter { font-style: italic; margin-bottom: 2px; }
 ul { margin: 2px 0 0; padding-left: 1.2em; } li { margin: 1px 0; }
 p { margin: 0; }
+
+/* Überschrift nie allein am Seitenende: unsichtbar Platz für die ersten Zeilen darunter reservieren */
+h2 { break-inside: avoid; page-break-inside: avoid; }
+h2::after { content: ""; display: block; height: 28mm; margin-bottom: -28mm; }
 </style></head>
 <body>
 {% set adresse = [profile.adresse.strasse, [profile.adresse.plz, profile.adresse.ort] | select | join(' ')] | select | join(', ') %}
