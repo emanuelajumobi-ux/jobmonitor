@@ -3,7 +3,7 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
-## Unveröffentlicht
+## 1.2.0
 
 - **Passende Firmen finden:** Auf der Seite Firmen stellt die KI eine Liste von Arbeitgebern in deiner Nähe zusammen, die zu Lebenslauf und Suchprofilen passen – auch ohne aktuelle Ausschreibung. Karriereseite prüfen, mit einem Klick hinzufügen.
 - **Hell oder dunkel:** unter Einstellungen → Darstellung, unabhängig vom System. Im App-Fenster passt sich auch die Seitenleiste an.
