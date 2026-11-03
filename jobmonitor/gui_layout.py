@@ -28,6 +28,9 @@ ICONS = {
     "sync": '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36'
             'L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
     "power": '<path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/>',
+    "herz": '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23'
+            'l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>',
+    "mond": '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
     "search": '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
     "einstellungen": '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 '
                      '2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 '
@@ -86,7 +89,9 @@ CSS = """
   --shadow:none; --shadow-lg:0 12px 32px rgba(0,0,0,.18); --radius:20px; --radius-sm:12px;
   --press:cubic-bezier(.2,0,0,1);
 }
-@media (prefers-color-scheme: dark) { :root {
+/* Dunkel: wie das System, oder fest per Schalter unten in der Seitenleiste (data-theme hell/dunkel) */
+:root { color-scheme:light dark; } :root[data-theme=hell] { color-scheme:light; } :root[data-theme=dunkel] { color-scheme:dark; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme=hell]) {
   --bg:#0c0d0f; --surface:#15171a; --surface-2:#23262b; --line:#1f2226; --control:#45484e; --field:#0e1013;
   --field-line:#33363c;
   --text:#ffffff; --muted:#b4b4b4; --faint:#949494;
@@ -97,6 +102,17 @@ CSS = """
   --side-line:rgba(255,255,255,.07); --side-solid:#15171a;
   --shadow-lg:0 12px 32px rgba(0,0,0,.5);
 } }
+:root[data-theme=dunkel] {
+  --bg:#0c0d0f; --surface:#15171a; --surface-2:#23262b; --line:#1f2226; --control:#45484e; --field:#0e1013;
+  --field-line:#33363c;
+  --text:#ffffff; --muted:#b4b4b4; --faint:#949494;
+  --accent:#5eead4; --accent-2:#99f6e4; --accent-soft:#12302c; --on-accent:#000000;
+  --primary:#ffffff; --primary-ink:#000000;
+  --ok:#5eead4; --ok-soft:#12302c; --warn:#e5a93b; --warn-soft:#2b2414; --err:#f28b82; --err-soft:#2c1a20;
+  --side:#0c0d0f; --side-2:#1b1d21; --side-3:#23262b; --side-text:#d6d8dc; --side-muted:#949494; --side-strong:#ffffff;
+  --side-line:rgba(255,255,255,.07); --side-solid:#15171a;
+  --shadow-lg:0 12px 32px rgba(0,0,0,.5);
+}
 * { box-sizing:border-box; }
 html, body { margin:0; }
 body { font:14px/20px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg);
@@ -132,6 +148,12 @@ a:hover { text-decoration-color:currentColor; }
 .side-foot button:hover { background:var(--side-2); color:var(--side-strong); }
 .side-foot button:active { background:var(--side-3); }
 .side-foot .hint { font-size:12px; color:var(--side-muted); padding:0 10px 6px; }
+.side-foot .spenden { display:flex; align-items:center; gap:10px; min-height:34px; padding:6px 10px; margin-bottom:6px;
+  line-height:1.25;
+  border-radius:8px; font-size:14px; font-weight:500; text-decoration:none; color:var(--accent-2);
+  background:var(--accent-soft); }
+.side-foot .spenden .ic { color:#e0457b; fill:#e0457b; }
+.side-foot .spenden:hover { filter:brightness(.97); }
 
 /* Leinwand: mittig rechts der Seitenleiste, höchstens 1156px breit */
 main { margin-left:236px; padding:28px max(24px, calc((100vw - 236px - 1156px) / 2)) 72px; }
@@ -395,10 +417,13 @@ html.native .side, html.native .filters, html.native .tabs, html.native .job .ac
 /* Eingabefelder bleiben bedienbar, auch in Leisten ohne Textauswahl (sonst nimmt WebKit keine Eingabe an) */
 input, textarea, select, [contenteditable] { -webkit-user-select:text; user-select:text; }
 @media (prefers-color-scheme: dark) {
-  html.native { --side:rgba(0,0,0,.18); --side-2:rgba(255,255,255,.08); --side-3:rgba(255,255,255,.13);
+  html.native:not([data-theme=hell]) { --side:rgba(0,0,0,.18); --side-2:rgba(255,255,255,.08); --side-3:rgba(255,255,255,.13);
                 --side-text:#e6e9ef; --side-muted:#98a2b3; --side-strong:#fff; --side-line:rgba(255,255,255,.08); }
-  html.native .side { border-right-color:rgba(255,255,255,.06); }
+  html.native:not([data-theme=hell]) .side { border-right-color:rgba(255,255,255,.06); }
 }
+html.native[data-theme=dunkel] { --side:rgba(0,0,0,.18); --side-2:rgba(255,255,255,.08); --side-3:rgba(255,255,255,.13);
+              --side-text:#e6e9ef; --side-muted:#98a2b3; --side-strong:#fff; --side-line:rgba(255,255,255,.08); }
+html.native[data-theme=dunkel] .side { border-right-color:rgba(255,255,255,.06); }
 
 @media (max-width:1180px) { .board { grid-template-columns:1fr; } .rail { position:static; grid-template-columns:1fr 1fr; } }
 @media (max-width:860px) {
@@ -510,6 +535,15 @@ document.addEventListener('drop', e => {
   feld.dispatchEvent(new Event('change', {bubbles: true}));
   if (feld.form.querySelectorAll('input[type=file]').length === 1 && feld.form.checkValidity()) feld.form.requestSubmit();
 });
+// Darstellung umschalten: System → Hell → Dunkel; sofort sichtbar, gespeichert in config.yaml (gui.darstellung)
+document.querySelectorAll('[data-darstellung]').forEach(b => b.addEventListener('click', () => {
+  const folge = {auto: 'hell', hell: 'dunkel', dunkel: 'auto'}, text = {auto: 'System', hell: 'Hell', dunkel: 'Dunkel'};
+  const neu = folge[b.dataset.darstellung] || 'auto';
+  b.dataset.darstellung = neu;
+  if (neu === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = neu;
+  b.querySelector('span').textContent = b.querySelector('span').textContent.replace(/:.*/, ': ') + text[neu];
+  fetch('/darstellung', {method: 'POST', body: new URLSearchParams({token: document.body.dataset.token, wert: neu})});
+}));
 // PDFs in Vorschau öffnen statt im Fenster
 document.addEventListener('click', e => {
   const a = e.target.closest('a[data-open]');
@@ -521,8 +555,11 @@ document.addEventListener('click', e => {
 """
 
 
+DARSTELLUNG_TEXT = {"auto": "Darstellung: System", "hell": "Darstellung: Hell", "dunkel": "Darstellung: Dunkel"}
+
+
 def nav(active: str, badges: dict[str, tuple[int, str]], token: str, hint: str = "",
-        traum_name: str | None = "Cloud Security") -> str:
+        traum_name: str | None = "Cloud Security", spenden_url: str = "", darstellung: str = "auto") -> str:
     """`traum_name`: Name des Traumprofils (config.yaml → traumprofil.name); None blendet den Eintrag aus."""
     parts, section = [], None
     for key, title, href, sec in NAV:
@@ -538,9 +575,13 @@ def nav(active: str, badges: dict[str, tuple[int, str]], token: str, hint: str =
         cls = ' class="active"' if key == active else ""
         parts.append(f'<a href="{href}"{cls}>{icon(key)}<span>{escape(title)}</span>{badge}</a>')
     hint_html = f'<div class="hint">{escape(hint)}</div>' if hint else ""
+    spenden = (f'<a class="spenden" href="{escape(spenden_url)}" target="_blank" rel="noopener">{icon("herz", 16)}'
+               f'<span>Job-Monitor unterstützen</span></a>' if spenden_url else "")
     return f"""<aside class="side"><div class="brand">{LOGO}Job-Monitor</div>
 <nav class="nav">{"".join(parts)}</nav>
-<div class="side-foot">{hint_html}
+<div class="side-foot">{hint_html}{spenden}
+<button type="button" data-darstellung="{darstellung}" title="Hell, dunkel oder wie das System">{icon("mond", 16)}
+<span>{DARSTELLUNG_TEXT.get(darstellung, DARSTELLUNG_TEXT["auto"])}</span></button>
 <form method="post" action="/sync"><input type="hidden" name="token" value="{token}"><button>{icon("sync", 16)}
 Synchronisieren</button></form>
 <form method="post" action="/quit"><input type="hidden" name="token" value="{token}"><button>{icon("power", 16)}
@@ -548,10 +589,13 @@ Beenden</button></form></div></aside>"""
 
 
 def document(title: str, body: str, side: str = "", extra_css: str = "", token: str = "",
-             native: bool = False) -> bytes:
-    """`native`: im App-Fenster mit durchscheinender Seitenleiste (nur zusammen mit `side`)."""
+             native: bool = False, darstellung: str = "auto") -> bytes:
+    """`native`: im App-Fenster mit durchscheinender Seitenleiste (nur zusammen mit `side`). `darstellung`: auto (wie
+    das System), hell oder dunkel."""
     main_style = "" if side else ' style="margin:0 auto;max-width:1180px"'
     html_cls = ' class="native"' if native and side else ""
+    if darstellung in ("hell", "dunkel"):
+        html_cls += f' data-theme="{darstellung}"'
     return f"""<!doctype html><html lang="de"{html_cls}><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{escape(title)} · Job-Monitor</title>
 <style>{CSS}{extra_css}</style></head><body data-token="{token}">{side}<main{main_style}>{body}</main>

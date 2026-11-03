@@ -130,26 +130,46 @@ def seite(html: str) -> str:
 
 # --- Einstellung ---
 GUI_RE = re.compile(r"^gui:[^\n]*\n((?:[ \t]+[^\n]*\n|[ \t]*\n)*)", re.M)
-SPRACHE_RE = re.compile(r"^  sprache:[^\n]*\n", re.M)
 
 
-def setzen(root, code: str) -> None:
-    """gui.sprache in config.yaml setzen, ohne den Rest der Datei neu zu formatieren (alter Stand bleibt als .bak)."""
-    from .gui_wartung import WartungError, speichern
-    if code not in SPRACHEN:
-        raise WartungError("Unbekannte Sprache.")
+def gui_setzen(root, schluessel: str, wert: str, kommentar: str) -> None:
+    """gui.<schluessel> in config.yaml setzen, ohne den Rest der Datei neu zu formatieren (alter Stand als .bak)."""
+    from .gui_wartung import speichern
     path = root / "config.yaml"
     text = path.read_text(encoding="utf-8")
-    zeile = f"  sprache: {code}               # Oberfläche: de | en\n"
+    zeile = f"  {schluessel}: {wert}".ljust(30) + f"# {kommentar}\n"
     block = GUI_RE.search(text)
     if block is None:
         text = text.rstrip("\n") + f"\n\ngui:\n{zeile}"
     else:
+        alt = re.compile(rf"^  {schluessel}:[^\n]*\n", re.M)
         inhalt = block.group(1)
-        inhalt = SPRACHE_RE.sub(zeile, inhalt, count=1) if SPRACHE_RE.search(inhalt) else zeile + inhalt
+        inhalt = alt.sub(zeile, inhalt, count=1) if alt.search(inhalt) else zeile + inhalt
         text = text[:block.start(1)] + inhalt + text[block.end(1):]
-    _woerterbuch.cache_clear()
     speichern(root, "config.yaml", text)
+
+
+def setzen(root, code: str) -> None:
+    """Sprache der Oberfläche (gui.sprache)."""
+    from .gui_wartung import WartungError
+    if code not in SPRACHEN:
+        raise WartungError("Unbekannte Sprache.")
+    gui_setzen(root, "sprache", code, "Oberfläche: de | en (Einstellungen → Sprache)")
+
+
+DARSTELLUNG = ("auto", "hell", "dunkel")
+
+
+def darstellung(cfg: dict | None) -> str:
+    wert = str(((cfg or {}).get("gui") or {}).get("darstellung") or "auto")
+    return wert if wert in DARSTELLUNG else "auto"
+
+
+def darstellung_setzen(root, wert: str) -> None:
+    from .gui_wartung import WartungError
+    if wert not in DARSTELLUNG:
+        raise WartungError("Unbekannte Darstellung.")
+    gui_setzen(root, "darstellung", wert, "auto | hell | dunkel (Schalter unten in der Seitenleiste)")
 
 
 def systemsprache(run=None) -> str:

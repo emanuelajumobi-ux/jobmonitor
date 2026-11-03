@@ -273,12 +273,31 @@ TEXTE: dict[str, str] = {
     "Designs für Lebenslauf und Anschreiben": "Designs for CV and cover letter",
     "Gleicher Inhalt, anderes Aussehen. Das Design wählst du je Suchprofil (Einstellungen) oder je Bewerbung. "
     "„Gestaltete“ Designs (Spalten, Farbflächen) lesen Bewerbungssysteme großer Firmen teils schlechter – die "
-    "Prüfung vor dem Abschicken weist darauf hin.": "Same content, different look. You choose the design per search "
+    "Prüfung vor dem Abschicken weist darauf hin. Zum Vergrößern auf eine Vorschau klicken.": "Same content, different look. You choose the design per search "
                                                      "profile (Settings) or per application. Applicant tracking "
                                                      "systems of large companies sometimes read “designed” layouts "
                                                      "(columns, colour areas) less well – the check before sending "
-                                                     "points this out.",
+                                                     "points this out. Click a preview to enlarge it.",
     "· gut maschinenlesbar": "· machine-readable", "· gestaltet": "· designed",
+    "Passende Firmen finden": "Find matching companies", "Liste erstellen": "Create list",
+    "Neue Liste erstellen": "Create new list", "KI sucht passende Firmen …": "AI is looking for matching companies …",
+    "Prüfen": "Check",
+    "Optional: z. B. eher Mittelstand, Energie und Versicherungen, kein Konzern":
+        "Optional: e.g. rather mid-sized companies, energy and insurance, no corporations",
+    "– ohne KI helfen die „Vorschläge aus deinen Treffern“.": "– without AI, “Suggestions from your matches” help.",
+    "Die KI stellt Arbeitgeber in deiner Nähe zusammen, die zu Lebenslauf und Suchprofilen passen – auch solche, die "
+    "noch keine Stelle ausgeschrieben haben. Gesendet werden Wohnort, Suchprofile und dein Master-CV ohne persönliche "
+    "Angaben. Die Karriereseiten kennt die KI nur aus ihrem Wissen: vor dem Hinzufügen mit „Prüfen“ öffnen und die "
+    "Adresse bei Bedarf korrigieren.": "The AI compiles employers near you that match your CV and search profiles – "
+                                      "including ones that have not advertised a job yet. Your home location, search "
+                                      "profiles and master CV without personal details are sent. The AI only knows the "
+                                      "career pages from its training: open them with “Check” before adding and "
+                                      "correct the address if needed.",
+    ": Die KI erstellt eine Liste von Arbeitgebern in deiner Nähe, die zu Lebenslauf und Suchprofilen passen – "
+    "Karriereseite mit": ": the AI creates a list of employers near you that match your CV and search profiles – open "
+                         "the career page with",
+    "öffnen, dann": ", then",
+    "Groß ansehen": "View large", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":
         "Struck through = not covered. Entries with status “planned” do not count. Can you already do a struck-through "
@@ -463,7 +482,9 @@ TEXTE: dict[str, str] = {
     "Passwort wiederholen": "Repeat password",
     "Das Passwort wird nirgends gespeichert – ohne es lässt sich das Image nicht öffnen.":
         "The password is not stored anywhere – without it the image cannot be opened.",
-    "Job-Monitor unterstützen": "Support Job-Monitor",
+    "Job-Monitor unterstützen": "Support Job-Monitor", "Darstellung: System": "Appearance: system",
+    "Darstellung: Hell": "Appearance: light", "Darstellung: Dunkel": "Appearance: dark",
+    "Hell, dunkel oder wie das System": "Light, dark or like the system",
     "Oberfläche der App. Stellenanzeigen, deine Texte und die Anleitung im Detail bleiben, wie sie sind.":
         "The app's interface. Job ads and your own texts stay as they are.",
     "Sprache der Oberfläche gespeichert.": "Interface language saved.", "Sprache": "Language", "Unterstützen": "Support",
@@ -1075,6 +1096,11 @@ MUSTER: list[tuple[str, str]] = [
     ("{n} Seiten zum selbst Ansehen", "{} pages to look at yourself"),
     ("{n} (+{n} optional)", "{} (+{} optional)"), ("Sprache: {}.{}", "Language: {}.{}"),
     ("Alles vorbereitet: {}", "Everything prepared: {}"),
+    ("{n} Firmen", "{} companies"),
+    ("Liste vom {}: {n} noch offen (hinzugefügte und ignorierte sind ausgeblendet).",
+     "List from {}: {} still open (added and ignored ones are hidden)."),
+    ("{n} passende Firmen gefunden – unten unter „Passende Firmen finden“. Karriereseite prüfen, dann hinzufügen.",
+     "{} matching companies found – see “Find matching companies”. Check the career page, then add."),
     ("({n} Stellen).", "({} jobs)."), ("(in {n} Stellen).", "(in {} jobs)."),
     ("Bundesagentur für Arbeit ({})", "Federal Employment Agency ({})"),
     ("{} · Quelle: {} (KI-Einschätzung {n})", "{} · Source: {} (AI estimate {})"),
@@ -1102,4 +1128,5 @@ SKRIPT: dict[str, str] = {
     "'oder Datei hierher ziehen'": "'or drag a file here'",
     "'Diese Datei passt hier nicht (erwartet: '": "'This file does not fit here (expected: '",
     "' Zeichen'": "' characters'",
+    "{auto: 'System', hell: 'Hell', dunkel: 'Dunkel'}": "{auto: 'system', hell: 'light', dunkel: 'dark'}",
 }

@@ -120,21 +120,57 @@ def auswahl_html(token: str, ziel: str, aktuell: str, esc, hinweis: str = "") ->
 
 def galerie_html(esc) -> str:
     karten = "".join(
-        f'<figure class="design"><div class="rahmen"><iframe src="/designs/vorschau/{k}" loading="lazy" tabindex="-1" '
-        f'title="Vorschau {esc(d["name"])}"></iframe></div><figcaption><b>{esc(d["name"])}</b>'
+        f'<figure class="design"><button type="button" class="rahmen" data-gross="{k}" data-name="{esc(d["name"])}" '
+        f'title="Groß ansehen"><iframe src="/designs/vorschau/{k}" loading="lazy" tabindex="-1" '
+        f'title="Vorschau {esc(d["name"])}"></iframe><span class="lupe">Groß ansehen</span></button>'
+        f'<figcaption><b>{esc(d["name"])}</b>'
         f'{" · gut maschinenlesbar" if d["ats"] else " · gestaltet"}<br><span class="muted">{esc(d["passt"])}</span>'
         f'</figcaption></figure>' for k, d in DESIGNS.items())
     return (f'<div class="card" id="designs"><h2>Designs für Lebenslauf und Anschreiben</h2><p class="muted">Gleicher '
             f'Inhalt, anderes Aussehen. Das Design wählst du je Suchprofil (Einstellungen) oder je Bewerbung. '
             f'„Gestaltete“ Designs (Spalten, Farbflächen) lesen Bewerbungssysteme großer Firmen teils schlechter – '
-            f'die Prüfung vor dem Abschicken weist darauf hin.</p><div class="designs">{karten}</div></div>')
+            f'die Prüfung vor dem Abschicken weist darauf hin. Zum Vergrößern auf eine Vorschau klicken.</p>'
+            f'<div class="designs">{karten}</div></div>'
+            f'<dialog id="design-gross"><div class="kopf"><b></b><span class="muted">Mit deinen Daten · '
+            f'Esc schließt</span><button type="button" class="ghost small" data-zu>Schließen</button></div>'
+            f'<div class="blatt"><iframe title="Design groß"></iframe></div></dialog><script>{JS}</script>')
 
+
+JS = """
+(() => {
+  const dlg = document.getElementById('design-gross'), frame = dlg.querySelector('iframe');
+  const passen = () => {   // A4-Seite auf Fensterbreite skalieren, Höhe scrollt
+    const s = Math.min(1.25, (dlg.querySelector('.blatt').clientWidth - 2) / 794);
+    frame.style.transform = `scale(${s})`;
+    frame.parentElement.style.height = (1123 * s) + 'px';
+  };
+  document.querySelectorAll('[data-gross]').forEach(b => b.addEventListener('click', () => {
+    dlg.querySelector('.kopf b').textContent = b.dataset.name;
+    frame.src = '/designs/vorschau/' + b.dataset.gross;
+    dlg.showModal(); passen();
+  }));
+  dlg.querySelector('[data-zu]').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+  window.addEventListener('resize', () => { if (dlg.open) passen(); });
+})();
+"""
 
 CSS = """
 .designs { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:14px; }
 .design { margin:0; } .design figcaption { font-size:13px; margin-top:6px; line-height:1.35; }
 .design .rahmen { width:100%; aspect-ratio:210/297; overflow:hidden; border-radius:8px; border:1px solid var(--line);
-  background:#fff; position:relative; }
+  background:#fff; position:relative; padding:0; display:block; cursor:zoom-in; }
+.design .rahmen .lupe { position:absolute; inset:auto 8px 8px auto; padding:4px 10px; border-radius:999px; font-size:12px;
+  background:rgba(0,0,0,.65); color:#fff; opacity:0; transition:opacity .15s; }
+.design .rahmen:hover .lupe, .design .rahmen:focus-visible .lupe { opacity:1; }
+#design-gross { width:min(1040px, 94vw); max-height:92vh; padding:0; border:0; border-radius:14px;
+  background:var(--surface); color:var(--text); overflow:auto; }
+#design-gross::backdrop { background:rgba(0,0,0,.55); }
+#design-gross .kopf { position:sticky; top:0; z-index:1; display:flex; gap:12px; align-items:center; padding:12px 16px;
+  background:var(--surface); border-bottom:1px solid var(--line); }
+#design-gross .kopf button { margin-left:auto; }
+#design-gross .blatt { margin:16px; overflow:hidden; background:#fff; box-shadow:0 2px 14px rgba(0,0,0,.18); }
+#design-gross iframe { width:794px; height:1123px; border:0; transform-origin:0 0; display:block; }
 .design iframe { width:794px; height:1123px; border:0; transform-origin:0 0; transform:scale(.24); pointer-events:none;
   position:absolute; top:0; left:0; }
 """

@@ -142,7 +142,10 @@ AUFGABEN = [
         "<a href=\"/firmen\">Firmen</a>: unten Name und Adresse der Karriereseite eintragen.",
         "Beim nächsten Lauf erkennt die App das Bewerbungssystem selbst. Lässt sich die Seite nicht lesen, steht sie unter "
         "„manuell prüfen“ und die App erinnert dich, selbst nachzusehen.",
-        "Firmen aus deinen Treffern schlägt die Seite außerdem vor."], "firma karriereseite hinzufügen"),
+        "Firmen aus deinen Treffern schlägt die Seite außerdem vor.",
+        "<b>Passende Firmen finden</b>: Die KI erstellt eine Liste von Arbeitgebern in deiner Nähe, die zu Lebenslauf "
+        "und Suchprofilen passen – Karriereseite mit <b>Prüfen</b> öffnen, dann <b>Hinzufügen</b>."],
+     "firma karriereseite hinzufügen finden liste arbeitgeber"),
     ("sicherung", "Wie sichere ich meine Daten?", [
         "<a href=\"/einstellungen\">Einstellungen → Sicherung</a>: mit Passwort als verschlüsseltes Disk-Image (Mac) oder "
         "als ZIP-Datei.",

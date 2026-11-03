@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, designs, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, designs, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -135,13 +135,18 @@ class App(BewerbungenSeiten):
             llm.einstellen(cfg)                       # KI-Anbieter für Knöpfe und Hinweise dieser Seite
             traum = cfg.get("traumprofil") or {}
         except Exception:
-            traum = {}
+            cfg, traum = {}, {}
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
         if (knopf := gh.knopf(active)):                 # „?“ unten rechts: Hilfe zu dieser Seite
             body, extra_css = body + knopf, extra_css + gh.KNOPF_CSS
-        seite = layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name),
-                                extra_css, self.token, self.native)
+        seite = layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name,
+                                                        spenden.url(cfg), i18n.darstellung(cfg)),
+                                extra_css, self.token, self.native, i18n.darstellung(cfg))
         return self.uebersetzt(seite)
+
+    def darstellung(self, form: dict) -> None:
+        """Schalter unten in der Seitenleiste (per fetch, ohne neue Seite)."""
+        i18n.darstellung_setzen(self.root, form.get("wert", ""))
 
     def uebersetzt(self, seite: bytes) -> bytes:
         """Englische Oberfläche (Einstellungen → Sprache): fertige Seite übersetzen (i18n.py)."""
@@ -955,9 +960,22 @@ class App(BewerbungenSeiten):
             kand = []
         bewerbungen = {r.get("firma", "").lower(): r.get("status", "") for r in tracking.load(self.root / "applications.csv")
                        if r.get("typ") == "Initiativ" and r.get("status")}
+        message += firmen_finder.karte(self.root, self.token, bool(ki.schluessel()))
         message += gf.initiativ_karte(kand, bewerbungen)
         return self.page("Firmen", gf.render(self.root, self.token, date.today(), days, message, vorschlaege,
                                              liste, cfg, status, behoben, {tip.firma for tip, _ in kand}), "firmen")
+
+    def firmen_finden(self, form: dict) -> bytes:
+        """Liste passender Firmen mit KI (firmen_finder.py)."""
+        cfg = load_config(self.root / "config.yaml")
+        try:
+            cv, _ = load_cv_master(self.root)
+            anzahl = int(form.get("anzahl") or 20) if str(form.get("anzahl", "")).isdigit() else 20
+            liste = firmen_finder.finden(self.root, cfg, cv or {}, form.get("wunsch", ""), anzahl)
+        except (ki.KiError, CvDataError) as exc:
+            return self.firmen(f'<div class="card err">{esc(exc)}</div>')
+        return self.firmen(f'<div class="card"><p class="ok">{len(liste)} passende Firmen gefunden – unten unter '
+                           f'„Passende Firmen finden“. Karriereseite prüfen, dann hinzufügen.</p></div>')
 
     def firmen_ignorieren(self, form: dict) -> bytes:
         gf.ignore(self.root, form.get("name", ""))
