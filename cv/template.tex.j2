@@ -1,0 +1,132 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,top=1.4cm,bottom=1.4cm,left=2cm,right=2cm]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{titlesec}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{1F4E79}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+
+\titleformat{\section}{\large\bfseries\color{accent}}{}{0pt}{}[\vspace{-0.6em}\color{accent}\rule{\linewidth}{0.6pt}]
+\titlespacing*{\section}{0pt}{1.0em}{0.5em}
+\setlist[itemize]{leftmargin=1.2em,itemsep=1pt,topsep=2pt,parsep=0pt}
+
+% Eintrag: Titel, Zeile darunter (kursiv), rechts (Zeitraum oder Status)
+\newcommand{\eintrag}[3]{%
+  \textbf{#1}\hfill #3\\[-0.1em]
+  \textit{#2}\par\vspace{0.2em}}
+
+\BLOCK{ set zeile1 = ([ (profile.adresse.strasse ~ ', ' ~ profile.adresse.plz ~ ' ' ~ profile.adresse.ort) if (profile.anzeigen.adresse and profile.adresse.ort) else '', ('geboren am ' ~ profile.geburtsdatum) if (profile.anzeigen.geburtsdatum and profile.geburtsdatum) else '' ] | select | list) }
+\BLOCK{ set zeile2 = ([ profile.telefon, profile.email, profile.links.linkedin, profile.links.github ] | select | list) }
+\BLOCK{ set mit_foto = (profile.anzeigen.foto and profile.foto) }
+
+\begin{document}
+
+\BLOCK{ if mit_foto }
+\begin{minipage}[t]{0.77\textwidth}\raggedright
+\BLOCK{ endif }
+\BLOCK{ if not mit_foto }\raggedright\BLOCK{ endif }
+{\fontsize{22}{26}\selectfont\bfseries\color{accent} \VAR{ profile.name | tex }}\\[0.5em]
+\BLOCK{ if zeile1 }
+\VAR{ zeile1 | map('tex') | join(' · ') }\\
+\BLOCK{ endif }
+\BLOCK{ if zeile2 }
+\VAR{ zeile2 | map('tex') | join(' · ') }
+\BLOCK{ endif }
+\BLOCK{ if mit_foto }
+\end{minipage}\hfill
+\begin{minipage}[t]{0.2\textwidth}\raggedleft\vspace{0pt}
+\raisebox{-\height}{\includegraphics[width=2.6cm,height=3.4cm,keepaspectratio]{\VAR{ profile.foto }}}
+\end{minipage}
+\BLOCK{ endif }
+
+\BLOCK{ if cv.profil }
+\section*{Profil}
+\VAR{ cv.profil | tex }
+\BLOCK{ endif }
+
+\BLOCK{ if cv.stationen }
+\section*{Berufserfahrung}
+\BLOCK{ for s in cv.stationen }
+\eintrag{\VAR{ s.rolle | tex }}{\VAR{ s.organisation | tex }}{\BLOCK{ if s.get('bis') }\VAR{ s.von | tex }\,--\,\VAR{ s.get('bis') | tex }\BLOCK{ else }seit \VAR{ s.von | tex }\BLOCK{ endif }}
+\BLOCK{ if s.get('aufgaben') }
+\begin{itemize}
+\BLOCK{ for a in s.get('aufgaben') }
+  \item \VAR{ a | tex }
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+\BLOCK{ if not loop.last }\vspace{0.4em}\BLOCK{ endif }
+\BLOCK{ endfor }
+\BLOCK{ endif }
+
+\BLOCK{ if cv.ausbildung }
+\section*{Ausbildung}
+\BLOCK{ for e in cv.ausbildung }
+\eintrag{\VAR{ e.abschluss | tex }}{\VAR{ e.institution | tex }}{\BLOCK{ if e.get('von') and e.get('bis') }\VAR{ e.get('von') | tex }\,--\,\VAR{ e.get('bis') | tex }\BLOCK{ elif e.get('bis') }\VAR{ e.get('bis') | tex }\BLOCK{ elif e.get('von') }seit \VAR{ e.get('von') | tex }\BLOCK{ endif }}
+\BLOCK{ if e.get('punkte') }
+\begin{itemize}
+\BLOCK{ for p in e.get('punkte') }
+  \item \VAR{ p | tex }
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+\BLOCK{ if not loop.last }\vspace{0.4em}\BLOCK{ endif }
+\BLOCK{ endfor }
+\BLOCK{ endif }
+
+\BLOCK{ if cv.projekte }
+\section*{Projekte}
+\BLOCK{ for p in cv.projekte if p.im_cv is not false }
+\eintrag{\VAR{ p.name | tex }}{\VAR{ p.get('technologien', []) | map('tex') | join(', ') }}{\BLOCK{ if p.get('zeitraum') }\VAR{ p.get('zeitraum') | tex }\BLOCK{ elif p.get('status') == 'geplant' }geplant\BLOCK{ endif }}
+\BLOCK{ if p.get('beschreibung') }
+\VAR{ p.get('beschreibung') | tex }\par
+\BLOCK{ endif }
+\vspace{0.3em}
+\BLOCK{ endfor }
+\BLOCK{ endif }
+
+\BLOCK{ if cv.zertifikate }
+\section*{Zertifikate und Weiterbildung}
+\begin{itemize}
+\BLOCK{ for z in cv.zertifikate if z.im_cv is not false }
+  \item \textbf{\VAR{ z.name | tex }}\hfill \BLOCK{ if z.get('status') == 'erreicht' }\VAR{ z.get('datum') | tex }\BLOCK{ elif z.get('status') == 'in_arbeit' }in Arbeit\BLOCK{ if z.get('datum') }, \VAR{ z.get('datum') | tex }\BLOCK{ endif }\BLOCK{ else }geplant\BLOCK{ endif }
+\BLOCK{ if z.get('zusatz') }
+  \\ \textit{\VAR{ z.get('zusatz') | tex }}
+\BLOCK{ endif }
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+
+\BLOCK{ if cv.kenntnisse }
+\section*{Kenntnisse}
+\begin{itemize}
+\BLOCK{ for k in cv.kenntnisse }
+\BLOCK{ set sicher = k.eintraege | rejectattr('level', 'equalto', 'Grundkenntnisse') | map(attribute='name') | map('tex') | list }
+\BLOCK{ set basis = k.eintraege | selectattr('level', 'equalto', 'Grundkenntnisse') | map(attribute='name') | map('tex') | list }
+  \item \textbf{\VAR{ k.kategorie | tex }:} \VAR{ sicher | join(', ') }\BLOCK{ if basis }\BLOCK{ if sicher }; \BLOCK{ endif }Grundkenntnisse in \VAR{ basis | join(', ') }\BLOCK{ endif }
+\BLOCK{ endfor }
+\end{itemize}
+\BLOCK{ endif }
+
+\BLOCK{ if cv.sprachen or cv.interessen }
+\section*{Sprachen und Interessen}
+\begin{itemize}
+\BLOCK{ if cv.sprachen }
+  \item \textbf{Sprachen:} \BLOCK{ for s in cv.sprachen }\VAR{ s.sprache | tex } (\VAR{ s.niveau | tex })\BLOCK{ if not loop.last }, \BLOCK{ endif }\BLOCK{ endfor }
+\BLOCK{ endif }
+\BLOCK{ if cv.interessen }
+  \item \textbf{Interessen:} \VAR{ cv.interessen | map('tex') | join(', ') }
+\BLOCK{ endif }
+\end{itemize}
+\BLOCK{ endif }
+
+\end{document}

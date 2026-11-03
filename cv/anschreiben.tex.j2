@@ -1,0 +1,55 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,top=1.6cm,bottom=1.8cm,left=2.2cm,right=2.2cm]{geometry}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\definecolor{accent}{HTML}{1F4E79}
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.7em}
+
+\BLOCK{ set adresse = ((profile.adresse.strasse ~ ', ' ~ profile.adresse.plz ~ ' ' ~ profile.adresse.ort) if profile.adresse.ort else '') }
+\BLOCK{ set kontakt = ([ adresse, profile.telefon, profile.email ] | select | list) }
+
+\begin{document}
+
+\raggedright
+{\fontsize{22}{26}\selectfont\bfseries\color{accent} \VAR{ profile.name | tex }}\\[0.4em]
+\BLOCK{ if kontakt }
+\VAR{ kontakt | map('tex') | join(' · ') }\par
+\BLOCK{ endif }
+{\color{accent}\rule{\linewidth}{0.6pt}}
+
+\vspace{1.2em}
+\VAR{ firma | tex }\\
+\BLOCK{ for zeile in empfaenger }
+\VAR{ zeile | tex }\\
+\BLOCK{ endfor }
+
+\vspace{0.6em}
+\hfill \VAR{ ort_datum | tex }
+
+\vspace{0.6em}
+\textbf{\VAR{ betreff | tex }}
+
+\VAR{ anrede | tex }
+
+\BLOCK{ for absatz in absaetze }
+\VAR{ absatz | tex }
+
+\BLOCK{ endfor }
+Mit freundlichen Grüßen
+
+\vspace{1.6em}
+\VAR{ profile.name | tex }
+
+\BLOCK{ if anlagen }
+\vspace{1.2em}
+{\small\textbf{Anlagen:} \VAR{ anlagen | map('tex') | join(', ') }}
+\BLOCK{ endif }
+
+\end{document}

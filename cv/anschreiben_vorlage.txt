@@ -1,0 +1,17 @@
+# Vorlage für Anschreiben-Entwürfe (Oberfläche → Bewerbung). Zeilen mit # werden ignoriert.
+# Platzhalter in {geschweiften Klammern} füllt das Tool aus cv_master.yaml, profile.yaml und der Anzeige:
+#   {firma} {stelle} {studium} {station_satz} {passt} {zeitraum}
+# Aus dem Suchprofil der Stelle (config.yaml → profile: werkstudent, junior …):
+#   {zielrolle} {absicht} {ausblick}
+# Text in [eckigen Klammern] schreibst du selbst; vor dem PDF-Bau wird gewarnt, solange welche übrig sind.
+# Absätze durch eine Leerzeile trennen. Keine persönlichen Daten hier eintragen (die kommen aus profile.yaml).
+
+mit großem Interesse habe ich Ihre Ausschreibung „{stelle}“ gelesen. Ich studiere {studium} und suche {absicht}. In Ihrem Team möchte ich mein Wissen praktisch einsetzen und vertiefen.
+
+{station_satz} Besonders gut zu Ihrer Ausschreibung passen meine Erfahrungen mit {passt}.
+
+[Warum {firma}? Ein bis zwei Sätze, was dich konkret an der Firma, dem Team oder der Aufgabe reizt.]
+
+[Ein konkretes Beispiel: ein Projekt oder eine Aufgabe, in der du etwas aus der Anzeige schon gemacht hast, und was dabei herauskam.]
+
+Ich kann {zeitraum} bei Ihnen arbeiten. {ausblick} Über die Einladung zu einem persönlichen Gespräch freue ich mich sehr.

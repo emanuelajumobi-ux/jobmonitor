@@ -1,0 +1,31 @@
+name: Tests
+
+# Läuft bei jedem Push und Pull Request, damit ein kaputter Stand die tägliche Pipeline nicht erreicht.
+# Braucht keine Secrets und schickt nichts nach außen (alle HTTP-Abrufe sind in den Tests gemockt).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Abhängigkeiten installieren
+        run: pip install -r requirements.txt -r requirements-cv.txt
+      - name: Tests
+        env:
+          GIT_AUTHOR_NAME: ci
+          GIT_AUTHOR_EMAIL: ci@example.com
+          GIT_COMMITTER_NAME: ci
+          GIT_COMMITTER_EMAIL: ci@example.com
+        run: python -m pytest -q

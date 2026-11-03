@@ -1,0 +1,57 @@
+# Beispiel ohne persönliche Daten (nur für Tests), Schema wie cv/cv_master.yaml
+profil: Cyber-Security-Student mit Fokus auf Azure, Entra ID und Infrastructure as Code.
+stationen:
+  - rolle: Werkstudent IT-Operations
+    organisation: Beispiel GmbH
+    von: "03/2025"
+    bis: ""
+    aufgaben: [Benutzer- und Rechteverwaltung in Entra ID, Automatisierung mit PowerShell]
+    technologien: [Entra ID, PowerShell, Microsoft 365]
+ausbildung:
+  - abschluss: Cyber Security Management (B. Sc.)
+    institution: Hochschule Niederrhein
+    von: "09/2023"
+    bis: "voraussichtlich 02/2027"
+kenntnisse:
+  - kategorie: Cloud
+    eintraege:
+      - {name: Azure, level: gut}
+      - {name: Entra ID, level: gut}
+      - {name: Terraform, level: Grundkenntnisse}
+  - kategorie: Systeme
+    eintraege:
+      - {name: PowerShell, level: gut}
+      - {name: Linux, level: gut}
+      - {name: Git}
+zertifikate:
+  - {name: AZ-900 Microsoft Azure Fundamentals, datum: "05/2025", status: erreicht, im_cv: true}
+  - {name: SC-900, zusatz: Security Fundamentals, datum: "01/2026", status: erreicht, im_cv: true}
+  - {name: Certified Kubernetes Administrator, datum: "", status: geplant, im_cv: false}
+projekte:
+  - name: Homelab mit Proxmox
+    zeitraum: "01/2025 – 06/2025"
+    status: erreicht
+    beschreibung: Virtualisierung & Netzwerksegmentierung mit VLANs (100% selbst gebaut)
+    technologien: [Linux, Netzwerk, Docker]
+    im_cv: true
+  - name: Azure Landing Zone mit Terraform
+    zeitraum: "seit 10/2025"
+    status: in_arbeit
+    beschreibung: IaC-Projekt im Studium
+    technologien: [Azure, Terraform, GitHub Actions]
+    im_cv: true
+  - name: Website für Sportverein
+    zeitraum: "2024"
+    status: erreicht
+    beschreibung: Statische Seite
+    technologien: [HTML]
+    im_cv: true
+  - name: Kubernetes-Cluster
+    status: geplant
+    beschreibung: Noch nicht begonnen
+    technologien: [Kubernetes]
+    im_cv: false
+sprachen:
+  - {sprache: Deutsch, niveau: Muttersprache}
+  - {sprache: Englisch, niveau: C1}
+interessen: [Klettern]

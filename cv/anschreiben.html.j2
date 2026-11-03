@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<title>Anschreiben {{ profile.name }}</title>
+<style>
+/* Nachbau von cv/anschreiben.tex.j2 für alle ohne LaTeX (pdf_html.py). */
+@page { size: A4; margin: 16mm 22mm 18mm; }
+:root { --accent: #1F4E79; }
+body { font-family: Charter, "Bitstream Charter", Georgia, "Times New Roman", serif; font-size: 11pt; line-height: 1.4; color: #111;
+       margin: 0; }
+h1 { font-size: 22pt; line-height: 1.15; color: var(--accent); margin: 0 0 5px; }
+.kontakt { margin: 0 0 4px; }
+hr { border: 0; border-top: 0.6pt solid var(--accent); margin: 0 0 22px; }
+.empfaenger p { margin: 0; }
+.datum { text-align: right; margin: 12px 0; }
+p { margin: 0 0 0.7em; }
+.betreff { font-weight: 700; margin-top: 12px; }
+.name { margin-top: 2.2em; }
+.anlagen { font-size: 9.5pt; margin-top: 1.6em; }
+</style></head>
+<body>
+{% set adresse = [profile.adresse.strasse, [profile.adresse.plz, profile.adresse.ort] | select | join(' ')] | select | join(', ') %}
+{% set kontakt = ([ adresse, profile.telefon, profile.email ] | select | list) %}
+<h1>{{ profile.name }}</h1>
+{% if kontakt %}<p class="kontakt">{{ kontakt | join(' · ') }}</p>{% endif %}
+<hr>
+<div class="empfaenger"><p>{{ firma }}</p>{% for zeile in empfaenger %}<p>{{ zeile }}</p>{% endfor %}</div>
+<p class="datum">{{ ort_datum }}</p>
+<p class="betreff">{{ betreff }}</p>
+<p>{{ anrede }}</p>
+{% for absatz in absaetze %}<p>{{ absatz }}</p>
+{% endfor %}
+<p>Mit freundlichen Grüßen</p>
+<p class="name">{{ profile.name }}</p>
+{% if anlagen %}<p class="anlagen"><b>Anlagen:</b> {{ anlagen | join(', ') }}</p>{% endif %}
+</body></html>

@@ -1,0 +1,68 @@
+# Persönliche Daten – niemals committen
+profile.yaml
+drafts/
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Lokaler Lebenslauf (persönliche Daten) – nie committen
+cv/out/
+cv/private/
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
+# macOS
+.DS_Store
+
+# Selbst kopierte Stellenanzeigen für make cv STELLE=…
+cv/stellen/
+
+# Sicherheitskopie beim Speichern aus der Oberfläche
+cv/cv_master.yaml.bak
+
+# Oberfläche: lokal gemerkte, schon gesehene Stellen
+.gui_gesehen.json
+
+# Lokal erzeugte Mac-App (enthält den Pfad dieses Ordners)
+Job-Monitor.app/
+
+# Bewerbungen je Stelle (Anschreiben, Mappe) – nur lokal
+cv/bewerbungen/
+
+# Oberfläche: wann du manuell zu prüfende Karriereseiten zuletzt besucht hast
+.gui_manuell.json
+
+# Oberfläche: ignorierte Firmen-Vorschläge
+.gui_ignoriert.json
+.gui_beobachten.json
+.gui_antworten.json
+.gui_kalender.json
+.gui_erinnerungen.json
+.gui_benachrichtigung.json
+.gui_ki.json
+.gui_fit_ignoriert.json
+.gui_rueckkehr.json
+.gui_gespraeche.json
+.gui_ablehnungen.json
+.gui_zeitplan.json
+.gui_mail.json
+.gui_aufgaben/
+*.bak
+
+# Deine Daten (im öffentlichen Code-Repo nie committen – eigene Daten gehören in einen privaten Ordner/Fork)
+cv/cv_master.yaml
+applications.csv
+reports/*.md
+state/*.sqlite
+state/*.json
+.gui_update.json
+.gui_eingerichtet.json
+build/
+dist/
+*.spec

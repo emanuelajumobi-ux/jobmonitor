@@ -1,0 +1,11 @@
+requests==2.34.2
+beautifulsoup4==4.15.0
+lxml==6.1.3
+ruamel.yaml==0.19.1
+pypdf==6.21.4
+Markdown==3.11.2
+python-dotenv==1.2.4
+anthropic==2.3.0  # nur genutzt, wenn KI in config.yaml aktiviert ist
+# Tests
+pytest==9.2.0
+responses==0.26.3

@@ -1,0 +1,14 @@
+# Vorlage für die Nachfrage zu einer Bewerbung (Oberfläche → Bewerbungen → Nachfassen). Zeilen mit # werden ignoriert.
+# Platzhalter: {firma} {stelle} {datum} {anrede} {name}
+# Die erste Zeile ohne # ist der Betreff. Keine persönlichen Daten hier eintragen (der Name kommt aus profile.yaml).
+# Das Tool schickt nichts ab: Du kopierst den Text in dein Mailprogramm oder Bewerbungsportal.
+Nachfrage zu meiner Bewerbung als {stelle}
+
+{anrede}
+
+am {datum} habe ich mich bei Ihnen als {stelle} beworben. Da ich weiterhin großes Interesse an der Stelle habe, möchte ich mich kurz nach dem aktuellen Stand des Auswahlverfahrens erkundigen.
+
+Falls Sie noch Unterlagen oder Informationen von mir benötigen, sende ich Ihnen diese gern zu.
+
+Viele Grüße
+{name}

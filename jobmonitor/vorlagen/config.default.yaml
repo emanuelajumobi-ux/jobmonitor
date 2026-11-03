@@ -1,0 +1,341 @@
+# Standard-Einstellungen für neue Nutzer (vom Einrichtungs-Assistenten kopiert und angepasst).
+# Job-Monitor Konfiguration. Zugangsdaten gehören NICHT hierher, sondern in
+# Umgebungsvariablen (.env lokal, GitHub Secrets in Actions).
+
+run:
+  modus: aktiv                # aktiv | ruhe | aus – in der App unter Einstellungen → Suche umschaltbar
+  ruhe_tage: 7                # Ruhemodus: Abstand zwischen den Läufen (ohne Postfach, ohne Mitteilungen)
+  interval_days: 1            # Mindestabstand in Kalendertagen (Ortszeit) zwischen erfolgreichen Läufen (täglich)
+  tolerance_hours: 3          # nicht mehr genutzt (Abstand zählt jetzt nach Kalendertagen)
+  timezone: Europe/Berlin
+
+http:
+  user_agent: "job-monitor/0.1 (privates Jobsuche-Skript eines Studenten; fragt max. alle 3 Tage ab)"
+  min_delay_seconds: 2.0      # Rate-Limit pro Host
+  timeout_seconds: 25
+  retries: 2
+
+sources:
+  bundesagentur:
+    enabled: true
+    # v4/v5 liefern seit 2026 HTTP 403; v6 funktioniert (geprüft 31.10.2026).
+    api_versions: [v6, v5, v4]
+    base_url: "https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc"
+    api_key: "jobboerse-jobsuche"   # öffentlicher Schlüssel der Web-App, kein Geheimnis
+    detail_api_version: v4      # jobdetails gibt es (Stand 31.10.2026) nur noch unter v4
+    max_details: 25             # Anzeigentexte je Lauf nachladen (nur neue, gefilterte Treffer, für den Fit)
+    wo: "Köln"
+    umkreis_km: 50
+    veroeffentlicht_seit_tage: 14
+    page_size: 50
+    # Suchbegriffe stehen je Profil unter profile.<name>.suchbegriffe.bundesagentur
+    # Zusätzlich bundesweit suchen und nur Treffer mit homeofficemoeglich=true behalten
+    bundesweit_remote: true
+  hsnr:
+    enabled: true
+    url: "https://www.hs-niederrhein.de/stellenboerse/"
+    max_pages: 8              # erster Lauf; danach Stopp bei bekannten Einträgen
+    stellentypen: [Werkstudentenstellen, "Praxisphasen & Praktika", Abschlussarbeiten, Jobs]
+  stellenwerk:
+    enabled: true             # Portale stehen in companies.yaml unter hochschulen (quelle: stellenwerk)
+    max_detail_pages: 20      # pro Portal und Lauf; bekannte Anzeigen werden nicht erneut geladen
+    # Suchbegriffe je Profil unter profile.<name>.suchbegriffe.stellenwerk
+  # Arbeitnow: freie Job-Board-API ohne Schlüssel (Stellen aus Greenhouse, SmartRecruiters, Join.com, Teamtailor …).
+  # Keine Suche: neueste Stellen seitenweise (300 je Seite), Ort und Rolle filtert die Pipeline. Nur persönliche Nutzung.
+  arbeitnow:
+    enabled: true
+    tage: 4                   # nur Stellen der letzten N Tage (täglicher Lauf + Puffer; etwa 3–5 Seiten)
+    max_seiten: 10            # höchstens N Abfragen je Lauf (meist reichen 3–5)
+  # Adzuna: offizielle Job-Suchmaschine. Braucht ADZUNA_APP_ID und ADZUNA_APP_KEY (lokal .env, Pipeline GitHub
+  # Secrets) – ohne beide wird sie übersprungen. „Personal job search“ ist laut Bedingungen erlaubt.
+  adzuna:
+    enabled: false            # aus: voller Zugang kostet 8 £/Monat (Testzugang nur 25 Abfragen), Stand 03.11.2026
+    wo: "Köln"
+    umkreis_km: 50
+    tage: 7                   # nur Anzeigen der letzten N Tage
+    max_begriffe: 8           # je Suchprofil die ersten N BA-Suchbegriffe (= Abfragen je Profil und Lauf)
+    je_seite: 50
+  companies:
+    enabled: true
+    max_detail_pages: 12      # pro Firma beim JSON-LD-Fallback
+  mail_alerts:
+    enabled: true             # läuft nur, wenn IMAP_USER/IMAP_PASSWORD gesetzt sind
+    ordner: INBOX
+    tage_zurueck: 4           # Mails der letzten N Tage lesen (Lauf alle 3 Tage + Puffer)
+    # Originalanzeige suchen: Alert-Mails haben keinen Anzeigentext. Gesucht wird erst unter den Treffern des Laufs
+    # (Firmenseiten, BA …), sonst in der BA-Jobsuche (Titel + Ort). Portal-Links (LinkedIn & Co.) werden nie geöffnet.
+    originalsuche:
+      enabled: true
+      max_ba_anfragen: 15     # BA-Suchen je Lauf (nur für Alert-Stellen, die schon den Filter bestanden haben)
+    absender:                 # Absender-Domains von Job-Alerts (nur deren Mails werden gelesen)
+      - stepstone.de
+      - linkedin.com
+      - indeed.com
+      - indeed.de
+      - xing.com
+      - glassdoor.com
+      - jobware.de
+      - absolventa.de
+      - get-in-it.de
+      - stellenwerk.de
+
+# Antworten von Firmen: Postfach (gleicher Zugang wie mail_alerts) nach Antworten auf offene Bewerbungen durchsuchen –
+# Eingangsbestätigung, Einladung, Absage, Zusage. Nur lesen; gespeichert werden Firma, Datum, Art (state/antworten.json).
+# Den Status setzt du selbst in der App (Bewerbungen). Bewerbungen mit Antwort bekommen keinen Nachfass-Hinweis mehr.
+antworten:
+  enabled: true
+  tage_zurueck: 120         # höchstens so weit zurück (ab dem ältesten offenen Bewerbungsdatum)
+  # KI prüft Mails, die die Muster nur als „Nachricht“ oder „Einladung“ erkennen, und liest den Gesprächstermin
+  # heraus. Dafür gehen Betreff und Anfang der Mail an die Claude-API (nur neue Mails). false = nur Muster.
+  ki: true
+  ki_model: claude-haiku-5-5
+  ki_max_je_lauf: 10
+
+# Anzeige noch online? Links deiner Liste (neu, Entwurf, beworben, nachgefasst) sparsam prüfen – mit robots.txt,
+# ohne LinkedIn & Co. „Nicht mehr online“: HTTP 404/410 oder die Seite sagt, die Stelle sei besetzt/abgelaufen.
+anzeigen_check:
+  enabled: true
+  pruef_tage: 3             # je Link höchstens alle N Tage
+  max_je_lauf: 25
+
+# Mitteilungen auf dem Mac (Einstellungen → Mitteilung bei neuen Stellen): zusätzlich zur Zusammenfassung je eine
+# eigene Mitteilung für Stellen ab diesem Fit bzw. im Traumprofil (höchstens 3) und für neue Antworten von Firmen.
+benachrichtigung:
+  top_fit_ab: 75
+
+# Suchprofile. Jedes aktive Profil fragt die Quellen mit eigenen Suchbegriffen ab und filtert mit eigenen
+# Rollen-Stichwörtern; Fach-Stichwörter, Ausschlüsse (senior, lead …), Ort, Fit-Rating und Traumprofil gelten
+# für alle. Treffen beide Profile auf eine Stelle zu, gewinnt das mit dem höheren Score (bei Gleichstand das erste).
+profile:
+  beispiel:
+    enabled: false              # Wird vom Einrichtungs-Assistenten ersetzt; sonst in der App unter Einstellungen anpassen
+    name: Beispiel
+    stufe: werkstudent
+    zielrolle: Werkstudent
+    absicht: eine Werkstudententätigkeit
+    angebotsart: 34
+    rollen:
+      werkstudent: 30
+      werkstudentin: 30
+      working student: 30
+    suchbegriffe:
+      bundesagentur: [Werkstudent]
+
+# Inoffizielle bzw. per robots.txt eingeschränkte Schnittstellen. Erst nach deiner Freigabe auf true setzen.
+ats_freigabe:
+  workday: false              # Karriereseiten-Suche (CXS-JSON), z. B. Covestro
+  smartrecruiters: false      # Posting-API; robots.txt der API erlaubt nur LinkedInBot
+
+filter:
+  min_score: 35               # darunter nicht im Bericht
+  # Rollen-Stichwörter (Titel oder Stellentyp) stehen je Profil unter profile.<name>.rollen.
+  # Fach-Stichwörter (Titel zählt doppelt, Beschreibung einfach); Summe gedeckelt.
+  fach:
+    azure: 14
+    entra: 14
+    iam: 12
+    identity: 8
+    devsecops: 14
+    cloud security: 14
+    cloud: 8
+    devops: 10
+    terraform: 10
+    ansible: 8
+    infrastructure as code: 10
+    platform engineer: 10
+    kubernetes: 6
+    automatisierung: 4
+    automation: 4
+    it-security: 10
+    it security: 10
+    it-sicherheit: 10
+    cyber security: 10
+    cybersecurity: 10
+    security engineer: 10
+    network security: 8
+    netzwerksicherheit: 8
+    informationssicherheit: 6
+    security: 5
+    sicherheit: 3
+    infrastruktur: 4
+    infrastructure: 4
+  fach_max: 40
+  # Kommt eines davon im Titel vor, fliegt die Stelle raus. Drei Listen:
+  # ausschluss_stufe_titel gilt für alle Profile außer Karrierestufe „berufserfahren“,
+  # ausschluss_fach_titel nur für Profile mit dem gemeinsamen (IT-)Fachgebiet – ein Profil mit eigenem Fachgebiet,
+  # z. B. Marketing, soll Marketing-Stellen ja finden. ausschluss_titel gilt immer (hier landen auch Wörter, die du
+  # unter Stellen über „Passt nicht“ ausschließt).
+  ausschluss_stufe_titel: [senior, lead, head of, teamleit, leiter]
+  ausschluss_fach_titel: [marketing, vertrieb, sales, kommunikation, social media, bwl, business administration,
+                          controlling, buchhaltung, personal, recruiting]
+  ausschluss_titel:
+  # Reine ISMS/Datenschutz-Stellen: raus, wenn kein technisches Stichwort im Titel
+  isms_titel: [isms, datenschutz, compliance, grc, audit]
+  ausschluss_firmen: []
+  bonus:
+    bachelorarbeit_moeglich: 6
+    uebernahme: 6
+  llm:
+    enabled: true             # zusätzliche KI-Bewertung neuer Stellen (Pipeline: WIF oder ANTHROPIC_API_KEY)
+    model: claude-haiku-5-5   # viele kurze Aufrufe je Lauf: das günstige Modell reicht
+    gewicht: 0.3              # Anteil der KI-Bewertung am Endscore
+    profil: >-
+      Wird vom Einrichtungs-Assistenten aus deinem Suchwunsch gesetzt.
+
+ort:
+  max_fahrzeit_min: 60
+  punkte_koeln: 15
+  punkte_umkreis: 10          # bis 45 min
+  punkte_grenze: 5            # 45–60 min
+  punkte_remote: 12
+  remote_nur_deutschland: true  # Remote-Stellen mit Arbeitsort im Ausland (z. B. Zürich, Paris) aussortieren
+
+initiativ:
+  max_vorschlaege: 5
+  prioritaet_kategorien: [msp, systemhaus, energie, bank, versicherung]
+
+tracking:
+  nachfassen_nach_tagen: 21   # so lange nach „beworben“ ohne Antwort → Erinnerung mit Entwurf in der Oberfläche
+  nachfassen_vorlage: cv/nachfassen_vorlage.txt
+  # false: Die Pipeline trägt nichts mehr selbst in applications.csv ein. Dort landet nur, was du in der
+  # Oberfläche merkst oder als eigene Stelle anlegst. Vorschläge stehen weiter im Bericht und in der Stellenliste.
+  auto_eintragen: false
+  neu_ab_score: 60            # nur bei auto_eintragen: true – Stellen ab diesem Score landen als "neu" dort
+
+fit:
+  enabled: true               # Fit-Rating gegen cv_master.yaml (bzw. Secret CV_MASTER_YAML)
+  # KI liest den Anzeigentext zusätzlich zur Stichwortsuche (nur die Anzeige wird gesendet, nicht der Lebenslauf)
+  ki:
+    enabled: true
+    model: claude-haiku-5-5
+    max_stellen: 30           # je Lauf
+    nachholen_je_lauf: 10     # ältere Stellen ohne KI-Bewertung (z. B. Lauf ohne KI) im nächsten Lauf nachholen
+  min_anforderungen: 3        # darunter: "zu wenig Angaben in der Anzeige"
+  optional_marker: [wünschenswert, von vorteil, idealerweise, nice to have, plus, optional, wäre schön,
+                    gerne auch, keine voraussetzung]
+  # Kanonischer Begriff: [Synonyme]. Erweitern, wenn dir Begriffe fehlen.
+  begriffe:
+    Azure: [microsoft azure]
+    Entra ID: [entra, azure ad, azure active directory, aad]
+    Active Directory: [ad ds, gruppenrichtlinien, gpo]
+    IAM: [identity and access management, identity & access, zugriffsverwaltung, berechtigungsmanagement,
+          benutzerverwaltung, gruppenverwaltung, rechteverwaltung, berechtigungen, user management]
+    Microsoft 365: [m365, office 365, intune, exchange online, sharepoint, teams]
+    AWS: [amazon web services]
+    GCP: [google cloud]
+    Terraform: [bicep, arm templates, infrastructure as code, iac]
+    Ansible: []
+    Kubernetes: [k8s, aks, openshift]
+    Docker: [container, podman]
+    CI/CD: [github actions, gitlab ci, azure devops, jenkins, pipeline]
+    Git: [github, gitlab]
+    Python: []
+    PowerShell: []
+    Bash: [shell scripting]
+    Linux: [ubuntu, debian, red hat, rhel]
+    Windows: [windows server, windows 10, windows 11, windows-clients]
+    Netzwerk: [netzwerke, network, networking, tcp/ip, ipv4, subnetting, firewall, vpn, routing, switching, dns,
+               dhcp, vlan, wlan, lan, wireshark]
+    SIEM: [sentinel, splunk, qradar, elastic security]
+    Vulnerability Management: [schwachstellen, nessus, qualys, defender for cloud]
+    ISO 27001: [isms]
+    BSI IT-Grundschutz: [grundschutz]
+    SQL: [datenbank, datenbanken, postgresql, mysql]
+    IT-Support: [support, service desk, helpdesk, 1st level, 2nd level, ticketsystem, anwenderbetreuung]
+    Hardware: [arbeitsplätze, clients, endgeräte, notebooks, drucker]
+    Virtualisierung: [vmware, hyper-v, proxmox]
+    Datenmigration: [migration, migrationen]
+    Monitoring: [zabbix, prometheus, grafana, checkmk, nagios]
+    Scripting: [skripte, skripting, automatisierung, powershell, python, bash]
+    Englisch: [english]
+    # ISMS / Governance (für Stellen in der Informationssicherheit)
+    Informationssicherheit: [it-sicherheit, it security, cyber security, cybersecurity, informationssicherheits]
+    Risikomanagement: [risikoanalyse, risikoanalysen, risikobewertung, risk management, risikomanagements, grc]
+    Business Continuity: [bcm, notfallmanagement, notfallvorsorge, disaster recovery, business continuity management]
+    Datenschutz: [dsgvo, gdpr, data protection]
+    Compliance: [governance, nis2, nis-2, tisax, dora, kritis]
+    Richtlinien: [policies, sicherheitsrichtlinien, sicherheitskonzepte, sicherheitskonzept, dokumentation]
+    Audit: [audits, auditierung, auditvorbereitung]
+    Awareness: [sensibilisierung, schulungen, security awareness]
+    MS Office: [excel, powerpoint, office-anwendungen, ms-office]
+
+entwuerfe:
+  enabled: true               # Anschreiben-Entwürfe für Initiativ-Vorschläge (drafts/, gitignored)
+  llm: false                  # true = Entwurf mit KI-Modell statt Textbausteinen (ANTHROPIC_API_KEY nötig)
+  profil: beispiel          # Zielrolle der Initiativ-Entwürfe aus diesem Profil (profile.<name>.zielrolle)
+
+# KI-Hilfen in der Oberfläche (nur auf Knopfdruck): Anschreiben-Entwurf je Stelle, Gesprächsvorbereitung.
+# Schlüssel in Einstellungen → KI (macOS-Schlüsselbund). Gesendet werden Anzeige und cv_master.yaml, nie profile.yaml.
+ki:
+  model: claude-opus-5-5
+  max_aufrufe_monat: 60       # danach verweigert die App weitere KI-Aufrufe bis zum Monatsende
+  lebenslauf: true            # Lebensläufe für eine Stelle zusätzlich mit KI zuschneiden (Reihenfolge, Profiltext)
+  pipeline_warnung_monat: 3000000   # Tokens der Pipeline je Monat, ab denen die KI-Karte warnt
+  pipeline_warnung_lauf: 400000     # … bzw. für einen einzelnen Lauf
+
+cv:                           # nur lokal: make cv
+  vorlage: cv/template.tex.j2
+  ausgabe: cv/out
+  engine: pdflatex            # pdflatex | xelatex | lualatex (nach deiner Vorlage)
+  format: auto                # LaTeX, wenn installiert, sonst HTML (cv/*.html.j2)
+  vorlage_html: cv/template.html.j2
+  anschreiben_html: cv/anschreiben.html.j2
+  max_projekte_zugeschnitten: 4
+  # Lebenslauf-Prüfer: Hinweise nach jedem Bau (make cv und Oberfläche). Überschreitungen sind Hinweise, kein Fehler.
+  pruefung:
+    max_seiten: 2
+    min_zeilen_letzte_seite: 8      # weniger auf der letzten Seite → Tipp zum Kürzen
+    max_zeichen_stichpunkt: 170     # etwa 2 Zeilen
+    max_zeichen_projekt: 320        # Projektbeschreibungen sind Absätze
+    max_stichpunkte: 5              # je Station
+    max_zeichen_profil: 450
+    overfull_pt: 2.0                # ab so viel Überstand über den Rand warnen
+  pruefung_anschreiben:             # Anschreiben-Prüfer (Bewerbungsseite)
+    max_woerter: 380
+    min_woerter: 120
+    max_ich_saetze: 4               # mehr Sätze mit „Ich“ am Anfang → Tipp
+  # Bewerbung je Stelle (Oberfläche → „Bewerbung“): Anschreiben, Lebenslauf, Mappe. Alles lokal und gitignored.
+  bewerbungen: cv/bewerbungen
+  anschreiben_vorlage: cv/anschreiben_vorlage.txt   # Textbausteine, darfst du frei anpassen
+  anschreiben_tex: cv/anschreiben.tex.j2
+  anlagen:                    # Reihenfolge = Reihenfolge in der Mappe; fehlende Dateien werden angezeigt
+    - {name: Notenübersicht, pfad: cv/private/notenuebersicht.pdf}
+    - {name: Immatrikulationsbescheinigung, pfad: cv/private/immatrikulationsbescheinigung.pdf}
+    - {name: Zeugnisse und Zertifikate, pfad: cv/private/anlagen}      # alle PDFs: erst Zeugnisse, dann Zertifikate (neueste zuerst)
+
+# Quellen beobachten: Warnung in Bericht und Oberfläche (Firmen), wenn eine Quelle oder Firma dauerhaft ausfällt
+# oder nichts mehr liefert, obwohl früher Treffer kamen. Verlauf in state/seen.sqlite (nur Zahlen, nichts Persönliches).
+quellen_verlauf:
+  fehler_laeufe: 2            # so viele Läufe in Folge mit Fehler → Warnung
+  leer_laeufe: 3              # so viele Läufe in Folge ohne Rohtreffer (wenn früher welche kamen) → Warnung
+  verlauf: 12                 # so viele Läufe je Quelle werden ausgewertet
+
+# Apple-Erinnerungen (nur lokal in der Oberfläche, auf Knopfdruck): Bewerbungsfristen und „Karriereseite ansehen“.
+erinnerungen:
+  liste: Job-Monitor          # Liste in der Erinnerungen-App (wird bei Bedarf angelegt)
+  vorlauf_tage: 3             # so viele Tage vor einer Bewerbungsfrist erinnern
+  uhrzeit: "09:00"
+
+# Traumprofil: Stellen, bei denen Cloud- und Security-Themen zusammenkommen, werden im Bericht und in der
+# Oberfläche gesondert hervorgehoben (⭐⭐ stark, ⭐ passend). Score und Filter bleiben unverändert.
+traumprofil:
+  enabled: false            # optional: eigenes Traumprofil (Stichwörter unten)
+  name: Cloud Security
+  kern: [cloud security, cloud-security, devsecops, cloud security engineer, azure security, aws security,
+         cloud identity, cspm, cnapp]
+  cloud: [cloud, azure, aws, gcp, google cloud, kubernetes, aks, eks, container, terraform, bicep,
+          infrastructure as code, iac, entra, devops, platform engineer]
+  security: [security, sicherheit, iam, identity, identitäts, zero trust, siem, sentinel, defender, soc,
+             vulnerability, schwachstellen, pentest, zugriffs, berechtigungs, conditional access, mfa]
+
+# Neue Versionen: einmal am Tag die öffentliche Versionsliste bei GitHub abfragen (nur in der installierten App)
+updates:
+  enabled: true
+  repo: emanuelajumobi-ux/job-monitor-app
+
+gui:                          # nur lokal: Oberfläche (Job-Monitor.app / make gui)
+  manuell_pruefen_tage: 14    # Erinnerung, Karriereseiten unter „manuell prüfen“ wieder selbst anzusehen
+
+mail:
+  enabled: false              # Bericht nicht mehr per Mail: Mitteilung der App (Einstellungen)
+  subject_prefix: "Job-Monitor"

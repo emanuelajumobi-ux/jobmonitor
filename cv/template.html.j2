@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<title>Lebenslauf {{ profile.name }}</title>
+<style>
+/* Nachbau von cv/template.tex.j2 für alle ohne LaTeX (pdf_html.py). Gleiche Abschnitte, Farbe und Ränder. */
+@page { size: A4; margin: 14mm 20mm; }
+:root { --accent: #1F4E79; }
+* { box-sizing: border-box; }
+body { font-family: Charter, "Bitstream Charter", Georgia, "Times New Roman", serif; font-size: 10.5pt; line-height: 1.32; color: #111;
+       margin: 0; }
+.kopf { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+h1 { font-size: 22pt; line-height: 1.15; color: var(--accent); margin: 0 0 6px; }
+.kontakt { margin: 0; }
+.foto { width: 2.6cm; height: 3.4cm; object-fit: cover; }
+h2 { font-size: 13pt; color: var(--accent); margin: 14px 0 6px; padding-bottom: 2px; border-bottom: 0.6pt solid var(--accent);
+     break-after: avoid; }
+.eintrag { margin-bottom: 6px; break-inside: avoid; }
+.zeile { display: flex; justify-content: space-between; gap: 12px; }
+.zeile b { font-weight: 700; } .zeile span { white-space: nowrap; }
+.unter { font-style: italic; margin-bottom: 2px; }
+ul { margin: 2px 0 0; padding-left: 1.2em; } li { margin: 1px 0; }
+p { margin: 0; }
+</style></head>
+<body>
+{% set adresse = [profile.adresse.strasse, [profile.adresse.plz, profile.adresse.ort] | select | join(' ')] | select | join(', ') %}
+{% set zeile1 = ([ adresse if (profile.anzeigen.adresse and profile.adresse.ort) else '', ('geboren am ' ~ profile.geburtsdatum) if (profile.anzeigen.geburtsdatum and profile.geburtsdatum) else '' ] | select | list) %}
+{% set zeile2 = ([ profile.telefon, profile.email, profile.links.linkedin, profile.links.github ] | select | list) %}
+<div class="kopf"><div>
+<h1>{{ profile.name }}</h1>
+{% if zeile1 %}<p class="kontakt">{{ zeile1 | join(' · ') }}</p>{% endif %}
+{% if zeile2 %}<p class="kontakt">{{ zeile2 | join(' · ') }}</p>{% endif %}
+</div>
+{% if profile.anzeigen.foto and profile.foto %}<img class="foto" src="{{ profile.foto }}" alt="">{% endif %}
+</div>
+
+{% if cv.profil %}<h2>Profil</h2><p>{{ cv.profil }}</p>{% endif %}
+
+{% if cv.stationen %}
+<h2>Berufserfahrung</h2>
+{% for s in cv.stationen %}
+<div class="eintrag"><div class="zeile"><b>{{ s.rolle }}</b><span>{% if s.get('bis') %}{{ s.von }} – {{ s.get('bis') }}{% else %}seit {{ s.von }}{% endif %}</span></div>
+<div class="unter">{{ s.organisation }}</div>
+{% if s.get('aufgaben') %}<ul>{% for a in s.get('aufgaben') %}<li>{{ a }}</li>{% endfor %}</ul>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if cv.ausbildung %}
+<h2>Ausbildung</h2>
+{% for e in cv.ausbildung %}
+<div class="eintrag"><div class="zeile"><b>{{ e.abschluss }}</b><span>{% if e.get('von') and e.get('bis') %}{{ e.get('von') }} – {{ e.get('bis') }}{% elif e.get('bis') %}{{ e.get('bis') }}{% elif e.get('von') %}seit {{ e.get('von') }}{% endif %}</span></div>
+<div class="unter">{{ e.institution }}</div>
+{% if e.get('punkte') %}<ul>{% for p in e.get('punkte') %}<li>{{ p }}</li>{% endfor %}</ul>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if cv.projekte %}
+<h2>Projekte</h2>
+{% for p in cv.projekte if p.im_cv is not false %}
+<div class="eintrag"><div class="zeile"><b>{{ p.name }}</b><span>{% if p.get('zeitraum') %}{{ p.get('zeitraum') }}{% elif p.get('status') == 'geplant' %}geplant{% endif %}</span></div>
+<div class="unter">{{ p.get('technologien', []) | join(', ') }}</div>
+{% if p.get('beschreibung') %}<p>{{ p.get('beschreibung') }}</p>{% endif %}
+</div>
+{% endfor %}
+{% endif %}
+
+{% if cv.zertifikate %}
+<h2>Zertifikate und Weiterbildung</h2>
+<ul>
+{% for z in cv.zertifikate if z.im_cv is not false %}
+<li><div class="zeile"><b>{{ z.name }}</b><span>{% if z.get('status') == 'erreicht' %}{{ z.get('datum') }}{% elif z.get('status') == 'in_arbeit' %}in Arbeit{% if z.get('datum') %}, {{ z.get('datum') }}{% endif %}{% else %}geplant{% endif %}</span></div>
+{% if z.get('zusatz') %}<div class="unter">{{ z.get('zusatz') }}</div>{% endif %}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if cv.kenntnisse %}
+<h2>Kenntnisse</h2>
+<ul>
+{% for k in cv.kenntnisse %}
+{% set sicher = k.eintraege | rejectattr('level', 'equalto', 'Grundkenntnisse') | map(attribute='name') | list %}
+{% set basis = k.eintraege | selectattr('level', 'equalto', 'Grundkenntnisse') | map(attribute='name') | list %}
+<li><b>{{ k.kategorie }}:</b> {{ sicher | join(', ') }}{% if basis %}{% if sicher %}; {% endif %}Grundkenntnisse in {{ basis | join(', ') }}{% endif %}</li>
+{% endfor %}
+</ul>
+{% endif %}
+
+{% if cv.sprachen or cv.interessen %}
+<h2>Sprachen und Interessen</h2>
+<ul>
+{% if cv.sprachen %}<li><b>Sprachen:</b> {% for s in cv.sprachen %}{{ s.sprache }} ({{ s.niveau }}){% if not loop.last %}, {% endif %}{% endfor %}</li>{% endif %}
+{% if cv.interessen %}<li><b>Interessen:</b> {{ cv.interessen | join(', ') }}</li>{% endif %}
+</ul>
+{% endif %}
+</body></html>

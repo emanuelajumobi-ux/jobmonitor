@@ -1,0 +1,1 @@
+pywebview==6.1  # nur lokal: Oberfläche als App-Fenster (make setup-app)

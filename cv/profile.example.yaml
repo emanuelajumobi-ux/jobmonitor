@@ -1,0 +1,23 @@
+# profile.example.yaml: SCHEMA ohne Werte. Kopiere nach cv/profile.yaml (gitignored) und fülle es lokal aus.
+# Diese Angaben verlassen deinen Mac nie: nicht in Git, nicht in die Pipeline, nicht an eine KI.
+name: ""
+adresse:
+  strasse: ""
+  plz: ""
+  ort: ""
+telefon: ""
+email: ""
+geburtsdatum: ""          # Format frei, z. B. 01.01.2000
+foto: ""                  # Pfad, z. B. cv/private/foto.jpg (Ordner ist gitignored)
+links:
+  linkedin: ""
+  github: ""
+# Nur für Anschreiben-Entwürfe (drafts/), nicht im Lebenslauf
+studium: ""               # z. B. Cyber Security Management, Hochschule Niederrhein, 5. Semester
+zeitraum: ""              # z. B. ab Sommersemester 2027, 16–20 h/Woche
+zeitraum_junior: ""       # Junior-Profil: z. B. ab Oktober 2027 in Vollzeit
+# Was im PDF erscheinen soll. Schema bitte vollständig lassen.
+anzeigen:
+  adresse: true
+  geburtsdatum: false
+  foto: false

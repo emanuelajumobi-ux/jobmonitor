@@ -1,0 +1,551 @@
+# Beispiel-Firmenliste (Raum Köln). Neue Nutzer starten leer und bekommen Vorschläge in der App.
+# Firmen und Hochschul-Stellenbörsen.
+# Neue Firma: Block kopieren, name + kategorie + karriereseite_url ausfüllen, ats leer lassen.
+# Felder:
+#   kategorie: msp | systemhaus | beratung | energie | bank | versicherung | konzern | pruefung | medien | hochschule
+#   karriereseite_url: Seite mit der Stellenliste (oder Karriere-Startseite)
+#   ats: wird automatisch erkannt (personio, greenhouse, lever, workday, jsonld, ...) – leer lassen
+#   ats_id: z. B. Personio-Subdomain, wird automatisch gesetzt
+#   Von Hand gesetzt (öffentliche Listen, freigegeben 02.11.2026, siehe jobmonitor/sources/ats/oeffentlich.py):
+#     ats: dvinci + ats_id: <firma>.dvinci-hr.com · ats: successfactors + ats_id: Such-URL ohne q=
+#     ats: phenom + ats_id: Basis-URL (…/eu/de) · ats: eingebettet (Liste steckt in der Karriereseite)
+#     ats: sitemap + ats_id: Stellen-Sitemap aus der robots.txt
+#   abruf: nur_initiativ = keine Stellen abfragen (kommen über die Bundesagentur), nur Initiativ-Check
+#   initiativ: moeglich ja|nein|unbekannt, url, zuletzt_geprueft (wird automatisch gepflegt;
+#              ein fehlender Link setzt nie "nein" – das trägst du bei Bedarf selbst ein)
+#   aktiv: false schaltet einen Eintrag ab
+#   match_namen + warnhinweis: Hinweis an jede Stelle hängen, deren Firmenname eines der Wörter enthält
+# Live geprüft am 31.10.2026.
+
+firmen:
+  # --- Köln: Cloud / Microsoft / Beratung / Managed Services ---
+  - name: inovex
+    kategorie: beratung
+    branche: IT-Beratung (Cloud, Data, Platform Engineering)
+    karriereseite_url: https://www.inovex.de/de/karriere/stellenangebote/
+    ats: jsonld
+    ats_id:
+    standorte: [Köln, Remote]
+    fokus: [Cloud, Kubernetes, DevOps, Security]
+    initiativ:
+      moeglich: ja
+      url: https://www.inovex.de/de/karriere/stellenangebote/initiativbewerbung/
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Remote bundesweit möglich
+  - name: usd
+    kategorie: beratung
+    branche: IT-Security-Beratung und Pentests
+    karriereseite_url: https://www.usd.de/karriere/
+    ats: personio
+    ats_id: usd-ag
+    standorte: [Neu-Isenburg, Köln, Remote]
+    fokus: [IT Security, Cloud Security]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: adesso
+    kategorie: beratung
+    branche: IT-Dienstleister
+    karriereseite_url: https://jobs.adesso-group.com/
+    ats: successfactors
+    ats_id:
+    standorte: [Köln, Remote]
+    fokus: [Cloud, Azure, DevOps]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: SuccessFactors, Stellen über Sitemap; Remote bundesweit
+  - name: q.beyond
+    kategorie: msp
+    branche: Cloud- und Managed-Service-Provider
+    karriereseite_url: https://www.qbeyond.de/karriere/
+    ats: rexx
+    ats_id:
+    standorte: [Köln]
+    fokus: [Azure, Cloud Operations, Managed Services]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Hauptsitz Köln, rexx
+  - name: CANCOM
+    kategorie: systemhaus
+    branche: IT-Systemhaus
+    karriereseite_url: https://karriere.cancom.de/
+    ats: rexx
+    ats_id:
+    standorte: [Köln, Remote]
+    fokus: [Cloud, Microsoft, Managed Services]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: rexx
+  - name: Sopra Steria
+    kategorie: beratung
+    branche: IT-Beratung
+    karriereseite_url: https://careers.soprasteria.de
+    ats: smartrecruiters
+    ats_id: SopraSteria1
+    standorte: [Köln, Düsseldorf, Remote]
+    fokus: [Cloud, IAM, Security]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: mehrere Standorte, Homeoffice nach Absprache
+  - name: NetCologne IT Services
+    kategorie: msp
+    branche: IT-Dienstleister der NetCologne
+    karriereseite_url: https://netcologne-its.de/karriere/
+    ats: personio
+    ats_id: netcologne-it-services-gmbh
+    standorte: [Köln]
+    fokus: [Infrastruktur, Cloud, Netzwerk]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: Seven Principles
+    kategorie: beratung
+    branche: IT-Beratung
+    karriereseite_url: https://7p-group.com/karriere/
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [Cloud, DevOps, Security]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: DOM I.T. SERVICE
+    kategorie: msp
+    branche: Managed Service Provider für den Mittelstand
+    karriereseite_url: https://join.com/companies/dom-it
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [Cloud, Cybersecurity, Microsoft 365]
+    initiativ:
+      moeglich: ja
+      url: https://join.com/companies/dom-it/spontaneous-application
+      zuletzt_geprueft: '2026-11-03'
+    notizen: kleine Firma (1–10 MA), Stellen auf join.com
+  - name: BLUE Consult
+    kategorie: systemhaus
+    branche: IT-Systemhaus
+    karriereseite_url: https://blue-consult.de/karriere/
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [Microsoft, Azure, Infrastruktur]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: dualutions
+    kategorie: beratung
+    branche: Microsoft-Security- und Identity-Beratung
+    karriereseite_url: https://www.dualutions.de/karriere
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [Entra ID, IAM, Microsoft Security]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: Ifaktor
+    kategorie: beratung
+    branche: Microsoft-Cloud-Beratung
+    karriereseite_url: https://www.ifaktor.de/ueber-uns/karriere/
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [Azure, Entra ID, Microsoft 365]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+
+  # --- Köln: Konzerne / Energie / Finanzen ---
+  - name: WDR
+    kategorie: medien
+    branche: Rundfunkanstalt
+    karriereseite_url: https://karriere.wdr.de/
+    ats: sitemap
+    ats_id: https://bewerbung.wdr.de/sitemap.xml
+    standorte: [Köln]
+    fokus: [IT-Infrastruktur, IT-Sicherheit]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: REWE Group
+    kategorie: konzern
+    branche: Handel
+    karriereseite_url: https://karriere.rewe.de/jobs/suche
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [Cloud, IT]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: REWE digital
+    kategorie: konzern
+    branche: Digital-Tochter der REWE Group
+    karriereseite_url: https://www.rewe-digital.com/de/jobs
+    ats: eingebettet
+    ats_id:
+    standorte: [Köln]
+    fokus: [Cloud, Platform Engineering, DevOps]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: RheinEnergie
+    kategorie: energie
+    branche: Energieversorger
+    karriereseite_url: https://www.rheinenergie.com/karriere/jobs/stellenangebote/
+    ats: rexx
+    ats_id:
+    standorte: [Köln]
+    fokus: [IT-Infrastruktur, OT-Security]
+    initiativ:
+      moeglich: ja
+      url: https://www.rheinenergie.com/karriere/jobs/initiativbewerbung/
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Stellenliste wird per JavaScript (rexx) geladen
+  - name: rhenag
+    kategorie: energie
+    branche: Energieversorger (RheinEnergie-Gruppe)
+    karriereseite_url: https://www.rhenag.de/karriere/
+    ats:
+    ats_id:
+    standorte: [Köln]
+    fokus: [IT-Infrastruktur, Digitalisierung]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft:
+    notizen: Seite liefert HTTP 403 an Skripte
+  - name: Stadtwerke Köln (SWK)
+    kategorie: energie
+    branche: Stadtwerke-Konzern
+    karriereseite_url: https://www.stadtwerkekoeln.de/karriere
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [IT-Infrastruktur, IT-Sicherheit, Cloud]
+    initiativ:
+      moeglich: ja
+      url: https://www.stadtwerkekoeln.de/stellenangebote/initiativbewerbung
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: Sparkasse KölnBonn
+    kategorie: bank
+    branche: Sparkasse
+    karriereseite_url: https://karriere.sparkasse-koelnbonn.de/jobs/
+    ats: jsonld
+    ats_id:
+    standorte: [Köln, Bonn]
+    fokus: [IT-Sicherheit, Cloud, IAM]
+    initiativ:
+      moeglich: ja
+      url: https://karriere.sparkasse-koelnbonn.de/jobs/cb81119f-a136-3d51-8443-0000000000b3/initiativbewerbung-fuer-den-vertrieb-m-w-d-bei-der-sparkasse-koelnbonn/
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: Generali
+    kategorie: versicherung
+    branche: Versicherung (inkl. Generali Deutschland Informatik Services)
+    karriereseite_url: https://www.generali.de/karriere/jobboerse
+    ats: dvinci
+    ats_id: generali-gruppe.dvinci-hr.com
+    standorte: [Köln]
+    fokus: [Cloud, IT-Sicherheit]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: Gothaer
+    kategorie: versicherung
+    branche: Versicherung (BarmeniaGothaer, inkl. Gothaer Systems)
+    karriereseite_url: https://karriere.barmeniagothaer.de/
+    ats: smartrecruiters
+    ats_id:
+    standorte: [Köln]
+    fokus: [Cloud, IT-Sicherheit]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Gothaer Systems ist in BarmeniaGothaer aufgegangen
+  - name: DEVK
+    kategorie: versicherung
+    branche: Versicherung
+    karriereseite_url: https://www.devk.de/
+    abruf: nur_initiativ
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [IT, Cloud]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: keine Karriereseite gefunden – Stellen kommen über die Bundesagentur
+  - name: AXA
+    kategorie: versicherung
+    branche: Versicherung
+    karriereseite_url: https://www.axa.de/karriere
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [Cloud, IT-Sicherheit]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: TÜV Rheinland
+    kategorie: pruefung
+    branche: Prüfdienstleister (auch Cybersecurity)
+    karriereseite_url: https://jobs.tuv.com/de
+    ats: successfactors
+    ats_id:
+    standorte: [Köln]
+    fokus: [Cybersecurity, IT-Sicherheit]
+    initiativ:
+      moeglich: ja
+      url: https://www.tuv.com/jobs-und-karriere/de/nav/talentpools/talentpool-registrierung/
+      zuletzt_geprueft: '2026-11-03'
+    notizen: SuccessFactors
+  - name: Lanxess
+    kategorie: konzern
+    branche: Chemie
+    karriereseite_url: https://career.lanxess.com/de/de
+    ats: phenom
+    ats_id:
+    standorte: [Köln, Leverkusen]
+    fokus: [IT, OT-Security]
+    initiativ:
+      moeglich: ja
+      url: https://career.lanxess.com/de/de/jointalentcommunity
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Phenom
+  - name: Ford
+    kategorie: konzern
+    branche: Automobil
+    karriereseite_url: https://www.ford.de/ford-entdecken/beruf-karriere
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [IT, Cloud]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: Zurich
+    kategorie: versicherung
+    branche: Versicherung
+    karriereseite_url: https://www.careers.zurich.com/search/?createNewAlert=false&q=&locationsearch=Deutschland&optionsFacetsDD_shifttype=&optionsFacetsDD_department=&optionsFacetsDD_customfield3=&locale=de_DE
+    ats: successfactors
+    ats_id: https://www.careers.zurich.com/search/?locationsearch=Deutschland&locale=de_DE
+    standorte: [Köln]
+    fokus: [Cloud, IT-Sicherheit]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: Flughafen Köln/Bonn
+    kategorie: konzern
+    branche: Flughafen (kritische Infrastruktur)
+    karriereseite_url: https://karriere.koeln-bonn-airport.de/
+    ats: jsonld
+    ats_id:
+    standorte: [Köln]
+    fokus: [IT-Sicherheit, Infrastruktur]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+
+  # --- Umgebung ---
+  - name: Vodafone
+    kategorie: konzern
+    branche: Telekommunikation
+    karriereseite_url: https://jobs.vodafone.com/
+    ats:
+    ats_id:
+    standorte: [Düsseldorf]
+    fokus: [Cloud, Security]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft:
+    notizen: Startseite und /careers laut robots.txt erlaubt (Allow ist länger als Disallow /, Stand 03.11.2026)
+  - name: DHL Group
+    kategorie: konzern
+    branche: Logistik
+    karriereseite_url: https://careers.dhl.com/eu/de
+    ats: phenom
+    ats_id: https://careers.dhl.com/eu/de
+    standorte: [Bonn, Köln]
+    fokus: [Cloud, IT-Sicherheit]
+    initiativ:
+      moeglich: ja
+      url: https://careers.dhl.com/eu/de/jointalentcommunity
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Phenom
+  - name: Bayer
+    kategorie: konzern
+    branche: Pharma/Chemie
+    karriereseite_url: https://jobs.bayer.com/
+    ats: successfactors
+    ats_id:
+    standorte: [Leverkusen, Monheim]
+    fokus: [Cloud, IT]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: SuccessFactors, Stellen über Sitemap-Feed
+  - name: Covestro
+    kategorie: konzern
+    branche: Chemie
+    karriereseite_url: https://www.covestro.com/
+    ats: workday
+    ats_id: covestro.wd3.myworkdayjobs.com/de-DE/cov_external
+    standorte: [Leverkusen, Dormagen]
+    fokus: [IT, Cloud]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Workday, Stellen über die offizielle Workday-Sitemap
+  - name: Henkel
+    kategorie: konzern
+    branche: Konsumgüter/Chemie
+    karriereseite_url: https://www.henkel.de/karriere/finde-deinen-job-und-bewirb-dich
+    ats: jsonld
+    ats_id:
+    standorte: [Düsseldorf]
+    fokus: [IT, Cloud]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen:
+  - name: TÜV NORD
+    kategorie: pruefung
+    branche: Prüfdienstleister
+    karriereseite_url: https://www.tuev-nord-group.com/de/karriere/
+    ats: jsonld
+    ats_id:
+    standorte: [Essen]
+    fokus: [IT-Sicherheit]
+    initiativ:
+      moeglich: ja
+      url: https://www.tuev-nord-group.com/de/karriere/einstieg/initiativbewerbung/
+      zuletzt_geprueft: '2026-11-03'
+    notizen: Hauptsitz Hannover/Essen, Standort im Raum Köln prüfen
+  - name: Deutsche Telekom
+    kategorie: konzern
+    branche: Telekommunikation
+    karriereseite_url: https://careers.telekom.com/de/students-and-graduates-germany
+    abruf: nur_initiativ
+    ats: jsonld
+    ats_id:
+    standorte: [Bonn, Köln, Remote]
+    fokus: [Cloud, Security, IAM]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-02'
+    # Treffer von Firmen, deren Name eines davon enthält, bekommen den Warnhinweis im Bericht
+    match_namen: [Telekom]
+    warnhinweis:
+    notizen: Stellen nur über interne API (robots.txt sperrt /api) – kommen über die Bundesagentur
+  - name: T-Systems
+    kategorie: konzern
+    branche: IT-Dienstleister der Telekom (Cloud, Security)
+    karriereseite_url: https://www.t-systems.com/de/de/unternehmen/karriere
+    ats: jsonld
+    ats_id:
+    standorte: [Bonn, Köln, Remote]
+    fokus: [Cloud, Security, IAM]
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    match_namen: [T-Systems, T Systems]
+    warnhinweis:
+    notizen:
+  - name: Reply
+    kategorie: beratung
+    branche:
+    karriereseite_url: https://www.reply.com/de/about/careers/de/job-search?country=de&role=career_starter
+    ats: jsonld
+    ats_id:
+    standorte: [Köln, Düsseldorf]
+    fokus: []
+    initiativ:
+      moeglich: unbekannt
+      url:
+      zuletzt_geprueft: '2026-11-03'
+    notizen: robots.txt sperrt /*/about/careers/*/job-search, Stellen kommen aus einer per reCAPTCHA geschützten API → manuell prüfen (Stand 03.11.2026)
+
+hochschulen:
+  - name: Hochschule Niederrhein
+    kategorie: hochschule
+    karriereseite_url: https://www.hs-niederrhein.de/stellenboerse/
+    quelle: hsnr
+    aktiv: true
+    notizen: öffentlich ohne Login, kein robots.txt (geprüft 31.10.2026)
+  - name: Universität zu Köln / TH Köln (Stellenwerk Köln)
+    kategorie: hochschule
+    karriereseite_url: https://www.stellenwerk.de/koeln
+    quelle: stellenwerk
+    aktiv: true
+    notizen:
+  - name: Hochschule Düsseldorf (Stellenwerk)
+    kategorie: hochschule
+    karriereseite_url: https://www.stellenwerk.de/duesseldorf
+    quelle: stellenwerk
+    aktiv: true
+    notizen: wie Stellenwerk Köln (Portal "duesseldorf", deckt die HSD ab)
+  - name: Universität Bonn (Jobportale Bonn)
+    kategorie: hochschule
+    karriereseite_url: https://www.jobportale-bonn.de/ubcc/jobs/werkstudent.php
+    quelle: manuell
+    aktiv: false
+    notizen: robots.txt sperrt die Detailseiten (/appscripts/) → manuell prüfen
+  - name: Hochschule Bonn-Rhein-Sieg
+    kategorie: hochschule
+    karriereseite_url: https://join.com/de/jobboersen/hochschule-bonn-rhein-sieg
+    quelle: manuell
+    aktiv: false
+    notizen: Jobbörse auf join.com, per JavaScript geladen → manuell prüfen
+  - name: FH Aachen
+    kategorie: hochschule
+    karriereseite_url: https://www.fh-aachen.de/studium/nach-dem-studium/karriere
+    quelle: manuell
+    aktiv: false
+    notizen: Seite blockiert Skripte (HTTP 403), Jobportal-Adresse unklar → manuell prüfen

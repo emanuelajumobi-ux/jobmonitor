@@ -1,0 +1,8 @@
+# Nur für die installierbare App (GitHub Actions → build.yml), nicht für die Pipeline
+-r requirements.txt
+-r requirements-cv.txt
+-r requirements-app.txt
+pyinstaller==6.22.3
+pillow==12.3.0      # PyInstaller wandelt damit das Icon (PNG) in .icns/.ico um
+keyring==25.7.0     # Windows: KI-Schlüssel in der Anmeldeinformationsverwaltung statt im macOS-Schlüsselbund
+tzdata==2026.5      # Windows hat keine Zeitzonen-Datenbank (Europe/Berlin)
