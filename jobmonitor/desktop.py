@@ -143,6 +143,25 @@ def _fix_context_menu() -> None:
                                         signature=b"v@:@@")])
 
 
+def _im_browser(app, server, url: str, root: Path) -> int:
+    """Notlösung ohne App-Fenster: Oberfläche im Standard-Browser; „Beenden“ dort stoppt den Server."""
+    import webbrowser
+    app.window = None
+    app.native = False
+    webbrowser.open(url)
+    fertig = threading.Event()
+    _shutdown = server.shutdown
+
+    def shutdown():
+        _shutdown()
+        fertig.set()
+    server.shutdown = shutdown
+    fertig.wait()
+    server.server_close()
+    log.info("Beim Beenden: %s", sync(root).message)
+    return 0
+
+
 def run(root: Path, port: int = PORT) -> int:
     try:
         import webview
@@ -172,17 +191,23 @@ def run(root: Path, port: int = PORT) -> int:
     # transparent + vibrancy: macOS-Material hinter dem Fenster, sichtbar in der Seitenleiste (Inhalt bleibt deckend).
     # text_select: pywebview sperrt sonst die Textauswahl im ganzen Fenster (kein Kopieren); Bedienelemente sperrt das CSS.
     mac = sys.platform == "darwin"     # Material hinter dem Fenster gibt es nur unter macOS
-    app.window = webview.create_window(APP_NAME, f"http://127.0.0.1:{server.server_address[1]}/",
-                                       width=1440, height=900, min_size=(900, 600), transparent=mac,
+    url = f"http://127.0.0.1:{server.server_address[1]}/"
+    log.info("Fenster wird geöffnet (%s, pywebview %s)", sys.platform, getattr(webview, "__version__", "?"))
+    app.window = webview.create_window(APP_NAME, url, width=1440, height=900, min_size=(900, 600), transparent=mac,
                                        vibrancy=mac, text_select=True)
     app.window.events.shown += lambda: _shadow(app.window)
+    app.window.events.shown += lambda: log.info("Fenster angezeigt")
     try:
         from . import i18n
         from .config import load_config
         app.window.events.shown += lambda: erscheinung(i18n.darstellung(load_config(root / "config.yaml")))
     except Exception:   # nur Optik
         log.debug("Darstellung beim Start nicht gesetzt", exc_info=True)
-    webview.start()          # blockiert, bis das Fenster geschlossen ist
+    try:
+        webview.start()      # blockiert, bis das Fenster geschlossen ist
+    except Exception:        # z. B. Windows ohne WebView2: dann im Browser weiter statt gar nicht
+        log.exception("App-Fenster ließ sich nicht öffnen – Oberfläche im Browser")
+        return _im_browser(app, server, url, root)
 
     server.shutdown()
     server.server_close()
