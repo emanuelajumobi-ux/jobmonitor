@@ -1,0 +1,29 @@
+# Job-Monitor
+
+> Kostenlose Open-Source-Desktop-App (macOS und Windows) für die Jobsuche in Deutschland. Findet täglich passende Stellen, zeigt den Fit zum eigenen Lebenslauf und hilft bei der Bewerbung. Ohne Konto, ohne Abo; alle Daten bleiben auf dem eigenen Rechner. Lizenz AGPL-3.0.
+
+## Für wen
+
+Für alle, die in Deutschland suchen: Minijob, Ausbildung, duales Studium, Praktikum, Werkstudent, Abschlussarbeit, Berufseinstieg und Berufserfahrene – in jeder Fachrichtung.
+
+## Was die App kann
+
+- Stellen finden aus erlaubten Quellen: Jobsuche der Bundesagentur für Arbeit, Karriereseiten von Firmen (mit Beachtung der robots.txt), Hochschul-Jobbörsen (Stellenwerk), Arbeitnow und eigene Job-Alert-Mails (StepStone, LinkedIn, Indeed, Xing) aus dem Postfach. LinkedIn, StepStone und Indeed werden nicht gescrapt.
+- Filter nach Rolle, Fach, Karrierestufe, Pendelzeit mit Bus und Bahn ab dem Wohnort und Remote.
+- Fit zum Lebenslauf je Stelle mit „passt“ und „fehlt“; Lücken-Auswertung mit Lernplan.
+- Lebenslauf (tabellarisch) und Anschreiben als PDF in fünf Designs, auf Wunsch auf Englisch; Prüfung vor dem Abschicken; Kopierhilfe für Bewerbungsportale.
+- Bewerbungen verwalten, Gesprächsvorbereitung, Übungsgespräch mit KI, Erinnerung ans Nachfassen, Rückblick.
+- Die App verschickt nie selbst Bewerbungen oder Mails; sie liefert Hinweise und Entwürfe.
+
+## KI (optional)
+
+Die App funktioniert ohne KI. Mit KI (eigener Zugang) werden Fit, Anschreiben und Vorbereitung besser. Empfohlen: Claude. Kostenlos möglich mit Google Gemini (Ergebnisse etwas schwächer). Außerdem OpenAI, Mistral oder lokal mit Ollama. Name, Adresse, Telefon, E-Mail und Foto werden nie an die KI gesendet.
+
+## Links
+
+- [Website mit Download](https://emanuelajumobi-ux.github.io/jobmonitor/)
+- [Neueste Version (Mac und Windows)](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest)
+- [Quellcode und Anleitung](https://github.com/emanuelajumobi-ux/jobmonitor)
+- [Neuigkeiten je Version](https://github.com/emanuelajumobi-ux/jobmonitor/blob/main/NEUIGKEITEN.md)
+- [Fragen und Ideen](https://github.com/emanuelajumobi-ux/jobmonitor/discussions)
+- [Datenschutz](https://emanuelajumobi-ux.github.io/jobmonitor/datenschutz.html)
