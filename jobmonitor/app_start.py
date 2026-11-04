@@ -25,6 +25,15 @@ def _protokoll(home: Path) -> None:
     sys.stderr = sys.stderr or datei
 
 
+def startbild_schliessen() -> None:
+    """Startbild unter Windows (PyInstaller --splash) schließen – sobald das Fenster da ist oder etwas schiefging."""
+    try:
+        import pyi_splash   # gibt es nur in der Windows-App mit Startbild
+        pyi_splash.close()
+    except Exception:
+        pass
+
+
 def _freigeben() -> None:
     """Windows: Dateien aus einer heruntergeladenen ZIP tragen die Markierung „aus dem Internet“ (Zone.Identifier).
     .NET lädt so markierte DLLs nicht – dann scheitert das App-Fenster (pythonnet: „Failed to resolve
@@ -33,6 +42,9 @@ def _freigeben() -> None:
     if sys.platform != "win32" or not getattr(sys, "frozen", False) or os.environ.get("JOBMONITOR_OHNE_FREIGABE"):
         return
     ordner = Path(sys.executable).resolve().parent
+    stichprobe = ordner / "_internal" / "pythonnet" / "runtime" / "Python.Runtime.dll"
+    if stichprobe.exists() and not os.path.exists(f"{stichprobe}:Zone.Identifier"):
+        return     # schon freigegeben (schneller Start); nach neuem Entpacken ist die Markierung wieder da
     n = 0
     for datei in ordner.rglob("*"):
         if datei.suffix.lower() in (".dll", ".exe", ".pyd") and datei.is_file():
@@ -70,9 +82,11 @@ def main() -> int:
     except BaseException as exc:
         import traceback
         traceback.print_exc()
+        startbild_schliessen()
         _meldung(f"Job-Monitor konnte nicht starten:\n\n{type(exc).__name__}: {exc}\n\nDetails stehen in:\n{log}\n\n"
                  "Bitte diese Datei (ohne persönliche Daten) unter „Fehler melden“ oder per Nachricht schicken.")
         return 1
+    startbild_schliessen()
     if code:
         _meldung(f"Job-Monitor wurde mit Fehler {code} beendet.\n\nDetails stehen in:\n{log}")
     return code

@@ -143,9 +143,18 @@ def _fix_context_menu() -> None:
                                         signature=b"v@:@@")])
 
 
+def _startbild_zu() -> None:
+    try:
+        from jobmonitor.app_start import startbild_schliessen
+        startbild_schliessen()
+    except Exception:
+        pass
+
+
 def _im_browser(app, server, url: str, root: Path) -> int:
     """Notlösung ohne App-Fenster: Oberfläche im Standard-Browser; „Beenden“ dort stoppt den Server."""
     import webbrowser
+    _startbild_zu()
     app.window = None
     app.native = False
     webbrowser.open(url)
@@ -199,6 +208,7 @@ def run(root: Path, port: int = PORT) -> int:
                                        vibrancy=mac, text_select=True)
     app.window.events.shown += lambda: _shadow(app.window)
     app.window.events.shown += lambda: log.info("Fenster angezeigt")
+    app.window.events.shown += _startbild_zu
     try:
         from . import i18n
         from .config import load_config
