@@ -12,7 +12,7 @@ from jobmonitor.gui import App
 
 # Fachgebiet, Wohnort und Firmen der eigenen Einrichtung (nicht persönlich, aber für Fremde verwirrend)
 FREMD = ["cloud security", "cloud-security", "köln", "koeln", "niederrhein", "adesso", "werkstudent cloud"]   # dazu persönliche Begriffe
-ERLAUBT = re.compile(r"paypal\.me/\S+|https://github\.com/emanuelajumobi-ux\S*|/Users/\S+", re.I)   # Spendenlink, Repo
+ERLAUBT = re.compile(r"paypal\.me/\S+|https://github\.com/emanuelajumobi-ux\S*|emanuelajumobi-ux\.github\.io\S*|/Users/\S+", re.I)   # Spendenlink, Repo, Website
 
 
 def _persoenlich() -> list[str]:

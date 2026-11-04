@@ -601,6 +601,17 @@ TEXTE: dict[str, str] = {
     "Das Passwort wird nirgends gespeichert – ohne es lässt sich das Image nicht öffnen.":
         "The password is not stored anywhere – without it the image cannot be opened.",
     "Job-Monitor unterstützen": "Support Job-Monitor", "Darstellung": "Appearance",
+    "Weiterempfehlen": "Recommend", "Link kopieren": "Copy link",
+    "Kennst du jemanden, der gerade sucht – einen Minijob, eine Ausbildung, eine Werkstudentenstelle oder den ersten "
+    "Job? Teilen ist die einfachste Art, Job-Monitor zu unterstützen.":
+        "Do you know someone who is looking right now – for a part-time job, an apprenticeship, a student job or their "
+        "first job? Sharing is the easiest way to support Job-Monitor.",
+    "Die Knöpfe öffnen WhatsApp, LinkedIn oder dein Mailprogramm mit einem fertigen Text und dem Link zur Website. "
+    "Abschicken tust du selbst; die App verschickt nichts.":
+        "The buttons open WhatsApp, LinkedIn or your mail app with a ready-made text and the link to the website. You "
+        "send it yourself; the app sends nothing.",
+    "Kennst du jemanden, der auch sucht? Teile Job-Monitor.": "Know someone who is looking too? Share Job-Monitor.",
+    "Deine erste Mappe ist fertig": "Your first application pack is ready",
     "Wie das System": "Like the system", "Hell": "Light", "Dunkel": "Dark",
     "Hell oder dunkel – oder automatisch wie dein System.": "Light or dark – or automatically like your system.",
     "Darstellung gespeichert.": "Appearance saved.",

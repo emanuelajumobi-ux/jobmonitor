@@ -164,6 +164,22 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
 .schluss nav{display:flex;flex-wrap:wrap;gap:8px 28px}
 .schluss small{display:block;margin-top:40px;font-size:14px;color:var(--muted)}
 
+/* Teilen */
+.teilen{margin-top:28px}
+.knopf.zweit{background:var(--surface-2);color:var(--text);height:48px;font-size:16px;padding:0 22px}
+.knopf.zweit:hover{background:var(--surface-3)}
+.wege{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.js .wege{display:none}
+.js .teilen.offen .wege{display:flex}
+.wege a,.wege button{font:inherit;font-size:16px;height:40px;padding:0 16px;border-radius:999px;border:0;cursor:pointer;
+  display:inline-flex;align-items:center;background:var(--surface);color:var(--text);text-decoration:none;
+  transition:background .12s,transform 100ms var(--press)}
+.wege a:hover,.wege button:hover{background:var(--surface-3)}
+.wege a:active,.wege button:active{transform:scale(.96)}
+.schluss .teilen{margin-top:0}
+.row-knoepfe{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.row-knoepfe .knopf.zweit{height:56px}
+
 /* Bewegung: Eintritt je Abschnitt, gestaffelt */
 .js .auf{opacity:0;transform:translateY(24px);transition:opacity .7s var(--out),transform .7s var(--out)}
 .js .auf.da{opacity:1;transform:none}
@@ -214,6 +230,17 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
         <span id="knopftext">Kostenlos herunterladen</span>
       </a>
       <p class="neben" id="andere">Für <a href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest/download/Job-Monitor-Mac.zip">Mac</a> und <a href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest/download/Job-Monitor-Windows.zip">Windows</a> · Open Source</p>
+      <div class="teilen" data-teilen>
+        <button type="button" class="knopf zweit" data-teilen-knopf aria-expanded="false" aria-controls="teilen-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+          Mit Freunden teilen</button>
+        <div class="wege" id="teilen-1">
+          <button type="button" data-kopieren>Link kopieren</button>
+          <a href="https://wa.me/?text=Kennst+du+Job-Monitor%3F+Kostenlose+App+f%C3%BCr+Mac+und+Windows%3A+findet+passende+Stellen%2C+zeigt%2C+wie+gut+sie+zum+Lebenslauf+passen%2C+und+hilft+bei+der+Bewerbung.+https%3A%2F%2Femanuelajumobi-ux.github.io%2Fjobmonitor%2F" target="_blank" rel="noopener">WhatsApp</a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Femanuelajumobi-ux.github.io%2Fjobmonitor%2F" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="mailto:?subject=Tipp%3A%20Job-Monitor&amp;body=Kennst%20du%20Job-Monitor%3F%20Kostenlose%20App%20f%C3%BCr%20Mac%20und%20Windows%3A%20findet%20passende%20Stellen%2C%20zeigt%2C%20wie%20gut%20sie%20zum%20Lebenslauf%20passen%2C%20und%20hilft%20bei%20der%20Bewerbung.%20https%3A//emanuelajumobi-ux.github.io/jobmonitor/">E-Mail</a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -320,7 +347,20 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
 <footer class="rahmen schluss">
   <p class="gross" aria-hidden="true">Job-Monitor</p>
   <div class="zeile2">
-    <a class="knopf dl" href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest">Herunterladen</a>
+    <div class="row-knoepfe">
+      <a class="knopf dl" href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest">Herunterladen</a>
+      <div class="teilen" data-teilen>
+        <button type="button" class="knopf zweit" data-teilen-knopf aria-expanded="false" aria-controls="teilen-2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+          Mit Freunden teilen</button>
+        <div class="wege" id="teilen-2">
+          <button type="button" data-kopieren>Link kopieren</button>
+          <a href="https://wa.me/?text=Kennst+du+Job-Monitor%3F+Kostenlose+App+f%C3%BCr+Mac+und+Windows%3A+findet+passende+Stellen%2C+zeigt%2C+wie+gut+sie+zum+Lebenslauf+passen%2C+und+hilft+bei+der+Bewerbung.+https%3A%2F%2Femanuelajumobi-ux.github.io%2Fjobmonitor%2F" target="_blank" rel="noopener">WhatsApp</a>
+          <a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Femanuelajumobi-ux.github.io%2Fjobmonitor%2F" target="_blank" rel="noopener">LinkedIn</a>
+          <a href="mailto:?subject=Tipp%3A%20Job-Monitor&amp;body=Kennst%20du%20Job-Monitor%3F%20Kostenlose%20App%20f%C3%BCr%20Mac%20und%20Windows%3A%20findet%20passende%20Stellen%2C%20zeigt%2C%20wie%20gut%20sie%20zum%20Lebenslauf%20passen%2C%20und%20hilft%20bei%20der%20Bewerbung.%20https%3A//emanuelajumobi-ux.github.io/jobmonitor/">E-Mail</a>
+        </div>
+      </div>
+    </div>
     <nav aria-label="Weitere Links">
       <a href="https://github.com/emanuelajumobi-ux/jobmonitor">Quellcode auf GitHub</a>
       <a href="https://github.com/emanuelajumobi-ux/jobmonitor/blob/main/NEUIGKEITEN.md">Neuigkeiten</a>
@@ -346,6 +386,23 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
   else if(win){ ziel=basis+"Job-Monitor-Windows.zip"; t.textContent="Für Windows herunterladen";
     a.innerHTML='Kostenlos · Auch für <a href="'+basis+'Job-Monitor-Mac.zip">Mac</a>'; }
   if(ziel){ document.querySelectorAll("a.dl").forEach(function(x){ x.href=ziel; }); }
+
+  /* Teilen: auf dem Handy das Teilen-Menü des Systems, sonst die Wege aufklappen */
+  var teilText="Kennst du Job-Monitor? Kostenlose App für Mac und Windows: findet passende Stellen, zeigt, wie gut sie zum Lebenslauf passen, und hilft bei der Bewerbung.";
+  var teilUrl="https://emanuelajumobi-ux.github.io/jobmonitor/";
+  document.querySelectorAll("[data-teilen]").forEach(function(box){
+    var k=box.querySelector("[data-teilen-knopf]");
+    k.addEventListener("click",function(){
+      if(navigator.share && mobil){ navigator.share({title:"Job-Monitor",text:teilText,url:teilUrl}).catch(function(){}); return; }
+      var auf=box.classList.toggle("offen"); k.setAttribute("aria-expanded",auf?"true":"false");
+    });
+    var c=box.querySelector("[data-kopieren]");
+    c.addEventListener("click",function(){
+      var fertig=function(){ var alt=c.textContent; c.textContent="Kopiert"; setTimeout(function(){c.textContent=alt;},1500); };
+      if(navigator.clipboard){ navigator.clipboard.writeText(teilUrl).then(fertig,function(){ prompt("Link kopieren:",teilUrl); }); }
+      else { prompt("Link kopieren:",teilUrl); }
+    });
+  });
 
   /* Beispielstellen je Karrierestufe (erfunden, wie die Demo der App) */
   var D={

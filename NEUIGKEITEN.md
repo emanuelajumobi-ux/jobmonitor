@@ -3,6 +3,11 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.3.5
+
+- **Weiterempfehlen:** In der Seitenleiste steht jetzt „Weiterempfehlen“ (führt zu Einstellungen → Weiterempfehlen). Die Knöpfe kopieren den Link oder öffnen WhatsApp, LinkedIn oder dein Mailprogramm mit einem fertigen Text und dem Link zur neuen Website – abschicken tust du selbst, die App verschickt nichts. Nach der ersten fertigen Mappe (einmalig), bei der ersten Einladung und bei einer Zusage steht der Vorschlag zusätzlich in der Glückwunsch-Karte.
+- **Neue Website:** [emanuelajumobi-ux.github.io/jobmonitor](https://emanuelajumobi-ux.github.io/jobmonitor/) mit Download für Mac und Windows, Beispielen und Installationshilfe.
+
 ## 1.3.4
 
 - **Minijobs und Aushilfen:** neue Karrierestufe „Minijob / Aushilfe“ im Einrichtungs-Assistenten und bei den Suchprofilen. Die Suche bei der Bundesagentur liefert dann nur Minijobs, Rollen-Wörter wie „Aushilfe“ oder „geringfügig“ sind vorbelegt, über der Stellenliste stehen passende Filter, und Lebenslauf und Anschreiben nutzen das tabellarische Design „Kompakt“.

@@ -12,6 +12,9 @@ from datetime import date
 from html import escape
 from pathlib import Path
 
+from . import teilen
+from .i18n import sprache
+
 DATEI = ".gui_spenden.json"
 
 ERLAUBT = ("https://github.com/sponsors/", "https://ko-fi.com/", "https://www.paypal.com/", "https://paypal.me/",
@@ -42,7 +45,7 @@ def zusage(cfg: dict, firma: str) -> str:
              f'</p>' if link else "")
     return (f'<div class="card zusage"><h2>Herzlichen Glückwunsch zur Zusage{f" bei {escape(firma)}" if firma else ""}!'
             f'</h2><p>Viel Erfolg beim Start. Offene Bewerbungen bei anderen Firmen kannst du jetzt zurückziehen oder '
-            f'auf „verworfen“ setzen.</p>{bitte}</div>')
+            f'auf „verworfen“ setzen.</p>{bitte}{teilen.satz(sprache=sprache(cfg))}</div>')
 
 
 def einladung(root: Path, cfg: dict, firma: str, heute: date | None = None) -> str:
@@ -63,4 +66,4 @@ def einladung(root: Path, cfg: dict, firma: str, heute: date | None = None) -> s
     return (f'<div class="card zusage"><h2>Glückwunsch zur Einladung{f" bei {escape(firma)}" if firma else ""}!</h2>'
             f'<p>Deine erste Einladung zum Gespräch – das ist ein großer Schritt. Unter „Gespräche“ hilft dir '
             f'<b>Darauf vorbereiten</b> mit wahrscheinlichen Fragen und passenden Beispielen aus deinem Lebenslauf.'
-            f'</p>{bitte}</div>')
+            f'</p>{bitte}{teilen.satz(sprache=sprache(cfg))}</div>')

@@ -39,6 +39,8 @@ ICONS = {
                      '0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06'
                      '.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
     "hilfe": '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    "teilen": '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>'
+              '<path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/>',
     "bell": '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
     "bookmark": '<path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
     "x": '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
@@ -153,6 +155,10 @@ a:hover { text-decoration-color:currentColor; }
   background:var(--accent-soft); }
 .side-foot .spenden .ic { color:#e0457b; fill:#e0457b; }
 .side-foot .spenden:hover { filter:brightness(.97); }
+.side-foot .teilen { display:flex; align-items:center; gap:10px; height:32px; padding:0 10px; margin-bottom:2px;
+  border-radius:8px; font-size:14px; text-decoration:none; color:var(--side-text); transition:background .12s; }
+.side-foot .teilen .ic { color:var(--side-muted); }
+.side-foot .teilen:hover { background:var(--side-2); color:var(--side-strong); }
 
 /* Leinwand: mittig rechts der Seitenleiste, höchstens 1156px breit */
 main { margin-left:236px; padding:28px max(24px, calc((100vw - 236px - 1156px) / 2)) 72px; }
@@ -566,6 +572,7 @@ def nav(active: str, badges: dict[str, tuple[int, str]], token: str, hint: str =
     hint_html = f'<div class="hint">{escape(hint)}</div>' if hint else ""
     spenden = (f'<a class="spenden" href="{escape(spenden_url)}" target="_blank" rel="noopener">{icon("herz", 16)}'
                f'<span>Job-Monitor unterstützen</span></a>' if spenden_url else "")
+    spenden += f'<a class="teilen" href="/einstellungen#teilen">{icon("teilen", 16)}<span>Weiterempfehlen</span></a>'
     return f"""<aside class="side"><div class="brand">{LOGO}Job-Monitor</div>
 <nav class="nav">{"".join(parts)}</nav>
 <div class="side-foot">{hint_html}{spenden}

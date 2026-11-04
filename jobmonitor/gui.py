@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, demo, ki_extra, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, demo, ki_extra, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, teilen, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -991,7 +991,7 @@ class App(BewerbungenSeiten):
                                     f'data-open>Mappe öffnen</a></p><p class="muted">Bitte das Anschreiben lesen'
                                     f'{f" und {offen} Platzhalter ersetzen" if offen else ""}, dann „Speichern und Mappe '
                                     f'bauen“. Für Online-Portale stehen die Felder unten unter „Für Bewerbungsportale“ '
-                                    f'zum Kopieren bereit.</p></div>{ki_info}{hinweise_html}')
+                                    f'zum Kopieren bereit.</p></div>{ki_info}{hinweise_html}{teilen.erste_mappe(self.root, i18n.sprache(cfg))}')
 
     def resolve_file(self, url_path: str) -> Path | None:
         """Lokale Datei zu einem Link der Oberfläche (nur PDFs aus cv/out, Bewerbungsordnern, Unterlagen)."""
@@ -1353,7 +1353,7 @@ class App(BewerbungenSeiten):
                             int(ki.settings(cfg)["max_aufrufe_monat"]),
                             gw.pipeline_ki(pipe, date.today().strftime("%Y-%m"), ki.settings(cfg)),
                             getattr(self, "_ki_modelle", None))
-        sich = spenden.karte(cfg) + feedback.karte() + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
+        sich = teilen.karte(i18n.sprache(cfg)) + spenden.karte(cfg) + feedback.karte() + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
                                   len(sicherung.inhalt(self.root)))
         github = zeitplan.github_aktiv(self.root)
         postfach = (f'<div class="card" id="postfach"><h2>Postfach</h2>'
