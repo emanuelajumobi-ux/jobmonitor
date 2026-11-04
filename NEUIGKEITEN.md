@@ -3,7 +3,7 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
-## Unveröffentlicht
+## 1.3.2
 
 - **KI leichter einrichten:** Im Einrichtungs-Assistenten und unter Einstellungen → KI stehen Claude (empfohlen) und Google Gemini (kostenlos) jetzt nebeneinander zur Wahl – mit kurzer Einordnung und direktem Weg zur jeweiligen Anleitung.
 
