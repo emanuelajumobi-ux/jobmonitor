@@ -48,10 +48,10 @@ def test_nachbewerten(tmp_path):
     assert (out["geprueft"], out["aktualisiert"], out["ohne_text"]) == (4, 2, 2)
     assert out["vorschlaege"] == {"Bicep": 2}
     details = {d["id"]: d for d in state.job_details()}
-    assert details[firma]["anforderungen"] == {"Linux": 1.0, "Azure": 1.0, "Terraform": 1.0}
-    assert details[firma]["fit"] == 62                    # (Azure 1,0 + Terraform „gut“ 0,85) von 3 Anforderungen
-    assert details[agentur]["anforderungen"] == {"Terraform": 1.0, "Azure": 1.0}
-    assert details[agentur]["fit"] is None                                 # unter min_anforderungen (3)
+    # Die KI entscheidet (Linux nur aus alter Stichwortsuche fällt weg); Bicep zählt als Wunsch mit
+    assert details[firma]["anforderungen"] == {"Azure": 1.0, "Terraform": 1.0, "Bicep": 0.5}
+    assert details[firma]["fit"] == 74                    # (Azure 1,0 + Terraform „gut“ 0,85) von 2,5 Gewicht
+    assert details[agentur]["anforderungen"] == {"Azure": 1.0, "Terraform": 1.0, "Bicep": 0.5}
     assert details[weg]["anforderungen"] == {"Azure": 1.0}                 # Anzeige weg: bleibt wie sie war
     assert not any("linkedin" in c.request.url for c in responses.calls)   # nie LinkedIn & Co.
     assert "Microsoft-Cloud" in aufrufe[0]

@@ -76,11 +76,11 @@ def test_fit_begriffe_vorschlaege(tmp_path):
 def test_fit_begriff_hinzufuegen(root, monkeypatch):  # noqa: F811
     vorher = (root / "config.yaml").read_text(encoding="utf-8")
     fb.hinzufuegen(root, "Deutsch", ["deutschkenntnisse", " German "], load_config(root / "config.yaml")["fit"]["begriffe"])
-    fb.hinzufuegen(root, "C#", [], load_config(root / "config.yaml")["fit"]["begriffe"])
+    fb.hinzufuegen(root, "Rust", [], load_config(root / "config.yaml")["fit"]["begriffe"])
     cfg = load_config(root / "config.yaml")
-    assert cfg["fit"]["begriffe"]["Deutsch"] == ["deutschkenntnisse", "german"] and cfg["fit"]["begriffe"]["C#"] == []
+    assert cfg["fit"]["begriffe"]["Deutsch"] == ["deutschkenntnisse", "german"] and cfg["fit"]["begriffe"]["Rust"] == []
     nachher = (root / "config.yaml").read_text(encoding="utf-8")
-    assert nachher.replace("    Deutsch: [deutschkenntnisse, german]\n    C#: []\n", "") == vorher   # Rest unverändert
+    assert nachher.replace("    Deutsch: [deutschkenntnisse, german]\n    Rust: []\n", "") == vorher   # Rest unverändert
     with pytest.raises(fb.BegriffError, match="gibt es schon"):
         fb.hinzufuegen(root, "microsoft azure", [], cfg["fit"]["begriffe"])
     # In der App: Vorschlag aus dem Bericht übernehmen bzw. ausblenden

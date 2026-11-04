@@ -20,7 +20,7 @@ from .models import Job
 from .scoring import has
 
 log = logging.getLogger(__name__)
-KI_VERSION = 3          # erhöhen, wenn die KI mehr liest – gespeicherte Stellen werden nachbewertet (3: Eckdaten;
+KI_VERSION = 4          # erhöhen, wenn die KI mehr liest – gespeicherte Stellen werden nachbewertet (3: Eckdaten;
                        # 2 griff nicht, weil der Stand erst mit Version 2 zum ersten Mal gespeichert wurde)
 KI_DEFAULTS = {"enabled": False, "model": "claude-haiku-5-5", "max_stellen": 30, "min_text": 300,
                "nachholen_je_lauf": 10}
@@ -48,6 +48,7 @@ def rate(job: Job, covered: dict[str, float], cfg: dict) -> None:
 
 def apply(job: Job, reqs: dict[str, float], covered: dict[str, float], cfg: dict) -> None:
     """Fit aus bereits erkannten Anforderungen (z. B. gespeichert in state/seen.sqlite)."""
+    reqs = {t: g for t, g in reqs.items() if t not in ALT}
     job.fit_anforderungen = reqs
     if len(reqs) < cfg["min_anforderungen"]:
         job.fit = None
@@ -72,8 +73,10 @@ def ki_system(begriffe: dict) -> str:
     liste = "\n".join(f"- {b}" + (f" (auch: {', '.join(s)})" if s else "") for b, s in begriffe.items())
     return (
         "Lies die Stellenanzeige und liste die fachlichen Anforderungen an Bewerber (Kenntnisse, Werkzeuge, "
-        "Zertifikate, Sprachen). Keine Soft Skills, kein Studium oder Abschluss, keine Aufgabenbeschreibungen ohne "
-        "Kenntnis dahinter.\n\n"
+        "Programmiersprachen, Zertifikate, Sprachen, Fachgebiete). Keine Soft Skills (Teamfähigkeit, Eigeninitiative …), "
+        "kein Studium oder Abschluss, keine Aufgaben ohne Kenntnis dahinter, nichts Allgemeines wie „Dokumentation“ "
+        "oder „Richtlinien einhalten“. Je Anforderung ein kurzer, üblicher Name (z. B. „Java“, „SAP S/4HANA“, "
+        "„Buchhaltung“), höchstens 8 außerhalb der bekannten Begriffe.\n\n"
         "Lies außerdem die Eckdaten der Stelle, sofern die Anzeige sie nennt.\n\n"
         "Antworte nur mit JSON in dieser Form:\n"
         '{"anforderungen": [{"begriff": "Azure", "bekannt": true, "pflicht": true}], '
@@ -132,9 +135,9 @@ def eckdaten_filter(e: dict) -> dict[str, str]:
             "vz": voll, "tz": teil}
 
 
-def ki_anforderungen(job: Job, begriffe: dict, model: str, ask=None) -> tuple[dict[str, float], list[str], dict] | None:
-    """(bekannte Begriffe → Gewicht, weitere Anforderungen ohne Begriff, Eckdaten) oder None, wenn die KI nicht
-    antwortet."""
+def ki_anforderungen(job: Job, begriffe: dict, model: str, ask=None) -> tuple[dict[str, float], dict[str, float], dict] | None:
+    """(bekannte Begriffe → Gewicht, weitere Anforderungen ohne Begriff → Gewicht, Eckdaten) oder None, wenn die KI
+    nicht antwortet."""
     # Großzügiges Budget: Haiku denkt vor der Antwort (adaptive thinking), das zählt mit
     antwort = (ask or llm._ask)(model, ki_prompt(job), effort="low", max_tokens=8000, system=ki_system(begriffe))
     data = llm.json_aus(antwort)
@@ -144,7 +147,7 @@ def ki_anforderungen(job: Job, begriffe: dict, model: str, ask=None) -> tuple[di
         return None
     namen = {b.lower(): b for b in begriffe}
     bekannt: dict[str, float] = {}
-    weitere: list[str] = []
+    weitere: dict[str, float] = {}
     for a in data["anforderungen"]:
         if not isinstance(a, dict) or not str(a.get("begriff") or "").strip():
             continue
@@ -152,9 +155,24 @@ def ki_anforderungen(job: Job, begriffe: dict, model: str, ask=None) -> tuple[di
         if name.lower() in namen:
             b = namen[name.lower()]
             bekannt[b] = max(bekannt.get(b, 0.0), gewicht)
-        elif len(name) <= 40 and name not in weitere:
-            weitere.append(name)
+        elif len(name) <= 40 and len(weitere) < MAX_WEITERE:
+            weitere[name] = max(weitere.get(name, 0.0), gewicht)
     return bekannt, weitere, eckdaten(data.get("eckdaten"))
+
+
+MAX_WEITERE = 8      # Anforderungen außerhalb der Fit-Begriffe je Stelle (z. B. Java, React, SAP)
+# Frühere Fit-Begriffe, die zu viel Falsches fanden („Richtlinien“ über „Dokumentation“); in gespeicherten Stellen
+# zählen sie nicht mehr
+ALT = {"Richtlinien", "Awareness"}
+
+
+def ki_zusammenfuehren(regel: dict[str, float], bekannt: dict[str, float], weitere: dict[str, float]) -> dict:
+    """Anforderungen aus Stichwortsuche und KI: Hat die KI die Anzeige gelesen, entscheidet sie – Stichwort-Treffer, die
+    sie nicht nennt, fallen weg (z. B. „Hardware“, weil „Clients“ im Text steht). Dazu kommen Anforderungen, für die
+    es keinen Fit-Begriff gibt; sie werden direkt gegen den Lebenslauf geprüft (cv_data.Abdeckung)."""
+    if not bekannt and not weitere:
+        return dict(regel)
+    return {**bekannt, **{n: g for n, g in weitere.items() if n not in bekannt}}
 
 
 def mit_ki(jobs: list[Job], cv: dict, cfg: dict, ask=None, gelesen: set | None = None) -> Counter:
@@ -175,9 +193,8 @@ def mit_ki(jobs: list[Job], cv: dict, cfg: dict, ask=None, gelesen: set | None =
         if ergebnis is None:
             continue
         bekannt, weitere, job.eckdaten = ergebnis
-        # Stichwortsuche + KI: Die KI entscheidet bei gemeinsamen Begriffen über Pflicht/Wunsch, findet weitere dazu
-        apply(job, {**job.fit_anforderungen, **bekannt}, covered, cfg)
-        vorschlaege.update(weitere)
+        apply(job, ki_zusammenfuehren(job.fit_anforderungen, bekannt, weitere), covered, cfg)
+        vorschlaege.update(list(weitere))
         if gelesen is not None:
             gelesen.add(job.short_id)
     if geprueft:

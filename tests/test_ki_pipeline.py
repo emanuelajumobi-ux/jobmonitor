@@ -82,7 +82,7 @@ def test_ki_anforderungen():
         prompts.append(prompt + "\n" + kw["system"])
         return f"```json\n{antwort}\n```"
     bekannt, weitere, eck = fit.ki_anforderungen(stelle("Erfahrung mit Microsofts Cloud. " * 20), BEGRIFFE, "m", ask)
-    assert bekannt == {"Azure": 1.0, "Terraform": 0.5} and weitere == ["Kubernetes"] and eck == {}
+    assert bekannt == {"Azure": 1.0, "Terraform": 0.5} and weitere == {"Kubernetes": 1.0} and eck == {}
     assert "Microsofts Cloud" in prompts[0] and "- Azure (auch: microsoft azure)" in prompts[0]
     assert fit.ki_anforderungen(stelle(), BEGRIFFE, "m", lambda *a, **k: "keine Ahnung") is None
 
@@ -99,8 +99,9 @@ def test_mit_ki_ergaenzt_stichwortsuche():
                                             {"begriff": "Kubernetes", "pflicht": True}]})
     zu_kurz, zweite = stelle("kurz"), stelle()
     vorschlaege = fit.mit_ki([zu_kurz, a, zweite], cv, cfg, ask=lambda *x, **k: antwort)
-    assert a.fit_anforderungen == {"Python": 1.0, "Terraform": 0.5, "Azure": 1.0}        # KI ergänzt und gewichtet
-    assert a.fit_passt[:1] == ["Azure"] and "Terraform" in a.fit_fehlt
+    # Die KI entscheidet: Python (nur Stichwort) fällt weg, Kubernetes (kein Fit-Begriff) zählt mit
+    assert a.fit_anforderungen == {"Azure": 1.0, "Terraform": 0.5, "Kubernetes": 1.0}
+    assert a.fit_passt == ["Azure"] and a.fit_fehlt == ["Kubernetes", "Terraform"]
     assert vorschlaege == Counter({"Kubernetes": 1}) and not zweite.fit_anforderungen  # max_stellen: 1
     assert fit.mit_ki([a], cv, {**cfg, "ki": {"enabled": False}}, ask=lambda *x, **k: antwort) == Counter()
 

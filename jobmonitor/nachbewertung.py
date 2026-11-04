@@ -77,11 +77,11 @@ def nachbewerten(state, cv: dict, cfg: dict, fetcher, ask=None, limit: int | Non
         if ergebnis is None:                          # KI nicht erreichbar: beim nächsten Aufruf noch einmal
             continue
         bekannt, weitere, eck = ergebnis
-        # wie im Lauf: Stichwortsuche auf dem vollen Text plus KI
+        # wie im Lauf: Stichwortsuche auf dem vollen Text, die KI entscheidet (fit.ki_zusammenfuehren)
         regel = fit.requirements(f"{job.title}\n{text}", cfg["fit"]["begriffe"], cfg["fit"]["optional_marker"])
-        fit.apply(job, {**d["anforderungen"], **regel, **bekannt}, covered, cfg["fit"])
+        fit.apply(job, fit.ki_zusammenfuehren(regel, bekannt, weitere), covered, cfg["fit"])
         state.update_detail(d["id"], job.fit_anforderungen, job.fit, eck)
-        out["vorschlaege"].update(weitere)
+        out["vorschlaege"].update(list(weitere))
         out["aktualisiert"] += 1
         fertig.add(d["id"])
     state.set_meta(META, json.dumps(sorted(fertig)))

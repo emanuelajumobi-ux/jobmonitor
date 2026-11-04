@@ -137,16 +137,49 @@ def cv_texts(cv: dict) -> list[tuple[str, float, bool]]:
     return [entry for entry in out if entry[0].strip()]
 
 
-def covered_terms(cv: dict, begriffe: dict) -> dict[str, float]:
-    """Kanonischer Begriff → belegtes Kenntnis-Gewicht (0–1)."""
-    texts = [(t.lower(), w, explicit) for t, w, explicit in cv_texts(cv)]
-    covered: dict[str, float] = {}
-    for term, synonyms in begriffe.items():
-        variants = [term.lower()] + [s.lower() for s in synonyms or []]
-        hits = [(w, explicit) for text, w, explicit in texts if any(has(text, v) for v in variants)]
-        explicit = [w for w, e in hits if e]
-        if explicit:
-            covered[term] = max(explicit)
-        elif hits:
-            covered[term] = max(w for w, _ in hits)
-    return covered
+def _gewicht(texts: list, variants: list[str]) -> float | None:
+    hits = [(w, explicit) for text, w, explicit in texts if any(has(text, v) for v in variants)]
+    explicit = [w for w, e in hits if e]
+    if explicit:
+        return max(explicit)
+    return max(w for w, _ in hits) if hits else None
+
+
+class Abdeckung(dict):
+    """Begriff → belegtes Kenntnis-Gewicht. Verhält sich wie ein dict der Fit-Begriffe, prüft aber auch Begriffe
+    außerhalb der Liste bei Bedarf gegen den Lebenslauf (z. B. „Java“, das die KI in einer Anzeige fand) – so zählen
+    alle Anforderungen, nicht nur die vorher festgelegten."""
+
+    def __init__(self, texts: list, begriffe: dict):
+        super().__init__()
+        self._texts, self._begriffe, self._geprueft = texts, begriffe, set()
+        for term, synonyms in begriffe.items():
+            w = _gewicht(texts, [term.lower()] + [s.lower() for s in synonyms or []])
+            if w is not None:
+                self[term] = w
+        self._geprueft.update(begriffe)
+
+    def _pruefen(self, term) -> None:
+        if not isinstance(term, str) or term in self._geprueft:
+            return
+        self._geprueft.add(term)
+        w = _gewicht(self._texts, [term.lower()]) if term.strip() else None
+        if w is not None:
+            dict.__setitem__(self, term, w)
+
+    def __contains__(self, term) -> bool:
+        self._pruefen(term)
+        return dict.__contains__(self, term)
+
+    def __getitem__(self, term):
+        self._pruefen(term)
+        return dict.__getitem__(self, term)
+
+    def get(self, term, default=None):
+        self._pruefen(term)
+        return dict.get(self, term, default)
+
+
+def covered_terms(cv: dict, begriffe: dict) -> Abdeckung:
+    """Kanonischer Begriff → belegtes Kenntnis-Gewicht (0–1); weitere Begriffe auf Nachfrage (Abdeckung)."""
+    return Abdeckung([(t.lower(), w, explicit) for t, w, explicit in cv_texts(cv)], begriffe)
