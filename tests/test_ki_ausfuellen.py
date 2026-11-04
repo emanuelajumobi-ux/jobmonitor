@@ -82,7 +82,7 @@ def test_nachholen_im_lauf(tmp_path, monkeypatch):
     state = State(tmp_path / "s.sqlite")
     aufrufe = []
     monkeypatch.setattr(nachbewertung, "nachbewerten",
-                        lambda st, cv, c, f, ask=None, limit=None: aufrufe.append(limit) or
+                        lambda st, cv, c, f, ask=None, limit=None, stapel=False: aufrufe.append(limit) or
                         {"geprueft": 1, "aktualisiert": 1, "ohne_text": 0, "vorschlaege": Counter({"Jira": 1})})
     runner.ki_nachholen(state, {"profil": "x"}, cfg, None, {"abc"})          # ohne Anmeldung: nichts
     assert aufrufe == [] and nachbewertung.erledigt(state) == set()

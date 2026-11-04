@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, demo, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, demo, ki_extra, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -219,6 +219,38 @@ class App(BewerbungenSeiten):
             seen = None
         self.new_ids = current - seen if seen is not None else set()
         path.write_text(json.dumps(sorted(current | (seen or set()))), encoding="utf-8")
+
+    def ki_aktion(self, form: dict) -> bytes:
+        """KI-Helfer ohne eigene Seite (ki_extra.py): Lebenslauf verstehen und prüfen, Muster aus Absagen."""
+        cfg = load_config(self.root / "config.yaml")
+        aktion = form.get("aktion", "")
+        try:
+            if aktion == "absagen":
+                ki_extra.absagen_muster(self.root, cfg, self.absagen_zeilen())
+                return self.rueckblick()
+            cv, _ = load_cv_master(self.root)
+            if not cv:
+                raise ki.KiError("Keine cv_master.yaml.")
+            if aktion == "cv_verstehen":
+                n = len(ki_extra.cv_verstehen(self.root, cfg, cv))
+                msg = f"{n} Vorschläge – unten unter „Was dein Lebenslauf noch belegt“." if n else \
+                    "Keine weiteren Kenntnisse gefunden – dein Lebenslauf nennt alles schon."
+            elif aktion == "cv_uebernehmen":
+                gewaehlt = [k.split(":", 1)[1] for k in form if k.startswith("begriff:")]
+                for term in gewaehlt:
+                    gm.kenntnis_speichern(self.root, term, form.get(f"level:{term}", "gut"),
+                                          cfg["fit"]["begriffe"].get(term) or [])
+                msg = (f"{len(gewaehlt)} Kenntnis(se) in deinen Master-CV eingetragen – Fit ist neu berechnet." if
+                       gewaehlt else "Nichts ausgewählt.")
+            elif aktion == "cv_check":
+                n = len(ki_extra.cv_check(self.root, cfg, cv))
+                msg = f"{n} Vorschläge – unten unter „Lebenslauf-Check“."
+            else:
+                return self.master(message='<div class="card err">Unbekannte Aktion.</div>')
+        except (ki.KiError, CvDataError) as exc:
+            back = self.rueckblick if aktion == "absagen" else self.master
+            return back(message=f'<div class="card err">{esc(exc)}</div>')
+        return self.master(message=f'<div class="card"><p class="ok">{esc(msg)}</p></div>')
 
     def aktualisieren(self) -> bytes:
         """„Jetzt aktualisieren“: neue Version laden, Hilfsskript starten, App beenden (selbstupdate.py)."""
@@ -504,6 +536,8 @@ class App(BewerbungenSeiten):
             meta.append('<span class="chip abgelaufen" title="Die Anzeige ist nicht mehr erreichbar">nicht mehr online</span>')
         meta += [f'<span class="chip eck" title="Eckdaten laut Anzeige (von der KI gelesen)">{esc(e)}</span>'
                  for e in fit.eckdaten_text(d.get("eckdaten") or {})]
+        meta += [f'<span class="chip hinweis" title="Hinweis der KI zur Anzeige">⚠ {esc(h)}</span>'
+                 for h in (d.get("eckdaten") or {}).get("hinweise") or []]
 
         # Signatur: jede erkannte Anforderung als Einheit, erfüllt gefüllt, fehlend als Umriss
         passt = set(d.get("passt") or [])
@@ -686,6 +720,7 @@ class App(BewerbungenSeiten):
         design_html = (designs.auswahl_html(self.token, ziel, design, esc)
                        + sprache.auswahl_html(self.token, ziel, lang, sprache.erkennen(anzeige_text), hat_en,
                                               bool(ki.schluessel()), esc)
+                       + ki_extra.fit_erklaert_html(self.root, stelle, ziel, self.token, bool(ki.schluessel()), esc)
                        + gbw.anzeige_karte(self.token, ziel, stelle, anzeige_text, gesichert)
                        + self.portal_karte(folder, cfg, stelle, data, lang, ziel))
         body = gbw.render(slug, stelle, data, fit_line(job), bw.files(folder), anlagen, self.token, message, ki_an,
@@ -734,6 +769,8 @@ class App(BewerbungenSeiten):
             return self.bewerbung_ki(slug, folder, cfg, form)
         if aktion == "vorbereiten":
             return self.bewerbung_vorbereiten(slug, folder, cfg, form)
+        if aktion in ("fit_erklaeren", "portal_frage"):
+            return self.bewerbung_ki_extra(slug, folder, cfg, form, aktion)
         if aktion == "sprache":
             try:
                 sprache.waehlen(folder, form.get("sprache", ""))
@@ -864,6 +901,35 @@ class App(BewerbungenSeiten):
                                     f'anschreiben.json.bak im Ordner.</p></div>'
                                     + pruefung_html(bw.anschreiben_check.check_text(data, stelle, cfg, andere),
                                                     "Anschreiben"))
+
+    def bewerbung_ki_extra(self, slug: str, folder: Path, cfg: dict, form: dict, aktion: str) -> bytes:
+        """Fit erklären bzw. eine Freitextfrage aus dem Bewerbungsportal beantworten (ki_extra.py)."""
+        stelle = bw.meta(folder)
+        en = sprache.fuer_bewerbung(folder) == "en"
+        try:
+            cv, _ = load_cv_master(self.root)
+            if en:
+                cv = sprache.cv_en(self.root) or cv
+            if not cv:
+                raise ki.KiError("Keine cv_master.yaml.")
+            anzeige = ki.anzeige(self.root, stelle.get("url") or "", fetcher_from(cfg), folder / "anzeige.txt")
+            if aktion == "fit_erklaeren":
+                job = Job(stelle["title"], stelle["company"], stelle["url"], "")
+                fit.apply(job, stelle.get("anforderungen") or {}, covered_terms(cv, cfg["fit"]["begriffe"]), cfg["fit"])
+                ki_extra.fit_erklaeren(self.root, cfg, stelle, job.fit_passt, job.fit_fehlt, job.fit, anzeige, cv)
+                return self.bewerbung(slug)
+            frage = form.get("frage", "").strip()
+            if not frage:
+                return self.bewerbung(slug, '<div class="card err">Bitte die Frage aus dem Portal einfügen.</div>')
+            daten = portal.gekuerzt(folder)
+            grenze = int(daten.get("_grenze") or 500)
+            antwort = ki_extra.portal_antwort(self.root, cfg, frage, grenze, stelle, anzeige, cv,
+                                              (bw.letter(folder) or {}).get("text", ""), en)
+            daten.setdefault("fragen", []).insert(0, {"frage": frage[:600], "antwort": antwort})
+            (folder / portal.DATEI).write_text(json.dumps(daten, ensure_ascii=False, indent=2), encoding="utf-8")
+            return self.bewerbung(slug)
+        except (ki.KiError, CvDataError) as exc:
+            return self.bewerbung(slug, f'<div class="card err">{esc(exc)}</div>')
 
     def _ki_anschreiben(self, cfg: dict, folder: Path, stelle: dict, en: bool) -> tuple[str, str]:
         """(KI-Anschreiben, Anzeigentext) – auf Englisch mit dem englischen Master-CV."""
@@ -1629,6 +1695,8 @@ durchgestrichenen Begriff schon? Anklicken, Level wählen – er landet in der p
 <div id="editor"></div>
 <div class="sticky row"><button name="aktion" value="speichern">Speichern</button>
 <a class="btn ghost" href="/master">Änderungen verwerfen</a>{ki_knopf}</div></form>
+{ki_extra.cv_verstehen_html(self.root, data, self.token, bool(ki.schluessel()), esc)}
+{ki_extra.cv_check_html(self.root, data, self.token, bool(ki.schluessel()), esc)}
 {designs.galerie_html(esc)}
 <script type="application/json" id="schema">{json.dumps(gm.SCHEMA).replace("</", "<\\/")}</script>
 <script type="application/json" id="data">{json.dumps(data, ensure_ascii=False).replace("</", "<\\/")}</script>

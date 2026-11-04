@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 KI_VERSION = 4          # erhöhen, wenn die KI mehr liest – gespeicherte Stellen werden nachbewertet (3: Eckdaten;
                        # 2 griff nicht, weil der Stand erst mit Version 2 zum ersten Mal gespeichert wurde)
 KI_DEFAULTS = {"enabled": False, "model": "claude-haiku-5-5", "max_stellen": 30, "min_text": 300,
-               "nachholen_je_lauf": 10}
+               "nachholen_je_lauf": 10, "stapel": True}   # stapel: Nachbewerten per Batch-Schnittstelle (halber Preis)
 SENTENCE_SPLIT = re.compile(r"[.!?;\n•·]|\s[-–]\s")
 
 
@@ -81,12 +81,15 @@ def ki_system(begriffe: dict) -> str:
         "Antworte nur mit JSON in dieser Form:\n"
         '{"anforderungen": [{"begriff": "Azure", "bekannt": true, "pflicht": true}], '
         '"eckdaten": {"stunden": "20 h/Woche", "verguetung": "16 €/h", "remote": "2 Tage/Woche", '
-        '"start": "ab sofort", "abschlussarbeit": true}}\n'
+        '"start": "ab sofort", "abschlussarbeit": true}, "hinweise": ["verlangt 2 Jahre Berufserfahrung"]}\n'
         "- begriff: bei bekannt=true genau der Name aus der Liste unten (auch wenn die Anzeige es anders formuliert), "
         "sonst ein kurzer Name (1 bis 3 Wörter).\n"
         "- pflicht: false, wenn die Anzeige es nur wünscht (von Vorteil, idealerweise, nice to have …).\n"
         "- eckdaten: kurz (höchstens 25 Zeichen je Wert), nur was ausdrücklich in der Anzeige steht, sonst null. "
-        "abschlussarbeit: true nur, wenn eine Bachelor- oder Masterarbeit ausdrücklich möglich ist.\n\n"
+        "abschlussarbeit: true nur, wenn eine Bachelor- oder Masterarbeit ausdrücklich möglich ist.\n"
+        "- hinweise: höchstens 2 kurze Warnungen (je höchstens 60 Zeichen), wenn die Stelle nicht hält, was der Titel "
+        "verspricht – z. B. Berufserfahrung trotz Werkstudenten- oder Junior-Titel, nur Pflichtpraktikum, befristet auf "
+        "wenige Monate, sehr hohe oder unrealistische Anforderungen, unbezahlt. Sonst leere Liste.\n\n"
         f"BEKANNTE BEGRIFFE:\n{liste}")
 
 
@@ -97,12 +100,16 @@ def ki_prompt(job: Job) -> str:
 ECKDATEN = ("stunden", "verguetung", "remote", "start")
 
 
-def eckdaten(roh) -> dict:
-    """Eckdaten aus der KI-Antwort säubern: nur kurze Texte, abschlussarbeit nur als True."""
+def eckdaten(roh, hinweise=None) -> dict:
+    """Eckdaten aus der KI-Antwort säubern: nur kurze Texte, abschlussarbeit nur als True; dazu höchstens 2 Hinweise
+    („Passt das wirklich?“, z. B. „verlangt Berufserfahrung“)."""
     out = {k: str(roh[k]).strip()[:30] for k in ECKDATEN
            if isinstance(roh, dict) and roh.get(k) not in (None, "", "null") and str(roh[k]).strip()}
     if isinstance(roh, dict) and roh.get("abschlussarbeit") is True:
         out["abschlussarbeit"] = True
+    hin = [str(h).strip()[:80] for h in (hinweise if isinstance(hinweise, list) else []) if str(h).strip()][:2]
+    if hin:
+        out["hinweise"] = hin
     return out
 
 
@@ -140,9 +147,15 @@ def ki_anforderungen(job: Job, begriffe: dict, model: str, ask=None) -> tuple[di
     nicht antwortet."""
     # Großzügiges Budget: Haiku denkt vor der Antwort (adaptive thinking), das zählt mit
     antwort = (ask or llm._ask)(model, ki_prompt(job), effort="low", max_tokens=8000, system=ki_system(begriffe))
+    return ki_auswerten(antwort, begriffe, job.title)
+
+
+def ki_auswerten(antwort: str | None, begriffe: dict, titel: str = "") -> tuple[dict, dict, dict] | None:
+    """KI-Antwort (JSON) → (bekannte Begriffe, weitere Anforderungen, Eckdaten) – auch für Ergebnisse aus einem
+    KI-Stapel (ki_batch.py)."""
     data = llm.json_aus(antwort)
     if not isinstance(data, dict) or not isinstance(data.get("anforderungen"), list):
-        log.info("KI-Anforderungen für „%s“ nicht lesbar (%s)", job.title[:60],
+        log.info("KI-Anforderungen für „%s“ nicht lesbar (%s)", titel[:60],
                  "keine Antwort" if not antwort else f"{len(antwort)} Zeichen ohne gültiges JSON")
         return None
     namen = {b.lower(): b for b in begriffe}
@@ -157,7 +170,7 @@ def ki_anforderungen(job: Job, begriffe: dict, model: str, ask=None) -> tuple[di
             bekannt[b] = max(bekannt.get(b, 0.0), gewicht)
         elif len(name) <= 40 and len(weitere) < MAX_WEITERE:
             weitere[name] = max(weitere.get(name, 0.0), gewicht)
-    return bekannt, weitere, eckdaten(data.get("eckdaten"))
+    return bekannt, weitere, eckdaten(data.get("eckdaten"), data.get("hinweise"))
 
 
 MAX_WEITERE = 8      # Anforderungen außerhalb der Fit-Begriffe je Stelle (z. B. Java, React, SAP)

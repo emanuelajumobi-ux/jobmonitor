@@ -70,12 +70,30 @@ class BewerbungenSeiten:
                                 f'(unter „Gespräche“ → „Nach dem Gespräch“). Lesen, kopieren und selbst senden.</p>'
                                 f'</div>', offen_link=link)
 
-    def rueckblick(self) -> bytes:
+    def rueckblick(self, message: str = "") -> bytes:
+        from . import ki, ki_extra
         state = State(self.root / "state" / "seen.sqlite", readonly=True)
         stellen = state.job_details(limit=5000)
         state.close()
-        z = grb.zahlen(tracking.load(self.root / "applications.csv"), antworten.laden(self.root), stellen, date.today())
-        return self.page("Rückblick", grb.render(z), "rueckblick", grb.CSS)
+        rows = tracking.load(self.root / "applications.csv")
+        z = grb.zahlen(rows, antworten.laden(self.root), stellen, date.today())
+        n_absagen = sum(1 for r in rows if r.get("status") == "Absage")
+        return self.page("Rückblick", message + grb.render(z)
+                         + ki_extra.absagen_html(self.root, n_absagen, self.token, bool(ki.schluessel()), esc),
+                         "rueckblick", grb.CSS)
+
+    def absagen_zeilen(self) -> list[dict]:
+        """Bewerbungen für die Muster-Suche: Titel, Status, Fit, Art – ohne Namen und Kontaktdaten."""
+        fits = {d["url"]: d for d in self.jobs()}
+        out = []
+        for r in tracking.load(self.root / "applications.csv"):
+            if r.get("status") in ("", "neu", "Entwurf", "verworfen", "ausblenden"):
+                continue
+            d = fits.get(r.get("link")) or {}
+            titel = d.get("title") or ((r.get("notizen") or "").splitlines() or [""])[0]
+            out.append({"titel": titel[:100], "status": r.get("status"), "fit": d.get("fit"), "typ": r.get("typ"),
+                        "termin": bool(r.get("termin")), "beworben": r.get("datum")})
+        return out
 
     def nachfassen_ki(self, form: dict) -> bytes:
         """Nachfrage-Mail für eine fällige Bewerbung mit KI formulieren (statt der Textvorlage)."""

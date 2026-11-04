@@ -168,13 +168,15 @@ def ki_nachholen(state: State, cv: dict | None, cfg: dict, fetcher: Fetcher, ki_
     state.set_meta("fit_begriffe_stand", stand)
     nachbewertung.vermerken(state, ki_ids)
     try:
-        out = nachbewertung.nachbewerten(state, cv, cfg, fetcher, limit=int(k["nachholen_je_lauf"]))
+        out = nachbewertung.nachbewerten(state, cv, cfg, fetcher, limit=int(k["nachholen_je_lauf"]),
+                                         stapel=llm.ANBIETER == "claude" and k.get("stapel", True))
     except Exception:
         log.exception("KI-Bewertung älterer Stellen nicht nachgeholt")
         return
     fit_begriffe.merken(state, out["vorschlaege"])
     if out["geprueft"]:
-        log.info("KI-Bewertung nachgeholt: %d von %d Stelle(n)", out["aktualisiert"], out["geprueft"])
+        log.info("KI-Bewertung nachgeholt: %d von %d Stelle(n)%s", out["aktualisiert"], out["geprueft"],
+                 f" · Stapel: {out['stapel']}" if out.get("stapel") else "")
 
 
 def run(opts: Options) -> int:

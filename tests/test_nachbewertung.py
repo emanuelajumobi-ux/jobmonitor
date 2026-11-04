@@ -71,3 +71,29 @@ def test_ki_weg_wird_spaeter_nachgeholt(tmp_path):
     sid = gespeichert(state, "Werkstudent IT", "https://www.arbeitsagentur.de/jobsuche/jobdetail/1-2-S", {})
     out = nb.nachbewerten(state, CV, cfg, Fetcher("test", 0, 5, 0), lambda *a, **k: None)
     assert out["aktualisiert"] == 0 and sid not in nb.erledigt(state)       # beim nächsten Mal erneut
+
+
+@responses.activate
+def test_nachbewerten_per_stapel(tmp_path, monkeypatch):
+    from jobmonitor import ki_batch
+    cfg = load_config()
+    posting = {"@context": "https://schema.org", "@type": "JobPosting", "title": "Werkstudent Cloud",
+               "description": TEXT, "hiringOrganization": {"name": "Firma"}}
+    responses.get("https://firma.de/robots.txt", body="")
+    responses.get("https://firma.de/job/1", body=f'<script type="application/ld+json">{json.dumps(posting)}</script>')
+    state = State(tmp_path / "s.sqlite")
+    firma = gespeichert(state, "Werkstudent Cloud", "https://firma.de/job/1", {"Linux": 1.0})
+    abgeschickt = {}
+    monkeypatch.setattr(ki_batch, "erstellen", lambda model, anfragen, system, **k: abgeschickt.update(anfragen) or "b1")
+    out = nb.nachbewerten(state, CV, cfg, Fetcher("test", 0, 5, 0), stapel=True)
+    assert list(abgeschickt) == [firma] and "abgeschickt" in out["stapel"] and out["aktualisiert"] == 0
+    monkeypatch.setattr(ki_batch, "abholen", lambda bid: ("in_progress", {}))
+    assert nb.nachbewerten(state, CV, cfg, Fetcher("test", 0, 5, 0), stapel=True)["stapel"] == "läuft noch"
+    antwort = json.dumps({"anforderungen": [{"begriff": "Azure", "pflicht": True},
+                                            {"begriff": "Terraform", "pflicht": True}]})
+    monkeypatch.setattr(ki_batch, "abholen", lambda bid: ("ended", {firma: antwort}))
+    out = nb.nachbewerten(state, CV, cfg, Fetcher("test", 0, 5, 0), stapel=True)
+    assert out["aktualisiert"] == 1 and out["stapel"].startswith("abgeholt")
+    d = {x["id"]: x for x in state.job_details()}[firma]
+    assert d["anforderungen"] == {"Azure": 1.0, "Terraform": 1.0}
+    assert state.get_meta(nb.STAPEL) == "{}"

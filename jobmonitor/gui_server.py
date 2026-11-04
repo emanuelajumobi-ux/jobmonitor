@@ -245,6 +245,8 @@ def handler_for(app: App, server_ref: list):
             if self.path == "/oeffnen":
                 ok = app.open_file(form.get("pfad", ""))
                 return self._send(b"ok" if ok else b"nicht gefunden", "text/plain; charset=utf-8", 200 if ok else 404)
+            if self.path == "/ki":
+                return self._send(app.ki_aktion(form))
             if self.path == "/update":
                 return self._send(app.aktualisieren())
             if self.path == "/demo":

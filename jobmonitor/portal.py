@@ -156,7 +156,24 @@ def render(felder_: list[dict], token: str, ziel: str, grenze: int, ki_an: bool,
             f'<input type="hidden" name="grenze" value="{grenze}"><input type="hidden" name="feld" value="">'
             f'{"".join(zeilen)}</form>'
             f'<p class="muted">Fehlt etwas (z. B. Gehaltsvorstellung)? Unter <a href="/profil">Profil</a> ergänzen.</p>'
-            f'</details></div>')
+            f'{fragen_html(ki_texte.get("fragen") or [], token, ziel, grenze, ki_an)}</details></div>')
+
+
+def fragen_html(fragen: list[dict], token: str, ziel: str, grenze: int, ki_an: bool) -> str:
+    """Freitextfragen des Portals („Warum möchten Sie bei uns arbeiten?“) mit KI-Antwort zum Kopieren."""
+    if not ki_an and not fragen:
+        return ""
+    liste = "".join(
+        f'<div class="pf"><label for="pfrage-{i}"><b>{escape(f["frage"])}</b> <span class="muted" '
+        f'data-zaehler="pfrage-{i}">{len(f["antwort"])} Zeichen</span></label><textarea id="pfrage-{i}" rows="5">'
+        f'{escape(f["antwort"])}</textarea><div class="row"><button type="button" class="ghost small" '
+        f'data-copy="pfrage-{i}">Kopieren</button></div></div>' for i, f in enumerate(fragen[:10]))
+    formular = (f'<form method="post" action="{ziel}#portal-fragen"><input type="hidden" name="token" value="{token}">'
+                f'<label>Frage aus dem Portal einfügen – die KI entwirft eine Antwort (höchstens {grenze} Zeichen)'
+                f'</label><textarea name="frage" rows="2" placeholder="z. B. Warum möchten Sie bei uns arbeiten?">'
+                f'</textarea><button name="aktion" value="portal_frage" class="ghost small" style="margin-top:6px" '
+                f'data-ki="KI beantwortet die Frage …">Antwort entwerfen</button></form>' if ki_an else "")
+    return (f'<div id="portal-fragen" style="margin-top:16px"><h3>Fragen im Portal</h3>{formular}{liste}</div>')
 
 
 CSS = """

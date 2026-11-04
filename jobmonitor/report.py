@@ -154,7 +154,8 @@ class Report:
             f"{fit_line(job)} · ID `{job.short_id}`"
             + (f" · **{fristen.label(job.frist, self.day)}**" if job.frist else "")
             + ("  " if job.eckdaten else ""),
-            *([f"Eckdaten: {' · '.join(eckdaten_text(job.eckdaten))}"] if job.eckdaten else []),
+            *([f"Eckdaten: {' · '.join(eckdaten_text(job.eckdaten))}"] if eckdaten_text(job.eckdaten or {}) else []),
+            *([f"⚠ {' · '.join(job.eckdaten['hinweise'])}"] if (job.eckdaten or {}).get("hinweise") else []),
             "",
         ]
 

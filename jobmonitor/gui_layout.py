@@ -190,6 +190,7 @@ ul { padding-left:20px; } li { margin:3px 0; }
 .chip.einladung, .chip.zusage { background:var(--ok-soft); color:var(--ok); }
 .chip.eingang, .chip.nachricht { background:var(--surface-2); color:var(--muted); }
 .chip.eck { background:transparent; border:1px solid var(--line); color:var(--muted); }
+.chip.hinweis { background:var(--warn-soft); color:var(--warn); }
 .gespraech details { margin-top:8px; } .gespraech summary { cursor:pointer; font-size:13px; color:var(--muted); }
 .gespraech details ul { margin:6px 0 0; padding-left:18px; font-size:13px; } .gespraech details li { margin:3px 0; }
 .ki-text { font-size:13px; line-height:1.5; margin-top:6px; } .ki-text h3 { font-size:13px; font-weight:600; margin:12px 0 4px; }
