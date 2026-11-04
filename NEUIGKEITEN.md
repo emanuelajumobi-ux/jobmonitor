@@ -3,6 +3,11 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## Unveröffentlicht
+
+- **Eigene Stelle mit KI:** Ist ein KI-Schlüssel hinterlegt, liest die KI auch bei selbst eingefügten Anzeigen die Anforderungen (Pflicht oder Wunsch, Sprachen, Eckdaten) – wie bei den gefundenen Stellen.
+- **Windows: schnellerer, sichtbarer Start.** Beim Doppelklick erscheint sofort ein Startbild, bis das Fenster da ist. Die Programmdateien werden nur noch geprüft, wenn Windows sie nach dem Herunterladen neu markiert hat.
+
 ## 1.2.2
 
 - **Windows: App-Fenster öffnet sich wieder.** Nach dem Herunterladen markiert Windows die Programmdateien als „aus dem Internet“; dadurch ließ sich das Fenster nicht öffnen. Die App hebt diese Markierung für ihre eigenen Dateien jetzt beim Start auf.

@@ -12,6 +12,7 @@ Tokens je Monat stehen in .gui_ki.json (gitignored); ki.max_aufrufe_monat begren
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 import subprocess
@@ -24,6 +25,7 @@ from ruamel.yaml import YAML
 from . import llm
 from .suchprofil import STUFEN
 
+log = logging.getLogger(__name__)
 DATEI = ".gui_ki.json"
 DIENST = "job-monitor-anthropic"          # Eintrag im Schlüsselbund
 DEFAULTS = {"model": "claude-opus-5-5", "max_aufrufe_monat": 60, "pipeline_warnung_monat": 3_000_000,
@@ -172,7 +174,7 @@ def cv_text(cv: dict) -> str:
 
 # --- Aufruf mit Limit und Zähler ---
 def fragen(root: Path, cfg: dict, prompt: str, effort: str = "medium", max_tokens: int = 6000, ask=None,
-           heute: date | None = None) -> str:
+           heute: date | None = None, model: str | None = None, system: str | None = None) -> str:
     s = settings(cfg)
     llm.einstellen(cfg)
     key = schluessel()
@@ -185,7 +187,9 @@ def fragen(root: Path, cfg: dict, prompt: str, effort: str = "medium", max_token
         raise KiError(f"Monatslimit von {s['max_aufrufe_monat']} KI-Aufrufen erreicht (config.yaml → "
                       "ki.max_aufrufe_monat).")
     usage: list = []
-    antwort = (ask or llm._ask)(s["model"], prompt, effort=effort, max_tokens=max_tokens, api_key=key, usage=usage)
+    extra = {"system": system} if system else {}
+    antwort = (ask or llm._ask)(model or s["model"], prompt, effort=effort, max_tokens=max_tokens, api_key=key,
+                                usage=usage, **extra)
     data = laden(root)
     m = data.setdefault("nutzung", {}).setdefault(monat, {"aufrufe": 0, "eingabe": 0, "ausgabe": 0})
     m["aufrufe"] += 1
@@ -196,6 +200,20 @@ def fragen(root: Path, cfg: dict, prompt: str, effort: str = "medium", max_token
     if not antwort:
         raise KiError("Die KI hat nicht geantwortet (Netz, Schlüssel oder Guthaben prüfen; Details im Protokoll).")
     return antwort.strip()
+
+
+def frage_funktion(root: Path, cfg: dict, ask=None):
+    """Aufruf wie llm._ask für die Anforderungs-Erkennung (fit.ki_anforderungen) aus der Oberfläche: mit dem
+    Schlüssel aus dem Schlüsselbund, Monatslimit und Zählung wie alle KI-Knöpfe. Fehler → None (dann bleibt die
+    Stichwortsuche)."""
+    def frage(model: str, prompt: str, effort: str = "low", max_tokens: int = 4000, system: str | None = None,
+              **_):
+        try:
+            return fragen(root, cfg, prompt, effort, max_tokens, ask=ask, model=model, system=system)
+        except KiError as exc:
+            log.info("KI-Anforderungen nicht gelesen: %s", exc)
+            return None
+    return frage
 
 
 # --- Anschreiben ---

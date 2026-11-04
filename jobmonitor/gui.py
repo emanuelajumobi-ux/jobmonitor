@@ -537,6 +537,7 @@ class App(BewerbungenSeiten):
 <div class="actions"><a class="btn ghost small" href="/bewerbung?job={esc(d["id"])}">Bewerbung</a>{cv}{bell}{mark}{hide}</div></article>"""
 
     def eigene(self, message: str = "") -> bytes:
+        ki_attr = ' data-ki="KI liest die Anforderungen der Anzeige …"' if ki.schluessel() else ""
         body = f"""{layout.head("Eigene Stelle", "Für Anzeigen, die der Monitor nicht gefunden hat. Fit prüfen, "
                                 "Lebenslauf bauen und in deine Bewerbungen übernehmen.")}
 {message}
@@ -549,7 +550,7 @@ class App(BewerbungenSeiten):
 <input name="url" placeholder="https://firma.de/jobs/…">
 <div class="grid2"><div><label>Firma (Pflicht)</label><input name="firma" required></div>
 <div><label>Link für die Bewerbungsliste (optional, bei Text)</label><input name="link"></div></div></div>
-<div class="sticky row"><button>Fit prüfen und Lebenslauf erstellen</button></div></form>"""
+<div class="sticky row"><button{ki_attr}>Fit prüfen und Lebenslauf erstellen</button></div></form>"""
         return self.page("Eigene Stelle", body, "eigene")
 
     # --- Aktionen ---
@@ -584,6 +585,9 @@ class App(BewerbungenSeiten):
                 stelle = self._eigene(form, cfg)
                 info = ("In applications.csv eingetragen (Status: neu)." if stelle["eingetragen"]
                         else "Steht schon in applications.csv.")
+                info += (" Anforderungen von der KI gelesen." if stelle.get("ki") else
+                         " Anforderungen per Stichwort erkannt" + (" (für die KI-Prüfung: Einstellungen → KI)."
+                                                                   if not ki.schluessel() else "."))
             hinweise: list = []
             detail = stelle
             if job_id:
@@ -629,7 +633,8 @@ class App(BewerbungenSeiten):
             job = from_file(path, firma, link or url or None)
         else:
             raise StelleError("Bitte Anzeigentext einfügen oder einen Link angeben.")
-        return prepare(job, self.root, cfg)
+        ask = ki.frage_funktion(self.root, cfg) if ki.schluessel() else None
+        return prepare(job, self.root, cfg, ki_ask=ask)
 
     # --- Bewerbung je Stelle ---
     def bewerbung_open(self, job_id: str) -> str | None:

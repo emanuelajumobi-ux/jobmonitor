@@ -337,6 +337,7 @@ TEXTE: dict[str, str] = {
         "One click downloads it and restarts the app – your data stays.",
     "Neue App laden und die alte ersetzen – deine Daten bleiben.": "Download the new app and replace the old one – your "
                                                                   "data stays.",
+    "KI liest die Anforderungen der Anzeige …": "AI is reading the ad's requirements …",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":
@@ -1137,6 +1138,7 @@ MUSTER: list[tuple[str, str]] = [
     ("{n} Seiten zum selbst Ansehen", "{} pages to look at yourself"),
     ("{n} (+{n} optional)", "{} (+{} optional)"), ("Sprache: {}.{}", "Language: {}.{}"),
     ("Alles vorbereitet: {}", "Everything prepared: {}"),
+    ("{} Anforderungen von der KI gelesen.", "{} Requirements read by the AI."),
     ("Version {} ist da", "Version {} is available"), ("(du hast {}). {}", "(you have {}). {}"),
     ("Version {} wird installiert", "Installing version {}"),
     ("{n} Firmen", "{} companies"),

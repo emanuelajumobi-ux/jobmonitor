@@ -111,12 +111,18 @@ def fetcher_from(cfg: dict) -> Fetcher:
     return Fetcher(h["user_agent"], h["min_delay_seconds"], h["timeout_seconds"], h["retries"])
 
 
-def prepare(job: Job, root: Path, cfg: dict, today: date | None = None) -> dict:
-    """Fit berechnen und in applications.csv eintragen. Ergebnis für make cv bzw. die Oberfläche."""
+def prepare(job: Job, root: Path, cfg: dict, today: date | None = None, ki_ask=None) -> dict:
+    """Fit berechnen und in applications.csv eintragen. Ergebnis für make cv bzw. die Oberfläche.
+    `ki_ask`: wie llm._ask (z. B. ki.frage_funktion) – dann liest die KI die Anforderungen wie bei gefundenen
+    Stellen zusätzlich zur Stichwortsuche (Pflicht oder Wunsch, Sprachen, Eckdaten)."""
     cv, _ = load_cv_master(root)
     if cv is None:
         raise StelleError("cv_master.yaml fehlt.")
     fit.rate(job, covered_terms(cv, cfg["fit"]["begriffe"]), cfg["fit"])
+    gelesen: set = set()
+    if ki_ask is not None:
+        fit.mit_ki([job], cv, {**cfg["fit"], "ki": {**(cfg["fit"].get("ki") or {}), "enabled": True}},
+                   ask=ki_ask, gelesen=gelesen)
     today = today or date.today()
     frist = fristen.find(f"{job.title}\n{job.description}", today)
     job.frist = frist.isoformat() if frist else None
@@ -129,4 +135,4 @@ def prepare(job: Job, root: Path, cfg: dict, today: date | None = None) -> dict:
         tracking.save(apps_path, apps)
     return {"id": today.isoformat(), "company": job.company, "title": job.title, "url": job.url,
             "anforderungen": job.fit_anforderungen, "fit": job.fit, "fit_line": fit_line(job), "frist": job.frist,
-            "eingetragen": eingetragen}
+            "eingetragen": eingetragen, "ki": bool(gelesen), "eckdaten": job.eckdaten}

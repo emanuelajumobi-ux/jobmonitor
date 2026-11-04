@@ -143,3 +143,22 @@ def test_bewerbungsseite(root, monkeypatch):  # noqa: F811
     html = app.bewerbung_post(folder.name, {"aktion": "vorbereiten", "text": "Mein eigener Text.",
                                             "anrede": "Dear Ms Smith,", "empfaenger": ""}).decode()
     assert "dein Anschreiben übernommen" in html and len(aufrufe) == 1                     # eigener Text bleibt
+
+
+def test_eigene_stelle_mit_ki(root, monkeypatch):  # noqa: F811
+    from jobmonitor import eigene_stelle
+    from jobmonitor.models import Job
+    monkeypatch.setattr(ki, "schluessel", lambda run=None: "sk-ant-test")
+    cfg = load_config(root / "config.yaml")
+    text = ("Wir suchen Verstärkung für den Betrieb unserer Cloud-Plattform. " * 6 +
+            "Du bringst Erfahrung mit Azure mit, wünschenswert sind Kenntnisse in Terraform.")
+    job = Job("Werkstudent Cloud", "Beispiel AG", "https://example.com/x", "eigene", description=text)
+    antwort = json.dumps({"anforderungen": [{"begriff": "Azure", "bekannt": True, "pflicht": True},
+                                            {"begriff": "Englisch", "bekannt": True, "pflicht": True}],
+                          "eckdaten": {"stunden": "20 h/Woche"}})
+    ask = ki.frage_funktion(root, cfg, ask=FakeAsk(antwort))
+    stelle = eigene_stelle.prepare(job, root, cfg, ki_ask=ask)
+    assert stelle["ki"] and "Englisch" in stelle["anforderungen"] and stelle["eckdaten"] == {"stunden": "20 h/Woche"}
+    ohne = eigene_stelle.prepare(Job("Werkstudent Cloud", "Beispiel AG", "https://example.com/y", "eigene",
+                                     description=text), root, cfg)
+    assert not ohne["ki"] and "Englisch" not in ohne["anforderungen"]
