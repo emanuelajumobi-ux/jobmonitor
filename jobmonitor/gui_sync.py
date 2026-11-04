@@ -29,8 +29,13 @@ def _git(root: Path, *args: str) -> subprocess.CompletedProcess:
 
 
 def sync(root: Path) -> SyncResult:
-    if _git(root, "rev-parse", "--is-inside-work-tree").returncode != 0:
+    if not (root / ".git").exists():     # installierte App: Daten nur lokal, Git oft gar nicht installiert
         return SyncResult(True, "Kein Git-Repo – Synchronisieren übersprungen.")
+    try:
+        if _git(root, "rev-parse", "--is-inside-work-tree").returncode != 0:
+            return SyncResult(True, "Kein Git-Repo – Synchronisieren übersprungen.")
+    except OSError:
+        return SyncResult(True, "Git ist nicht installiert – Synchronisieren übersprungen.")
     log: list[str] = []
 
     def run(*args: str) -> subprocess.CompletedProcess:

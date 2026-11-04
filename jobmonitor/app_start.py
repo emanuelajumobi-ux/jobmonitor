@@ -25,6 +25,26 @@ def _protokoll(home: Path) -> None:
     sys.stderr = sys.stderr or datei
 
 
+def _freigeben() -> None:
+    """Windows: Dateien aus einer heruntergeladenen ZIP tragen die Markierung „aus dem Internet“ (Zone.Identifier).
+    .NET lädt so markierte DLLs nicht – dann scheitert das App-Fenster (pythonnet: „Failed to resolve
+    Python.Runtime.Loader.Initialize“). Wie „Eigenschaften → Zulassen“: Markierung an den eigenen Programmdateien
+    entfernen. Betrifft nur den Programmordner der App."""
+    if sys.platform != "win32" or not getattr(sys, "frozen", False) or os.environ.get("JOBMONITOR_OHNE_FREIGABE"):
+        return
+    ordner = Path(sys.executable).resolve().parent
+    n = 0
+    for datei in ordner.rglob("*"):
+        if datei.suffix.lower() in (".dll", ".exe", ".pyd") and datei.is_file():
+            try:
+                os.remove(f"{datei}:Zone.Identifier")
+                n += 1
+            except OSError:
+                pass
+    if n:
+        print(f"Internet-Markierung an {n} Programmdateien entfernt", flush=True)
+
+
 def _meldung(text: str) -> None:
     """Windows: Fehler beim Start als Meldungsfenster zeigen – sonst sieht man nach dem Doppelklick gar nichts.
     Nur beim Start per Doppelklick (ohne Argumente) und nicht in GitHub Actions (dort würde der Dialog hängen)."""
@@ -41,6 +61,7 @@ def main() -> int:
     os.environ.setdefault("JOBMONITOR_HOME", str(Path.home() / "Documents" / "Job-Monitor"))
     home = Path(os.environ["JOBMONITOR_HOME"]).expanduser()
     _protokoll(home)
+    _freigeben()
     log = home / ".gui_aufgaben" / "app.log"
     try:
         code = _start()
