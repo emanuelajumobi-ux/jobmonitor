@@ -3,7 +3,7 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
-## Unveröffentlicht
+## 1.3.0
 
 - **Übungsgespräch:** Unter Bewerbungen → Gespräche (oder auf der Bewerbungsseite) spielt die KI das Vorstellungsgespräch für die konkrete Stelle durch – fünf Fragen, nach jeder Antwort eine kurze Rückmeldung, am Ende eine Zusammenfassung. Auf Wunsch auf Englisch.
 - **Neue KI-Helfer:** „Was dein Lebenslauf noch belegt“ und „Lebenslauf-Check“ im Master-CV, „Fit erklärt“ und Antworten auf Freitextfragen aus Bewerbungsportalen auf der Bewerbungsseite, Hinweise an Stellen, die nicht halten, was der Titel verspricht (z. B. „verlangt Berufserfahrung“), und „Muster aus Absagen“ im Rückblick.
