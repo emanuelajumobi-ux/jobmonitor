@@ -66,15 +66,30 @@ def speichern(root: Path, anbieter: str, modelle: dict[str, str] | None = None) 
     datei_speichern(root, "config.yaml", config_text(path.read_text(encoding="utf-8"), anbieter, modelle))
 
 
-def wahl_html() -> str:
-    """Zwei Wege zur KI nebeneinander – in Einstellungen → KI und im Einrichtungs-Assistenten."""
+def mit_rueckweg(text: str) -> str:
+    """KI-Anleitung, aus dem Einrichtungs-Assistenten geöffnet: Knopf zurück oben statt „Zu Einstellungen → KI“ und eine
+    Karte am Ende, damit man nach dem Eintragen des Schlüssels nicht in der App „hängen bleibt“."""
+    zurueck = '<a class="btn small" href="/einrichten">Zurück zum Einrichtungs-Assistenten</a>'
+    text = re.sub(r'<a class="btn ghost small"\s+href="/einstellungen#ki">\s*Zu Einstellungen → KI</a>', zurueck, text,
+                  count=1)
+    ende = ('<div class="card"><h2>Schlüssel eingetragen?</h2><p>Dann geht es im Einrichtungs-Assistenten weiter. '
+            'Auch von jeder anderen Seite kommst du über den Hinweis „Weiter einrichten“ oben dorthin zurück.</p>'
+            f'{zurueck}</div>')
+    return text[:-len("</div>")] + ende + "</div>" if text.endswith("</div>") else text + ende
+
+
+def wahl_html(von: str = "") -> str:
+    """Zwei Wege zur KI nebeneinander – in Einstellungen → KI und im Einrichtungs-Assistenten (von="einrichten":
+    die Anleitungen zeigen dann den Rückweg zum Assistenten)."""
+    zusatz = "?von=einrichten" if von == "einrichten" else ""
     return ('<div class="ki-wahl"><div class="ki-weg empfohlen"><b>Claude</b> <span class="chip">empfohlen</span>'
             '<p class="muted">Die besten Ergebnisse – die App ist darauf abgestimmt. Bezahlt wird nach Verbrauch aus '
             'vorher gekauftem Guthaben, kein Abo; ein kleiner Betrag reicht lange.</p>'
-            '<a class="btn small" href="/ki-anleitung">Anleitung für Claude</a></div>'
+            f'<a class="btn small" href="/ki-anleitung{zusatz}">Anleitung für Claude</a></div>'
             '<div class="ki-weg"><b>Google Gemini</b> <span class="chip einladung">kostenlos</span>'
             '<p class="muted">Ohne Kreditkarte, mit Tagesgrenzen. Gut zum Ausprobieren – die Ergebnisse sind etwas '
-            'schwächer als mit Claude.</p><a class="btn ghost small" href="/ki-anleitung?anbieter=gemini">Anleitung '
+            'schwächer als mit Claude.</p><a class="btn ghost small" href="/ki-anleitung?anbieter=gemini'
+            f'{zusatz.replace("?", "&amp;")}">Anleitung '
             'für Gemini</a></div></div>')
 
 
@@ -232,11 +247,22 @@ zwischen deinem Rechner und Google.</li>
 </ul></div>
 <div class="card"><h2>Schritt für Schritt</h2><ol class="schritte">
 <li><b>Google AI Studio öffnen</b><span>Öffne <a href="https://aistudio.google.com/apikey" target="_blank"
-rel="noopener">Google AI Studio</a> und melde dich mit deinem Google-Konto an. Beim ersten Mal bestätigst du die
-Nutzungsbedingungen.</span></li>
-<li><b>Schlüssel erstellen</b><span>Auf <b>Create API key</b> bzw. „API-Schlüssel erstellen“ klicken. Den Schlüssel
-(beginnt meist mit <code>AIza</code>) kopieren und mit niemandem teilen. Eine Zahlungsart musst du dafür nicht
-hinterlegen – lass das aus, dann bleibt es garantiert kostenlos.</span></li>
+rel="noopener">aistudio.google.com/apikey</a> und melde dich mit deinem Google-Konto an – ein normales Gmail-Konto
+reicht. Die Seite ist auf Englisch; die Wörter, auf die es ankommt, stehen hier fett.</span></li>
+<li><b>Beim ersten Mal: Bedingungen bestätigen</b><span>Es erscheint ein Fenster mit den Nutzungsbedingungen
+(<b>Terms of Service</b>). Haken setzen, falls gefragt dein Land wählen, und bestätigen. Für neue Konten legt Google
+dabei automatisch ein Projekt und meist auch schon einen Schlüssel an.</span></li>
+<li><b>Landest du in einem Chat? Das ist normal.</b><span>AI Studio öffnet oft zuerst ein Fenster zum Ausprobieren
+mit einem Eingabefeld unten (<b>Chat</b> bzw. <b>Playground</b>). Dort musst du nichts eingeben. Für den Schlüssel
+gehst du links in der Seitenleiste auf <b>Dashboard</b> → <b>API keys</b> – in älteren Ansichten heißt der Knopf
+<b>Get API key</b> und steht links unten oder oben rechts. Am einfachsten: den Link aus Schritt 1 einfach noch einmal
+öffnen, er führt direkt zur Schlüssel-Liste. Google ändert die Beschriftungen ab und zu; gemeint ist immer die Seite
+mit den <b>API keys</b>.</span></li>
+<li><b>Schlüssel kopieren oder erstellen</b><span>Steht in der Liste schon ein Schlüssel, klickst du ihn an bzw. auf das
+Kopier-Symbol daneben. Sonst auf <b>Create API key</b> klicken; fragt Google nach einem Projekt, nimm das
+vorgeschlagene (z. B. „Default Gemini Project“). Der Schlüssel ist eine lange Zeichenkette und beginnt meist mit
+<code>AIza</code> – kopieren und mit niemandem teilen. Hinweise wie <b>Set up billing</b> (Zahlungsart) ignorierst
+du: Ohne Zahlungsart bleibt es garantiert kostenlos.</span></li>
 <li><b>In der App eintragen</b><span>In <a href="/einstellungen#ki">Einstellungen → KI</a> als Anbieter
 „Google Gemini“ wählen und <b>Wechseln</b>, den Schlüssel einfügen und <b>Sicher speichern</b>. Er landet im
 Schlüsselbund deines Rechners (Windows: Anmeldeinformationsverwaltung), nicht in einer Datei.</span></li>

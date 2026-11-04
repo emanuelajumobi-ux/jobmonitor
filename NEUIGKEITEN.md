@@ -3,6 +3,13 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.3.7
+
+- **Einrichtung geht nicht mehr verloren:** Öffnest du im Einrichtungs-Assistenten die KI-Anleitung, führt dich oben und unten ein Knopf zurück. Solange die Einrichtung nicht abgeschlossen ist, zeigt jede Seite oben „Weiter einrichten“.
+- **Gemini-Anleitung ausführlicher:** Schritt für Schritt durch Google AI Studio – auch, was zu tun ist, wenn sich zuerst ein Chat-Fenster öffnet, und wo genau der Schlüssel steht.
+- **Neu einrichten:** Unter Einstellungen → Neu einrichten setzt du Job-Monitor zurück, als wäre die App frisch installiert – auf Wunsch mit Sicherung der alten Daten und ohne die KI-Schlüssel. Wie du die App vollständig entfernst, steht im README.
+- **Windows: App über die Suche finden:** Job-Monitor legt beim Start einen Eintrag im Startmenü an. Hast du den Ordner verschoben oder neu entpackt, zeigt der Eintrag automatisch auf den neuen Ort.
+
 ## 1.3.6
 
 - **Du siehst sofort, wo du gelandet bist:** Führt ein Link an eine bestimmte Stelle einer Seite (zum Beispiel „Weiterempfehlen“ in der Seitenleiste), steht das Ziel jetzt mittig im Fenster und leuchtet kurz farbig auf.

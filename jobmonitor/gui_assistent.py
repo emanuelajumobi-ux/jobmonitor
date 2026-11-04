@@ -210,7 +210,7 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
     kschritt = ('<p class="ok">KI ist eingerichtet: Suchprofil und Lebenslauf füllt sie für dich aus.</p>' if ki_an else
                 '<p><b>Empfohlen:</b> Mit KI holst du das meiste aus der App heraus – genauerer Fit, Suchprofil und '
                 'Lebenslauf werden für dich ausgefüllt, Anschreiben und Gesprächsvorbereitung entworfen. Ohne geht alles '
-                'auch, nur mit mehr Tipparbeit.</p>' + gki.wahl_html() +
+                'auch, nur mit mehr Tipparbeit.</p>' + gki.wahl_html("einrichten") +
                 '<p class="muted">Die KI nutzt <b>deinen eigenen</b> Zugang beim Anbieter – die App hat keinen '
                 'eigenen, und deine Daten gehen direkt dorthin, nie an den Entwickler. Möglich sind auch OpenAI, '
                 'Mistral oder Ollama (kostenlos auf deinem Rechner, unter Einstellungen → KI).</p>'

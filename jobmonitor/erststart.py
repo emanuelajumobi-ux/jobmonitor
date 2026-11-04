@@ -6,6 +6,7 @@ Einrichtungs-Assistent (gui_assistent.py) durch Profil, Wohnort, Suchprofil und 
 """
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -44,7 +45,39 @@ def vorbereiten(root: Path) -> list[str]:
     return neu
 
 
+ASSISTENT = ".gui_eingerichtet.json"
+
+
+def _assistent(root: Path) -> dict:
+    try:
+        data = json.loads((root / ASSISTENT).read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
 def eingerichtet(root: Path) -> bool:
-    """Gilt als eingerichtet, sobald Master-CV oder persönliche Angaben da sind oder der Assistent abgeschlossen ist."""
-    return any((root / p).exists() for p in ("cv/cv_master.yaml", "cv_master.yaml", "cv/profile.yaml",
-                                            ".gui_eingerichtet.json"))
+    """Fertig, sobald der Assistent abgeschlossen ist. Wurde er begonnen, aber nicht beendet (z. B. weil man zwischendurch
+    die KI-Anleitung geöffnet hat), führt die App wieder dorthin. Ältere Stände ohne Merker gelten wie bisher als
+    eingerichtet, sobald Master-CV oder persönliche Angaben da sind."""
+    data = _assistent(root)
+    if data.get("fertig"):
+        return True
+    if data.get("begonnen"):
+        return False
+    return any((root / p).exists() for p in ("cv/cv_master.yaml", "cv_master.yaml", "cv/profile.yaml", ASSISTENT))
+
+
+def unfertig(root: Path) -> bool:
+    """Assistent begonnen, aber noch nicht abgeschlossen."""
+    data = _assistent(root)
+    return bool(data.get("begonnen")) and not data.get("fertig")
+
+
+def beginnen(root: Path) -> None:
+    """Beim ersten Öffnen des Assistenten merken, dass die Einrichtung läuft (nur bei neuen Nutzern)."""
+    if eingerichtet(root) or _assistent(root).get("begonnen"):
+        return
+    from datetime import date
+    data = {**_assistent(root), "begonnen": date.today().isoformat()}
+    (root / ASSISTENT).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")

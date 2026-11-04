@@ -98,6 +98,23 @@ Lebensläufe auf die Stelle zu, schreibt Anschreiben-Entwürfe und bereitet Gesp
 4. **Updates** zeigt die App selbst an: neue Version laden und die alte ersetzen – deine Daten im Ordner
    Dokumente/Job-Monitor bleiben erhalten.
 
+## Neu einrichten oder vollständig entfernen
+
+Deine Daten liegen nicht im App-Ordner, sondern in **Dokumente/Job-Monitor**. Wer nur die App löscht und neu
+herunterlädt, findet darum seine Daten wieder.
+
+- **Neu einrichten wie frisch installiert:** in der App unter Einstellungen → **Neu einrichten**. Auf Wunsch werden die
+  alten Daten als Sicherung aufgehoben (Ordner „Job-Monitor (alt …)“) und die KI-Schlüssel entfernt; die tägliche Suche
+  wird ausgeschaltet. Die App beendet sich, beim nächsten Start beginnt der Einrichtungs-Assistent.
+- **Vollständig entfernen:** zuerst wie oben „Neu einrichten“ **ohne** Sicherung, die App startet danach nicht neu.
+  Dann die App selbst löschen: Mac `Job-Monitor.app` aus dem Programme-Ordner, Windows den entpackten Ordner (den
+  Startmenü-Eintrag entfernt das Zurücksetzen schon).
+- **Von Hand**, falls die App nicht mehr startet: den Ordner Dokumente/Job-Monitor löschen; KI-Schlüssel im
+  Schlüsselbund (Mac, Einträge „job-monitor-…“) bzw. in der Windows-Anmeldeinformationsverwaltung entfernen; die
+  tägliche Suche unter Mac in `~/Library/LaunchAgents/de.jobmonitor.suche.plist`, unter Windows in der
+  Aufgabenplanung („Job-Monitor Suche“) löschen; unter Windows außerdem die Verknüpfung „Job-Monitor“ im Startmenü
+  (Rechtsklick → Dateispeicherort öffnen, dort löschen).
+
 ## Grundsätze
 
 - **Kein Scraping von LinkedIn, StepStone, Indeed & Co.**, kein Login-Scraping, keine CAPTCHA-Umgehung. robots.txt wird

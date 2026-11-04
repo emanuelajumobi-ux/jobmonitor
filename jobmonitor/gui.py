@@ -19,7 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
-from . import ablehnung, abschicken, demo, ki_extra, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, teilen, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
+from . import ablehnung, abschicken, demo, ki_extra, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, teilen, zuruecksetzen, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
 from . import gui_bericht as gbe
@@ -149,6 +149,10 @@ class App(BewerbungenSeiten):
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
         if self.echt is not None:
             body = demo.banner(self.token) + body
+        elif title != "Einrichten" and erststart.unfertig(self.root):
+            body = ('<div class="card einrichtung-offen"><div class="head"><p><b>Die Einrichtung ist noch nicht fertig.'
+                    '</b> <span class="muted">Danach sucht Job-Monitor passende Stellen für dich.</span></p>'
+                    '<a class="btn small" href="/einrichten">Weiter einrichten</a></div></div>') + body
         try:
             if not ki.schluessel():
                 body = layout.ki_aus(body)
@@ -336,6 +340,8 @@ class App(BewerbungenSeiten):
 
     def einrichten(self, form: dict | None = None, uploads: dict | None = None) -> bytes:
         """Einrichtungs-Assistent (gui_assistent.py); ohne Formular nur die Seite."""
+        if self.echt is None:
+            erststart.beginnen(self.root)
         ki_an = bool(ki.schluessel())
         message = ""
         if form and form.get("aktion") == "sprache_gui":
@@ -1356,8 +1362,9 @@ class App(BewerbungenSeiten):
                             int(ki.settings(cfg)["max_aufrufe_monat"]),
                             gw.pipeline_ki(pipe, date.today().strftime("%Y-%m"), ki.settings(cfg)),
                             getattr(self, "_ki_modelle", None))
-        sich = teilen.karte(i18n.sprache(cfg)) + spenden.karte(cfg) + feedback.karte() + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
-                                  len(sicherung.inhalt(self.root)))
+        sich = (teilen.karte(i18n.sprache(cfg)) + spenden.karte(cfg) + feedback.karte()
+                + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel), len(sicherung.inhalt(self.root)))
+                + zuruecksetzen.karte(self.token, self.root, esc))
         github = zeitplan.github_aktiv(self.root)
         postfach = (f'<div class="card" id="postfach"><h2>Postfach</h2>'
                     f'{mailzugang.formular(self.root, self.token, esc, "/einstellungen")}</div>' if not github else "")
@@ -1428,12 +1435,22 @@ class App(BewerbungenSeiten):
         aktion = form.get("aktion", "")
         ok = lambda text: f'<div class="card"><p class="ok">{esc(text)}</p></div>'  # noqa: E731
         if self.echt is not None and aktion in ("pipeline", "pipeline_ohne_mail", "probelauf", "zeitplan_an",
-                                                "sicherung", "sicherung_ordner", "app", "pakete", "mail"):
+                                                "sicherung", "sicherung_ordner", "app", "pakete", "mail",
+                                                "zuruecksetzen"):
             return self.einstellungen('<div class="card err">In der Demo nicht verfügbar – erst „Demo beenden“.</div>')
         try:
             if aktion in ("pipeline", "pipeline_ohne_mail"):
                 msg = ok(gw.pipeline_starten(self.root, aktion == "pipeline_ohne_mail"))
                 self._laeufe = None                                 # neuer Lauf soll gleich in der Liste stehen
+            elif aktion == "zuruecksetzen":
+                sicherung_an = form.get("sicherung") == "1"
+                zuruecksetzen.vormerken(self.root, sicherung_an, form.get("schluessel") == "1")
+                zuruecksetzen.nach_beenden(self.root, sicherung_an)
+                self.beenden = True                                  # gui_server beendet nach dieser Antwort
+                return layout.document("Zurückgesetzt", '<h1>Job-Monitor wird zurückgesetzt</h1><p>Die App beendet '
+                                       'sich jetzt. Beim nächsten Start beginnt die Einrichtung von vorn.</p>'
+                                       + ('<p class="muted">Die alten Daten werden als Sicherung neben dem '
+                                          'Datenordner aufgehoben.</p>' if sicherung_an else ''), "", "", self.token)
             elif aktion == "darstellung":
                 self.darstellung(form.get("darstellung", ""))
                 msg = ok("Darstellung gespeichert.")
@@ -1545,7 +1562,8 @@ class App(BewerbungenSeiten):
             else:
                 msg = '<div class="card err">Unbekannte Aktion.</div>'
         except (gw.WartungError, bn.BenachrichtigungError, ki.KiError, sicherung.SicherungError,
-                wohnort.WohnortError, zeitplan.ZeitplanError, mailzugang.MailError, gki_anbieter.AnbieterError, subprocess.SubprocessError, OSError) as exc:
+                wohnort.WohnortError, zeitplan.ZeitplanError, mailzugang.MailError, gki_anbieter.AnbieterError, subprocess.SubprocessError, OSError,
+                zuruecksetzen.ZuruecksetzenError) as exc:
             msg = f'<div class="card err">{esc(exc)}</div>'
         return self.einstellungen(msg)
 
@@ -1651,10 +1669,12 @@ class App(BewerbungenSeiten):
                           f'Lauf aussortiert. {esc(hoch)}</p></div>')
 
     # --- Master-CV ---
-    def ki_anleitung(self, anbieter: str = "") -> bytes:
-        if anbieter == "gemini":
-            return self.page("Gemini einrichten", gki.ANLEITUNG_GEMINI, "einstellungen", gki.CSS)
-        return self.page("Claude einrichten", gki.ANLEITUNG, "einstellungen", gki.CSS)
+    def ki_anleitung(self, anbieter: str = "", von: str = "") -> bytes:
+        text = gki.ANLEITUNG_GEMINI if anbieter == "gemini" else gki.ANLEITUNG
+        if von == "einrichten":                    # aus dem Einrichtungs-Assistenten: Rückweg oben und unten
+            text = gki.mit_rueckweg(text)
+        return self.page("Gemini einrichten" if anbieter == "gemini" else "Claude einrichten", text, "einstellungen",
+                         gki.CSS)
 
     def design_vorschau(self, key: str) -> bytes | None:
         """Lebenslauf im Design als HTML mit deinen Daten (iframe in der Galerie)."""

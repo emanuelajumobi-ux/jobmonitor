@@ -72,6 +72,12 @@ def _meldung(text: str) -> None:
 def main() -> int:
     os.environ.setdefault("JOBMONITOR_HOME", str(Path.home() / "Documents" / "Job-Monitor"))
     home = Path(os.environ["JOBMONITOR_HOME"]).expanduser()
+    try:                                          # Einstellungen → Neu einrichten, falls noch nicht erledigt
+        from jobmonitor.zuruecksetzen import beim_start
+        if (meldung := beim_start(home)):
+            print(meldung, flush=True)
+    except Exception:
+        pass
     _protokoll(home)
     _freigeben()
     log = home / ".gui_aufgaben" / "app.log"
@@ -92,12 +98,39 @@ def main() -> int:
     return code
 
 
+STARTMENUE_PS = (
+    "$p = Join-Path $env:APPDATA 'Microsoft\\Windows\\Start Menu\\Programs\\Job-Monitor.lnk';"
+    "$s = (New-Object -ComObject WScript.Shell).CreateShortcut($p);"
+    "if ($s.TargetPath -ne $env:JM_EXE) {"
+    " $s.TargetPath = $env:JM_EXE; $s.WorkingDirectory = (Split-Path $env:JM_EXE);"
+    " $s.IconLocation = \"$env:JM_EXE,0\"; $s.Description = 'Job-Monitor'; $s.Save() }")
+
+
+def startmenue(exe: str | None = None, run=None) -> bool:
+    """Windows: Eintrag im Startmenü (Benutzer, ohne Admin), damit die Windows-Suche „Job-Monitor“ findet. Zeigt er
+    noch auf einen alten Ort (App verschoben oder neu entpackt), wird er auf die laufende Datei umgebogen. Ohne Fehler
+    nach außen: Der Eintrag ist nur Komfort."""
+    import subprocess
+    exe = exe or sys.executable
+    run = run or subprocess.run
+    try:
+        run(["powershell", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-Command", STARTMENUE_PS],
+            env={**os.environ, "JM_EXE": exe}, capture_output=True, timeout=30,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        return True
+    except Exception:
+        return False
+
+
 def _start() -> int:
     from jobmonitor import __version__, erststart
     print(f"Job-Monitor {__version__} · {sys.platform} · Start mit {sys.argv[1:] or ['desktop']}", flush=True)
     from jobmonitor.__main__ import main as cli      # erst jetzt: config.ROOT liest JOBMONITOR_HOME beim Import
     from jobmonitor.config import ROOT
     erststart.vorbereiten(ROOT)                      # legt nur Fehlendes an, auch vor Zeitplan-Läufen
+    if sys.platform == "win32" and getattr(sys, "frozen", False) and len(sys.argv) <= 1 and not os.environ.get("CI"):
+        import threading
+        threading.Thread(target=startmenue, daemon=True).start()   # im Hintergrund, verzögert den Start nicht
     return cli(sys.argv[1:] if len(sys.argv) > 1 else ["desktop"])
 
 

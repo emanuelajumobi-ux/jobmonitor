@@ -106,7 +106,8 @@ def handler_for(app: App, server_ref: list):
             if path == "/einrichten":
                 return self._send(app.einrichten())
             if path == "/ki-anleitung":
-                return self._send(app.ki_anleitung(parse_qs(query).get("anbieter", [""])[0]))
+                q = parse_qs(query)
+                return self._send(app.ki_anleitung(q.get("anbieter", [""])[0], q.get("von", [""])[0]))
             if path.startswith("/designs/vorschau/"):
                 html = app.design_vorschau(path.removeprefix("/designs/vorschau/"))
                 if html is not None:
@@ -195,7 +196,12 @@ def handler_for(app: App, server_ref: list):
             if self.path == "/bewerbungen":
                 return self._send(app.bewerbungen_save(form))
             if self.path == "/einstellungen":
-                return self._send(app.einstellungen_post(form))
+                self._send(app.einstellungen_post(form))
+                if getattr(app, "beenden", False):                # Einstellungen → Neu einrichten: App beenden
+                    app.beenden = False
+                    ziel = app.window.destroy if app.window is not None else server_ref[0].shutdown
+                    threading.Timer(0.8, ziel).start()
+                return
             if self.path == "/einstellungen/suchprofil":
                 return self._send(app.suchprofil_post(form))
             if self.path == "/einstellungen/datei":
