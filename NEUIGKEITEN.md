@@ -3,6 +3,11 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.2.2
+
+- **Windows: App-Fenster öffnet sich wieder.** Nach dem Herunterladen markiert Windows die Programmdateien als „aus dem Internet“; dadurch ließ sich das Fenster nicht öffnen. Die App hebt diese Markierung für ihre eigenen Dateien jetzt beim Start auf.
+- **Windows: kein Fehler mehr, wenn Git nicht installiert ist** (Synchronisieren wird dann übersprungen).
+
 ## 1.2.1
 
 - **Windows: Start abgesichert.** Lässt sich das App-Fenster nicht öffnen (z. B. fehlt die Microsoft-Komponente WebView2), öffnet die App die Oberfläche im Browser, statt still abzubrechen. Andere Fehler beim Start zeigt Windows jetzt als Meldung mit dem Ort der Protokolldatei.
