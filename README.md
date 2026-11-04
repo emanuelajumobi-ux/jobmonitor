@@ -57,7 +57,7 @@ Lebensläufe auf die Stelle zu, schreibt Anschreiben-Entwürfe und bereitet Gesp
 - **Die KI kommt von dir, nicht vom Entwickler.** Die App hat keinen eigenen Zugang und keinen Server. Empfohlen ist
   **Claude** (die App ist darauf abgestimmt; in der App führt eine Schritt-für-Schritt-Anleitung durch die Einrichtung).
   **Kostenlos ausprobieren** geht mit **Google Gemini** (kostenloses Kontingent ohne Kreditkarte, mit Tagesgrenzen;
-  die Ergebnisse sind etwas schwächer als mit Claude – Anleitung in der App). Möglich sind auch **OpenAI, Google Gemini, Mistral** und **Ollama** (läuft kostenlos auf deinem Rechner, nichts
+  die Ergebnisse sind etwas schwächer als mit Claude – Anleitung in der App). Möglich sind auch **OpenAI, Mistral** und **Ollama** (läuft kostenlos auf deinem Rechner, nichts
   verlässt ihn). Den Schlüssel hinterlegst du unter Einstellungen → KI; er liegt im Schlüsselbund bzw. in der
   Windows-Anmeldeinformationsverwaltung.
 - **Kosten trägst du über dein Konto beim Anbieter**, abgerechnet nach Verbrauch (bei Claude über vorher gekauftes

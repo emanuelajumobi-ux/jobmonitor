@@ -21,6 +21,7 @@ from pathlib import Path
 from . import gui_master as gm
 from . import gui_profil as gp
 from . import gui_suchprofile as gsp
+from . import gui_ki as gki
 from . import hochschulboersen, ki, llm, mailzugang, suchprofil, wohnort
 from .config import load_companies, load_config
 from .cv_data import EMAIL_RE, FORBIDDEN_KEYS, PHONE_RE, CvDataError, check_no_personal_data
@@ -207,13 +208,10 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
     kschritt = ('<p class="ok">KI ist eingerichtet: Suchprofil und Lebenslauf füllt sie für dich aus.</p>' if ki_an else
                 '<p><b>Empfohlen:</b> Mit KI holst du das meiste aus der App heraus – genauerer Fit, Suchprofil und '
                 'Lebenslauf werden für dich ausgefüllt, Anschreiben und Gesprächsvorbereitung entworfen. Ohne geht alles '
-                'auch, nur mit mehr Tipparbeit.</p><p class="muted">Die KI nutzt <b>deinen eigenen</b> '
-                'Zugang beim KI-Anbieter – empfohlen ist Claude, möglich sind auch OpenAI, Google Gemini, Mistral oder '
-                'Ollama (kostenlos auf deinem Rechner). Kosten laufen über dein Konto beim Anbieter; die App hat keinen '
-                'eigenen Zugang, und deine Daten gehen direkt dorthin, nie an den Entwickler. '
-                '<a href="/ki-anleitung">Schritt-für-Schritt-Anleitung für Claude</a> – mit allem zu Kosten und '
-                'Kontrolle. Kostenlos ausprobieren: <a href="/ki-anleitung?anbieter=gemini">Anleitung für Google '
-                'Gemini</a>.</p>'
+                'auch, nur mit mehr Tipparbeit.</p>' + gki.wahl_html() +
+                '<p class="muted">Die KI nutzt <b>deinen eigenen</b> Zugang beim Anbieter – die App hat keinen '
+                'eigenen, und deine Daten gehen direkt dorthin, nie an den Entwickler. Möglich sind auch OpenAI, '
+                'Mistral oder Ollama (kostenlos auf deinem Rechner, unter Einstellungen → KI).</p>'
                 '<a class="btn ghost small" href="/einstellungen#ki">Schlüssel hinterlegen</a>')
     zentrum = (cfg.get("ort") or {}).get("zentrum") or ""
     ort = (f'<form method="post" action="/einrichten" class="row" style="gap:8px;flex-wrap:wrap">{hidden}'
@@ -251,7 +249,7 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
             + f'<div class="card"><h2>Los geht’s</h2>{fertig}</div>')
 
 
-CSS = ".schritt.fertig h2 { color: var(--muted); } .schritt .head .ok { font-weight: 500; }"
+CSS = ".schritt.fertig h2 { color: var(--muted); } .schritt .head .ok { font-weight: 500; }" + gki.WAHL_CSS
 
 
 def ausfuehren(root: Path, form: dict, uploads: dict, ki_an: bool, ask=None) -> str:

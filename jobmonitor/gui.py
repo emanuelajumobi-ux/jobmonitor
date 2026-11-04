@@ -1362,7 +1362,7 @@ class App(BewerbungenSeiten):
                          version_html=updates.karte(self.root, cfg, self.token),
                          aus=frozenset(k for k, v in (cfg.get("sources") or {}).items()
                                        if isinstance(v, dict) and v.get("enabled") is False))
-        return self.page("Einstellungen", body, "einstellungen", gdt.CSS)
+        return self.page("Einstellungen", body, "einstellungen", gdt.CSS + gki.WAHL_CSS)
 
     def _portale(self) -> int:
         """Aktive Stellenwerk-Portale (für die Schätzung der Abrufe je Lauf)."""

@@ -397,6 +397,16 @@ TEXTE: dict[str, str] = {
     '– mit allem, was du vorher wissen willst (Kosten, Kontrolle, Datenschutz). Kostenlos ausprobieren:': '– with everything you want to know beforehand (costs, control, privacy). Try it for free:',
     '– weder deinen Schlüssel noch deine Daten. Alles läuft direkt zwischen deinem Rechner und Google.': '– neither your key nor your data. Everything runs directly between your computer and Google.',
     '– mit allem zu Kosten und Kontrolle. Kostenlos ausprobieren:': '– with everything about costs and control. Try it for free:',
+    'empfohlen': 'recommended',
+    'kostenlos': 'free',
+    'Die besten Ergebnisse – die App ist darauf abgestimmt. Bezahlt wird nach Verbrauch aus vorher gekauftem Guthaben, kein Abo; ein kleiner Betrag reicht lange.': 'The best results – the app is tuned for it. You pay by usage from prepaid credit, no subscription; a small amount lasts a long time.',
+    'Anleitung für Claude': 'Guide for Claude',
+    'Anleitung für Gemini': 'Guide for Gemini',
+    'Ohne Kreditkarte, mit Tagesgrenzen. Gut zum Ausprobieren – die Ergebnisse sind etwas schwächer als mit Claude.': 'No credit card, with daily limits. Good for trying it out – the results are somewhat weaker than with Claude.',
+    'Anleitungen:': 'Guides:',
+    'Google Gemini (kostenlos)': 'Google Gemini (free)',
+    'Die KI nutzt': 'The AI uses',
+    'Zugang beim Anbieter – die App hat keinen eigenen, und deine Daten gehen direkt dorthin, nie an den Entwickler. Möglich sind auch OpenAI, Mistral oder Ollama (kostenlos auf deinem Rechner, unter Einstellungen → KI).': 'access with the provider – the app has none of its own, and your data goes directly there, never to the developer. OpenAI, Mistral or Ollama (free on your computer, under Settings → AI) are also possible.',
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":

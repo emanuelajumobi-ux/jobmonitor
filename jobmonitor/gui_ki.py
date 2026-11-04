@@ -66,6 +66,27 @@ def speichern(root: Path, anbieter: str, modelle: dict[str, str] | None = None) 
     datei_speichern(root, "config.yaml", config_text(path.read_text(encoding="utf-8"), anbieter, modelle))
 
 
+def wahl_html() -> str:
+    """Zwei Wege zur KI nebeneinander – in Einstellungen → KI und im Einrichtungs-Assistenten."""
+    return ('<div class="ki-wahl"><div class="ki-weg empfohlen"><b>Claude</b> <span class="chip">empfohlen</span>'
+            '<p class="muted">Die besten Ergebnisse – die App ist darauf abgestimmt. Bezahlt wird nach Verbrauch aus '
+            'vorher gekauftem Guthaben, kein Abo; ein kleiner Betrag reicht lange.</p>'
+            '<a class="btn small" href="/ki-anleitung">Anleitung für Claude</a></div>'
+            '<div class="ki-weg"><b>Google Gemini</b> <span class="chip einladung">kostenlos</span>'
+            '<p class="muted">Ohne Kreditkarte, mit Tagesgrenzen. Gut zum Ausprobieren – die Ergebnisse sind etwas '
+            'schwächer als mit Claude.</p><a class="btn ghost small" href="/ki-anleitung?anbieter=gemini">Anleitung '
+            'für Gemini</a></div></div>')
+
+
+WAHL_CSS = """
+.ki-wahl { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; margin:12px 0; }
+.ki-weg { border:1px solid var(--line); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:6px;
+  align-items:flex-start; }
+.ki-weg.empfohlen { border-color:var(--accent); }
+.ki-weg p { margin:0 0 4px; }
+"""
+
+
 def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipeline: str = "",
           liste: list[str] | None = None) -> str:
     anbieter, modelle = aus_config(cfg)
@@ -115,13 +136,14 @@ def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipel
                        + form("ki_modelle_laden", '<button class="small">Modelle vom Anbieter laden</button>'))
     else:
         modell_html = ""
-    anleitung = ('<p style="margin-top:10px"><a href="/ki-anleitung"><b>Schritt-für-Schritt-Anleitung für Claude</b></a> '
-                 '– mit allem, was du vorher wissen willst (Kosten, Kontrolle, Datenschutz). Kostenlos ausprobieren: '
-                 '<a href="/ki-anleitung?anbieter=gemini">Anleitung für Google Gemini</a>.</p>')
+    anleitung = ('' if not herkunft else
+                 '<p class="muted" style="margin-top:10px">Anleitungen: <a href="/ki-anleitung">Claude</a> · '
+                 '<a href="/ki-anleitung?anbieter=gemini">Google Gemini (kostenlos)</a></p>')
     return f"""<div class="card" id="ki"><h2>KI</h2>
 <p class="muted">Die KI nutzt <b>deinen eigenen</b> Zugang beim Anbieter; Kosten laufen über dein Konto dort, nach
 Verbrauch. Gesendet werden Anzeigentexte und dein Master-CV ohne persönliche Angaben – direkt an den Anbieter, nie an
 den Entwickler dieser App. Die KI verschickt nichts.</p>
+{"" if herkunft else wahl_html()}
 {kopf}<p class="muted">{esc(a["hinweis"])}</p>{schluessel}{modell_html}{anleitung}
 <p class="muted" style="margin-top:8px">Diesen Monat aus der Oberfläche: {nutzung["aufrufe"]} von höchstens {limit}
 Aufrufen · {_zahl(nutzung["eingabe"])} Eingabe- und {_zahl(nutzung["ausgabe"])} Ausgabe-Tokens.</p>{pipeline}</div>"""
