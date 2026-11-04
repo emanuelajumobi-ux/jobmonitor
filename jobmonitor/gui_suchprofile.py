@@ -22,6 +22,7 @@ from .gui_wartung import speichern as datei_speichern
 ART = {"studium": (34, "Werkstudent, Praktikum, Abschlussarbeit"),
        "ausbildung": (4, "Ausbildung"),
        "arbeit": (1, "Feste Stelle (Berufseinstieg)"),
+       "minijob": (1, "Minijob / Aushilfe"),
        "alle": (None, "Alle Angebotsarten")}
 ROLLE_STANDARD = 25
 FACH_STANDARD = 8
@@ -97,6 +98,7 @@ def aus_formular(form: dict, cfg: dict) -> tuple[str, dict]:
                    "zielrolle": (form.get("zielrolle") or "").strip(), "absicht": (form.get("absicht") or "").strip(),
                    "ausblick": (form.get("ausblick") or "").strip(),
                    "angebotsart": ART.get(form.get("art"), ART["alle"])[0],
+                   "arbeitszeit": "mj" if form.get("art") == "minijob" else "",
                    "stufe": form.get("stufe") if form.get("stufe") in suchprofil.STUFEN else "",
                    "design": form.get("design") if form.get("design") in _design_keys() else ""}
     try:
@@ -257,7 +259,8 @@ def render_liste(token: str, cfg: dict, n_portale: int) -> str:
     aktiv = sum(1 for p in profile if p.enabled)
     zeilen = []
     for p in profile:
-        art = next((label for wert, label in ART.values() if wert == p.angebotsart), ART["alle"][1])
+        art = ART["minijob"][1] if p.arbeitszeit == "mj" else next(
+            (label for wert, label in ART.values() if wert == p.angebotsart), ART["alle"][1])
         fach = "eigenes Fachgebiet" if p.fach else "gemeinsames Fachgebiet"
         schalter = (f'<form method="post" action="/einstellungen" style="display:inline"><input type="hidden" '
                     f'name="token" value="{token}"><input type="hidden" name="aktion" value="profil"><input '
@@ -279,7 +282,8 @@ Pro Lauf {_abrufe(suchprofil.anfragen(cfg, n_portale))} (Suchen plus nachgeladen
 
 def _profil_formdaten(raw: dict) -> dict:
     such = raw.get("suchbegriffe") or {}
-    art = next((k for k, (wert, _) in ART.items() if wert == raw.get("angebotsart")), "alle")
+    art = "minijob" if raw.get("arbeitszeit") == "mj" else next(
+        (k for k, (wert, _) in ART.items() if wert == raw.get("angebotsart")), "alle")
     return {"name": raw.get("name", ""), "enabled": raw.get("enabled", True) is not False,
             "zielrolle": raw.get("zielrolle", ""), "absicht": raw.get("absicht", ""),
             "ausblick": raw.get("ausblick", ""), "art": art, "stufe": raw.get("stufe") or "",

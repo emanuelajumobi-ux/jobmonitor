@@ -436,13 +436,14 @@ def suchprofil_vorschlag(root: Path, cfg: dict, name: str, wunsch: str, cv: dict
         f"BEISPIEL EINES BESTEHENDEN PROFILS (Rollen-Wörter): {json.dumps(beispiel.get('rollen') or {}, ensure_ascii=False)}\n\n"
         "LEBENSLAUF (nur zur Einordnung von Zielrolle und Absicht):\n" + cv_text(cv)[:5000] + "\n\n"
         "Antworte nur mit JSON:\n"
-        '{"name": "...", "stufe": "ausbildung|praktikum|werkstudent|abschlussarbeit|einstieg|berufserfahren", '
-        '"art": "studium|ausbildung|arbeit|alle", "zielrolle": "...", "absicht": "...", "ausblick": "...", '
+        '{"name": "...", "stufe": "ausbildung|praktikum|werkstudent|abschlussarbeit|einstieg|minijob|berufserfahren", '
+        '"art": "studium|ausbildung|arbeit|minijob|alle", "zielrolle": "...", "absicht": "...", "ausblick": "...", '
         '"rollen": {"werkstudent": 30}, "such_bundesagentur": ["..."], "such_stellenwerk": ["..."], '
         '"fachgebiet": "gemeinsam|eigen", "fach": {"stichwort": 10}, "fit_begriffe": {"Begriff": ["synonym"]}}\n'
         "- stufe: die Karrierestufe der gesuchten Stellen.\n"
         "- art: studium = Werkstudent/Praktikum/Abschlussarbeit, ausbildung = Ausbildung/duales Studium, "
-        "arbeit = feste Stelle (Einstieg oder mit Erfahrung).\n"
+        "arbeit = feste Stelle (Einstieg oder mit Erfahrung), minijob = Minijob, Aushilfe oder Nebenjob auf "
+        "geringfügiger Basis.\n"
         "- rollen: Wörter, die im Stellentitel stehen (klein geschrieben), Punkte 15 bis 30.\n"
         f"- such_bundesagentur und such_stellenwerk: je höchstens {max_begriffe} kurze Suchbegriffe, wie man sie in "
         "eine Jobsuche tippt (z. B. „Werkstudent Data Engineering“).\n"
@@ -460,7 +461,7 @@ def suchprofil_vorschlag(root: Path, cfg: dict, name: str, wunsch: str, cv: dict
             if isinstance(d, dict) else ""
     out = {
         "name": str(antwort.get("name") or name), "art": antwort.get("art") if antwort.get("art") in
-        ("studium", "ausbildung", "arbeit", "alle") else "studium", "zielrolle": str(antwort.get("zielrolle") or ""),
+        ("studium", "ausbildung", "arbeit", "minijob", "alle") else "studium", "zielrolle": str(antwort.get("zielrolle") or ""),
         "stufe": antwort.get("stufe") if antwort.get("stufe") in STUFEN else "",
         "absicht": str(antwort.get("absicht") or ""), "ausblick": str(antwort.get("ausblick") or ""),
         "rollen": zeilen(antwort.get("rollen")),

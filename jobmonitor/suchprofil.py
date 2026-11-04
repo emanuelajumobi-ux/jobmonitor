@@ -33,6 +33,9 @@ STUFEN: dict[str, dict] = {
     "einstieg": {"name": "Berufseinstieg / Junior", "art": "arbeit",
                  "rollen": {"junior": 30, "berufseinsteiger": 30, "berufseinstieg": 28, "trainee": 28,
                             "graduate": 26, "absolvent": 26, "entry level": 28}},
+    "minijob": {"name": "Minijob / Aushilfe", "art": "minijob",
+                "rollen": {"minijob": 30, "aushilfe": 28, "aushilfskraft": 28, "geringfügig": 26,
+                           "geringfügige beschäftigung": 26, "nebenjob": 24, "mini-job": 28}},
     "berufserfahren": {"name": "Berufserfahren", "art": "arbeit",
                        "rollen": {"referent": 22, "referentin": 22, "spezialist": 22, "specialist": 22,
                                   "sachbearbeiter": 20, "berater": 20, "beraterin": 20, "consultant": 20,
@@ -61,6 +64,7 @@ class Profil:
     ausblick: str = ""                # Anschreiben: Schlusssatz vor dem Gruß
     suchbegriffe: dict[str, list[str]] = field(default_factory=dict)   # je Quelle
     angebotsart: int | None = None    # Bundesagentur: 1 = Arbeit, 34 = Praktikum/Trainee/Werkstudent
+    arbeitszeit: str = ""             # Bundesagentur: „mj“ = Minijob (sonst alle Arbeitszeiten)
     ats_suchbegriffe: list[str] = field(default_factory=list)
     ausschluss_titel: list[str] = field(default_factory=list)   # zusätzlich zu filter.ausschluss_titel
     slug_begriffe: list[str] = field(default_factory=list)      # für Links auf Karriereseiten (Standard: rollen)
@@ -85,7 +89,8 @@ def _from_dict(key: str, raw: dict) -> Profil:
         key=key, name=raw.get("name") or key.capitalize(), rollen=dict(raw.get("rollen") or {}),
         zielrolle=raw.get("zielrolle") or "", absicht=raw.get("absicht") or "", ausblick=raw.get("ausblick") or "",
         suchbegriffe={q: list(v or []) for q, v in (raw.get("suchbegriffe") or {}).items()},
-        angebotsart=raw.get("angebotsart"), ats_suchbegriffe=list(raw.get("ats_suchbegriffe") or []),
+        angebotsart=raw.get("angebotsart"), arbeitszeit=str(raw.get("arbeitszeit") or ""),
+        ats_suchbegriffe=list(raw.get("ats_suchbegriffe") or []),
         ausschluss_titel=list(raw.get("ausschluss_titel") or []), slug_begriffe=list(raw.get("slug_begriffe") or []),
         fach={str(k): int(v) for k, v in (raw.get("fach") or {}).items()}, fach_max=raw.get("fach_max"),
         fit_begriffe={str(k): list(v or []) for k, v in (raw.get("fit_begriffe") or {}).items()},

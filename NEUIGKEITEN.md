@@ -3,6 +3,10 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.3.4
+
+- **Minijobs und Aushilfen:** neue Karrierestufe „Minijob / Aushilfe“ im Einrichtungs-Assistenten und bei den Suchprofilen. Die Suche bei der Bundesagentur liefert dann nur Minijobs, Rollen-Wörter wie „Aushilfe“ oder „geringfügig“ sind vorbelegt, über der Stellenliste stehen passende Filter, und Lebenslauf und Anschreiben nutzen das tabellarische Design „Kompakt“.
+
 ## 1.3.3
 
 - **Gemini im Alltag getestet und robuster:** Beim Einrichten prüft die App kurz, welche Gemini-Modelle mit deinem Schlüssel wirklich antworten (neue sind oft überlastet, ältere für neue Nutzer abgeschaltet, „Pro“ ist nicht kostenlos) und wählt diese. Ist ein Modell gerade überlastet, versucht die App es nach kurzer Pause erneut und weicht notfalls auf das zweite Modell aus – das gilt für alle Anbieter außer Claude.

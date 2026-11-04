@@ -226,7 +226,7 @@ def run(opts: Options) -> int:
         for p in profile:
             if p.begriffe("bundesagentur"):
                 ba_cfg = {**src_cfg["bundesagentur"], "suchbegriffe": p.begriffe("bundesagentur"),
-                          "angebotsart": p.angebotsart}
+                          "angebotsart": p.angebotsart, "arbeitszeit": p.arbeitszeit}
                 sources.append(("bundesagentur", BundesagenturSource(ba_cfg, fetcher, label(p))))
     hsnr_active = any(h.get("quelle") == "hsnr" and h.get("aktiv") for h in companies_doc.get("hochschulen") or [])
     if src_cfg["hsnr"]["enabled"] and hsnr_active:

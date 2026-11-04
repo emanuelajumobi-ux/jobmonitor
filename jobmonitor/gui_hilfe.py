@@ -197,8 +197,8 @@ BEGRIFFE = [
      "Angaben“: Die Anzeige nennt zu wenige Anforderungen für eine faire Zahl."),
     ("Suchprofil", "Was du suchst: Rollen-Wörter im Titel, Suchbegriffe je Quelle, Fachgebiet, Karrierestufe und Design. "
      "Mehrere Profile gleichzeitig sind möglich."),
-    ("Karrierestufe", "Ausbildung, Praktikum, Werkstudent, Abschlussarbeit, Berufseinstieg oder Berufserfahren – füllt "
-     "Rollen-Wörter und Stellenart aus und wählt ein passendes Design."),
+    ("Karrierestufe", "Ausbildung, Praktikum, Werkstudent, Abschlussarbeit, Berufseinstieg, Minijob/Aushilfe oder "
+     "Berufserfahren – füllt Rollen-Wörter und Stellenart aus und wählt ein passendes Design."),
     ("Master-CV", "Die eine Quelle für alle Lebensläufe. Je Stelle sortiert die App passende Inhalte nach vorn – erfunden "
      "wird nichts."),
     ("Eckdaten", "Stunden, Vergütung, Remote, Start und ob eine Abschlussarbeit möglich ist – von der KI aus der Anzeige "

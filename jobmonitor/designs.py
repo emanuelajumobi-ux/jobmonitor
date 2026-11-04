@@ -38,7 +38,7 @@ DESIGNS: dict[str, dict] = {
                    "beschreibung": "Studium, Abschlussarbeit und Projekte zuerst, nüchtern gesetzt.",
                    "passt": "Abschlussarbeiten, Forschung, Promotion"},
 }
-STUFE_DESIGN = {"ausbildung": "kompakt", "abschlussarbeit": "akademisch"}
+STUFE_DESIGN = {"ausbildung": "kompakt", "abschlussarbeit": "akademisch", "minijob": "kompakt"}
 DATEI = "design.json"
 # Bewerbungssysteme, die Lebensläufe automatisch auslesen (Host der Anzeige)
 ATS_HOSTS = re.compile(r"successfactors|myworkdayjobs|workday|greenhouse|lever\.co|smartrecruiters|personio|softgarden|"

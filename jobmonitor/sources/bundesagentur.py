@@ -113,6 +113,8 @@ class BundesagenturSource:
         base = {"size": self.cfg["page_size"], "page": 1, "veroeffentlichtseit": self.cfg["veroeffentlicht_seit_tage"]}
         if self.cfg.get("angebotsart"):   # 1 = Arbeit, 34 = Praktikum/Trainee/Werkstudent; ohne = alle
             base["angebotsart"] = self.cfg["angebotsart"]
+        if self.cfg.get("arbeitszeit"):   # „mj“ = Minijob
+            base["arbeitszeit"] = self.cfg["arbeitszeit"]
         for term in self.cfg["suchbegriffe"]:
             try:
                 ort = {"wo": self.cfg["wo"], "umkreis": self.cfg["umkreis_km"]} if self.cfg.get("wo") else {}

@@ -67,6 +67,7 @@ ECK = {"h": "bis 20 h/Woche", "vz": "Vollzeit", "tz": "Teilzeit möglich", "r": 
        "t": "Abschlussarbeit möglich", "v": "Vergütung angegeben"}
 ECK_STUFE = {"werkstudent": ["h", "r", "t"], "praktikum": ["r", "v", "t"], "abschlussarbeit": ["r", "v"],
              "ausbildung": ["v", "tz"], "einstieg": ["vz", "r", "v"], "berufserfahren": ["tz", "r", "v"],
+             "minijob": ["v", "r"],
              "": ["r", "v"]}
 
 

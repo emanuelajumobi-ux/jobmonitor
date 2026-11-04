@@ -409,6 +409,12 @@ TEXTE: dict[str, str] = {
     'Zugang beim Anbieter – die App hat keinen eigenen, und deine Daten gehen direkt dorthin, nie an den Entwickler. Möglich sind auch OpenAI, Mistral oder Ollama (kostenlos auf deinem Rechner, unter Einstellungen → KI).': 'access with the provider – the app has none of its own, and your data goes directly there, never to the developer. OpenAI, Mistral or Ollama (free on your computer, under Settings → AI) are also possible.',
     "Schlüssel und Modelle werden geprüft …": "Checking key and models …",
     "Modelle werden geprüft …": "Checking models …",
+    "Minijob / Aushilfe": "Mini job / temp work",
+    "Ausbildung, Praktikum, Werkstudent, Abschlussarbeit, Berufseinstieg, Minijob/Aushilfe oder Berufserfahren – füllt "
+    "Rollen-Wörter und Stellenart aus und wählt ein passendes Design.": "Apprenticeship, internship, working student, "
+                                                                        "thesis, entry level, mini job/temp work or "
+                                                                        "experienced – fills in role words and job type "
+                                                                        "and chooses a matching design.",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":

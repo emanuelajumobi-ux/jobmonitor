@@ -141,6 +141,8 @@ def suchprofil_anlegen(root: Path, cfg: dict, wunsch: str, stufe: str, ki_an: bo
         v = ki.suchprofil_vorschlag(root, cfg, "", f"{wunsch} ({vorlage['name']})", cv,
                                     suchprofil.MAX_BEGRIFFE, ask=ask)
         form = {**v, "enabled": "1", "stufe": stufe or v.get("stufe", "")}
+        if form["stufe"] == "minijob":            # Minijob-Suche bei der Bundesagentur (arbeitszeit=mj)
+            form["art"] = "minijob"
     else:
         woerter = [w.strip() for w in re.split(r"[,\n]", wunsch) if w.strip()]
         if len(woerter) < 3:
