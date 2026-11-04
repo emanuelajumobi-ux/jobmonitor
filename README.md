@@ -25,6 +25,24 @@ ausprobieren: im Einrichtungs-Assistenten **Demo ansehen** (erfundene Beispielda
 
 <sub>Alle Bilder zeigen die Demo mit erfundenen Daten.</sub>
 
+## Was Job-Monitor anders macht
+
+Die meisten Bewerbungs-Apps kommen aus den USA, kosten ein Abo und speichern deine Daten auf ihren Servern.
+Job-Monitor ist für die Jobsuche in Deutschland gebaut:
+
+- **Kostenlos, ohne Konto, lokal:** alles bleibt auf deinem Rechner; KI nur, wenn du willst, mit deinem eigenen Zugang
+  (mit Google Gemini auch kostenlos).
+- **Erlaubte Quellen statt Scraping:** Jobsuche der Bundesagentur für Arbeit, Karriereseiten von Firmen (mit
+  robots.txt), Hochschul-Jobbörsen und deine eigenen Job-Alert-Mails. LinkedIn, StepStone und Indeed werden nicht
+  ausgelesen.
+- **Jede Karrierestufe:** Minijob, Ausbildung, Praktikum, Werkstudent, Abschlussarbeit, Berufseinstieg und
+  Berufserfahrene – mit eigenen Filtern und Suchprofilen für jedes Fach.
+- **Deutsche Bewerbung:** tabellarischer Lebenslauf und Anschreiben in fünf Designs, auf Wunsch auf Englisch.
+- **Pendelzeit statt Kilometer:** Stellen zählen, wenn sie mit Bus und Bahn in deiner Wunschzeit erreichbar oder
+  remote sind.
+- **Der ganze Weg:** Suche, Fit, Mappe, Gesprächsvorbereitung mit Übungsgespräch, Nachfassen und Rückblick.
+- **Du schickst ab:** Die App versendet nie selbst Bewerbungen oder Mails.
+
 ## Was die App macht
 
 - **Quellen:** Jobsuche der Bundesagentur für Arbeit, Arbeitnow (freie Job-Board-API), Karriereseiten von Firmen

@@ -124,6 +124,13 @@ main section.rahmen{padding-top:clamp(120px,12vw,200px)}
 .breit-kopf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(32px,5vw,80px);align-items:end}
 .breit-kopf p{max-width:40ch}
 
+/* Gemacht für Deutschland: Merkmale in zwei Spalten, ohne Kästen */
+.merkmale{list-style:none;margin:56px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:36px clamp(32px,5vw,80px)}
+.merkmale li{padding-left:28px;position:relative}
+.merkmale li::before{content:"";position:absolute;left:0;top:.45em;width:12px;height:12px;border-radius:50%;background:var(--accent)}
+.merkmale b{display:block;font-size:22px;letter-spacing:-.02em;margin-bottom:6px}
+.merkmale span{display:block;max-width:46ch}
+
 /* Datenschutz: tiefes Türkis wie das App-Icon */
 .tief{background:var(--deep);color:var(--deep-ink);margin-top:clamp(96px,12vw,200px);padding:clamp(80px,10vw,160px) 0}
 .tief .zwei{align-items:start}
@@ -200,7 +207,8 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
   .app{padding:14px}
   .zeile>button{grid-template-columns:1fr auto;padding:12px}
   .zeile .punkte{display:none}
-  .versprechen b,.schritte li b{font-size:18px}
+  .versprechen b,.schritte li b,.merkmale b{font-size:18px}
+  .merkmale{grid-template-columns:minmax(0,1fr)}
 }
 </style>
 </head>
@@ -211,7 +219,7 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
     Job-Monitor
   </a>
   <nav aria-label="Hauptnavigation">
-    <a href="#bewerben">Funktionen</a>
+    <a href="#deutschland">Funktionen</a>
     <a href="#daten">Datenschutz</a>
     <a href="#installieren">Installieren</a>
     <a href="#fragen">Fragen</a>
@@ -263,6 +271,21 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
     <p class="fuss">Beispieldaten. Tippe auf eine Stelle für „passt“ und „fehlt“.</p>
   </div>
 </div>
+
+<section class="rahmen" id="deutschland">
+  <div class="breit-kopf">
+    <h2 class="auf">Gemacht für Deutschland.</h2>
+    <p class="auf">Die meisten Bewerbungs-Apps kommen aus den USA, kosten ein Abo und speichern deine Daten bei sich. Job-Monitor ist kostenlos, läuft auf deinem Rechner und kennt den deutschen Arbeitsmarkt.</p>
+  </div>
+  <ul class="merkmale">
+    <li class="auf"><b>Echte Quellen, kein Scraping</b><span>Jobsuche der Bundesagentur für Arbeit, Karriereseiten von Firmen und Hochschul-Jobbörsen. LinkedIn, StepStone und Indeed werden nicht ausgelesen; ihre Job-Alerts kannst du aus deinem Postfach einlesen.</span></li>
+    <li class="auf"><b>Jede Karrierestufe</b><span>Minijob, Ausbildung, Praktikum, Werkstudent, Abschlussarbeit, Berufseinstieg und Berufserfahrene, mit passenden Filtern und Suchprofilen für jedes Fach.</span></li>
+    <li class="auf"><b>Bewerbung nach deutschem Muster</b><span>Tabellarischer Lebenslauf und Anschreiben in fünf Designs, auf Wunsch auch auf Englisch.</span></li>
+    <li class="auf"><b>Pendelzeit statt Kilometer</b><span>Stellen zählen, wenn du sie mit Bus und Bahn in deiner Wunschzeit erreichst, oder wenn sie remote sind.</span></li>
+    <li class="auf"><b>Der ganze Weg in einer App</b><span>Suche, Fit, Mappe, Gesprächsvorbereitung mit Übungsgespräch, Erinnerung ans Nachfassen und Rückblick.</span></li>
+    <li class="auf"><b>Ohne Abo</b><span>Die App kostet nichts. KI nutzt du mit deinem eigenen Zugang, mit Google Gemini auch kostenlos.</span></li>
+  </ul>
+</section>
 
 <section class="rahmen" id="bewerben">
   <div class="zwei">
@@ -336,6 +359,7 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
   <div class="auf">
     <details><summary>Kostet das etwas?</summary><p>Nein. Die App ist kostenlos und Open Source. Nur wenn du KI nutzt, zahlst du den Anbieter direkt nach Verbrauch, oder du nimmst das kostenlose Kontingent von Google Gemini.</p></details>
     <details><summary>Brauche ich KI?</summary><p>Nein, die App funktioniert ohne. Mit KI werden Fit, Anschreiben und Gesprächsvorbereitung deutlich besser. Mit Gemini sind die Ergebnisse etwas schwächer als mit Claude.</p></details>
+    <details><summary>Was ist anders als bei anderen Bewerbungs-Apps?</summary><p>Job-Monitor ist kostenlos, ohne Abo und ohne Konto, und deine Daten bleiben auf deinem Rechner. Die App ist auf Deutschland ausgelegt: Stellen der Bundesagentur für Arbeit, Werkstudent, Minijob und Ausbildung, tabellarischer Lebenslauf und Pendelzeit mit Bus und Bahn. Jobbörsen werden nicht ausgelesen, und abgeschickt wird nur, was du selbst abschickst.</p></details>
     <details><summary>Für wen ist das?</summary><p>Für alle, die suchen: Minijob, Ausbildung, Werkstudent, Praktikum, Abschlussarbeit oder Berufseinstieg, in jeder Fachrichtung.</p></details>
     <details><summary>Brauche ich ein GitHub-Konto?</summary><p>Nein. Download und Updates kommen von GitHub, ein Konto brauchst du dafür nicht. Neue Versionen zeigt dir die App selbst an.</p></details>
     <details><summary>Läuft das auf dem Handy?</summary><p>Nein, Job-Monitor ist eine App für Mac und Windows.</p></details>
