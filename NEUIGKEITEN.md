@@ -3,6 +3,10 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## Unveröffentlicht
+
+- **Google Gemini zuverlässiger:** Die Modellliste kommt notfalls über Googles eigene Schnittstelle, und die App schlägt Flash-Modelle vor, die im kostenlosen Kontingent enthalten sind.
+
 ## 1.3.0
 
 - **Übungsgespräch:** Unter Bewerbungen → Gespräche (oder auf der Bewerbungsseite) spielt die KI das Vorstellungsgespräch für die konkrete Stelle durch – fünf Fragen, nach jeder Antwort eine kurze Rückmeldung, am Ende eine Zusammenfassung. Auf Wunsch auf Englisch.

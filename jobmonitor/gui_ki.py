@@ -98,7 +98,7 @@ def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipel
     if anbieter == "claude":
         modell_html = ""
     elif liste:
-        v = {**vorschlag(liste), **{k: w for k, w in modelle.items() if w in liste}}
+        v = {**vorschlag(liste, anbieter), **{k: w for k, w in modelle.items() if w in liste}}
         opts = lambda wahl_: "".join(f'<option{" selected" if m == wahl_ else ""}>{esc(m)}</option>'  # noqa: E731
                                      for m in liste)
         modell_html = form("ki_modelle", f'<div><label>Schnelles Modell (tägliche Suche)</label><select name="schnell" '

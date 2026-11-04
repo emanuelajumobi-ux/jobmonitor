@@ -556,6 +556,9 @@ TEXTE: dict[str, str] = {
         "Recommended – the app is tuned for Claude (prompt caching, fallback model on refusal).",
     "Abrechnung über dein OpenAI-Konto.": "Billed via your OpenAI account.",
     "Abrechnung über Google AI Studio.": "Billed via Google AI Studio.",
+    "Kostenloses Kontingent über Google AI Studio (Grenzen je Modell, „Pro“ meist nur bezahlt); darüber hinaus "
+    "Abrechnung über dein Google-Konto.": "Free quota via Google AI Studio (limits per model, “Pro” usually paid only); "
+                                         "beyond that billed via your Google account.",
     "Anbieter mit Sitz in Frankreich.": "Provider based in France.",
     "Läuft auf deinem Rechner, nichts verlässt ihn. Braucht einen kräftigen Rechner; Ergebnisse sind meist schwächer "
     "als bei den großen Anbietern.": "Runs on your computer, nothing leaves it. Needs a powerful computer; results are "

@@ -20,7 +20,9 @@ ANBIETER: dict[str, dict] = {
     "openai": {"name": "OpenAI (ChatGPT)", "basis": "https://api.openai.com/v1",
                "schluessel_url": "https://platform.openai.com/api-keys", "hinweis": "Abrechnung über dein OpenAI-Konto."},
     "gemini": {"name": "Google Gemini", "basis": "https://generativelanguage.googleapis.com/v1beta/openai",
-               "schluessel_url": "https://aistudio.google.com/apikey", "hinweis": "Abrechnung über Google AI Studio."},
+               "schluessel_url": "https://aistudio.google.com/apikey",
+               "hinweis": "Kostenloses Kontingent über Google AI Studio (Grenzen je Modell, „Pro“ meist nur bezahlt); "
+                          "darüber hinaus Abrechnung über dein Google-Konto."},
     "mistral": {"name": "Mistral (EU)", "basis": "https://api.mistral.ai/v1",
                 "schluessel_url": "https://console.mistral.ai/api-keys", "hinweis": "Anbieter mit Sitz in Frankreich."},
     "ollama": {"name": "Ollama (lokal, kostenlos)", "basis": "http://localhost:11434/v1", "ohne_schluessel": True,
@@ -63,11 +65,32 @@ def modelle(anbieter: str, schluessel: str | None, get=requests.get) -> list[str
         raise AnbieterError(f"{a['name']} nicht erreichbar ({exc.__class__.__name__}).") from None
     if resp.status_code in (401, 403):
         raise AnbieterError("Der Schlüssel wurde abgelehnt – bitte prüfen (ganz kopiert, beim richtigen Anbieter?).")
+    if resp.status_code != 200 and anbieter == "gemini":
+        return _gemini_nativ(schluessel, get)     # die OpenAI-kompatible Liste antwortet bei Google teils mit 501
     if resp.status_code != 200:
         raise AnbieterError(f"{a['name']} antwortet mit Fehler {resp.status_code}.")
+    return _filtern([m.get("id") for m in (resp.json().get("data") or [])])
+
+
+def _gemini_nativ(schluessel: str | None, get) -> list[str]:
+    """Modellliste über Googles eigene Schnittstelle (nur Modelle, die Text erzeugen können)."""
+    try:
+        resp = get("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", timeout=15,
+                   headers={"x-goog-api-key": schluessel or ""})
+    except requests.RequestException as exc:
+        raise AnbieterError(f"Google Gemini nicht erreichbar ({exc.__class__.__name__}).") from None
+    if resp.status_code in (400, 401, 403):
+        raise AnbieterError("Der Schlüssel wurde abgelehnt – bitte prüfen (ganz kopiert, beim richtigen Anbieter?).")
+    if resp.status_code != 200:
+        raise AnbieterError(f"Google Gemini antwortet mit Fehler {resp.status_code}.")
+    return _filtern([m.get("name") for m in resp.json().get("models") or []
+                     if "generateContent" in (m.get("supportedGenerationMethods") or ["generateContent"])])
+
+
+def _filtern(roh: list) -> list[str]:
     ids = []
-    for m in (resp.json().get("data") or []):
-        mid = str(m.get("id") or "").removeprefix("models/")
+    for mid in roh:
+        mid = str(mid or "").removeprefix("models/")
         if mid and not OHNE.search(mid) and mid not in ids:
             ids.append(mid)
     if not ids:
@@ -75,9 +98,17 @@ def modelle(anbieter: str, schluessel: str | None, get=requests.get) -> list[str
     return sorted(ids)
 
 
-def vorschlag(ids: list[str]) -> dict[str, str]:
-    """Vorschlag für schnell/gut aus der Modell-Liste (neueste Namen zuerst durch umgekehrte Sortierung)."""
+def vorschlag(ids: list[str], anbieter: str = "") -> dict[str, str]:
+    """Vorschlag für schnell/gut aus der Modell-Liste (neueste Namen zuerst durch umgekehrte Sortierung).
+    Gemini: beide aus der Flash-Reihe – Pro-Modelle sind im kostenlosen Kontingent oft nicht enthalten."""
     neu = sorted(ids, reverse=True)
+    if anbieter == "gemini":
+        flash = [m for m in neu if "flash" in m and "image" not in m and "live" not in m and "tts" not in m]
+        stabil = [m for m in flash if "preview" not in m and "exp" not in m] or flash
+        lite = [m for m in stabil if "lite" in m]
+        voll = [m for m in stabil if "lite" not in m]
+        if voll or lite:
+            return {"schnell": (lite or voll)[0], "gut": (voll or lite)[0]}
     schnell = next((m for m in neu if SCHNELL.search(m)), neu[0])
     gut = next((m for m in neu if GUT.search(m) and not SCHNELL.search(m)), next((m for m in neu if m != schnell), schnell))
     return {"schnell": schnell, "gut": gut}
@@ -97,6 +128,10 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
         resp = post(f"{a['basis']}/chat/completions", json=body, headers=headers, timeout=180)
     except requests.RequestException as exc:
         log.warning("%s nicht erreichbar (%s)", a["name"], exc.__class__.__name__)
+        return None
+    if resp.status_code == 429:
+        log.warning("%s: Kontingent erschöpft (zu viele Anfragen pro Minute oder Tag) – später erneut versuchen",
+                    a["name"])
         return None
     if resp.status_code != 200:
         log.warning("%s-Fehler %s: %s", a["name"], resp.status_code, resp.text[:200])

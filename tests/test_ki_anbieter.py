@@ -95,3 +95,28 @@ def test_claude_anleitung(root):  # noqa: F811
     html = App(root, compile_pdf=False).ki_anleitung().decode()
     for text in ("Kein Abo", "nicht zum", "bekommt nichts", "Auto-reload", "Create Key", "jederzeit aufhören"):
         assert text in html
+
+
+def test_gemini_modellliste_ausweichen_und_vorschlag():
+    class Antwort:
+        def __init__(self, status, data):
+            self.status_code, self._data = status, data
+
+        def json(self):
+            return self._data
+
+    aufrufe = []
+
+    def get(url, **kw):
+        aufrufe.append(url)
+        if "/openai/" in url:
+            return Antwort(501, {})
+        return Antwort(200, {"models": [
+            {"name": "models/gemini-3.1-pro", "supportedGenerationMethods": ["generateContent"]},
+            {"name": "models/gemini-3.1-flash", "supportedGenerationMethods": ["generateContent"]},
+            {"name": "models/gemini-3.1-flash-lite", "supportedGenerationMethods": ["generateContent"]},
+            {"name": "models/gemini-3.1-flash-preview", "supportedGenerationMethods": ["generateContent"]},
+            {"name": "models/text-embedding-005", "supportedGenerationMethods": ["embedContent"]}]})
+    ids = ki_anbieter.modelle("gemini", "AIza-test", get=get)
+    assert len(aufrufe) == 2 and "text-embedding-005" not in ids and "gemini-3.1-pro" in ids
+    assert ki_anbieter.vorschlag(ids, "gemini") == {"schnell": "gemini-3.1-flash-lite", "gut": "gemini-3.1-flash"}
