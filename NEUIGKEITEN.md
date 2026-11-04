@@ -5,6 +5,9 @@ Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was
 
 ## Unveröffentlicht
 
+- **Übungsgespräch:** Unter Bewerbungen → Gespräche (oder auf der Bewerbungsseite) spielt die KI das Vorstellungsgespräch für die konkrete Stelle durch – fünf Fragen, nach jeder Antwort eine kurze Rückmeldung, am Ende eine Zusammenfassung. Auf Wunsch auf Englisch.
+- **Neue KI-Helfer:** „Was dein Lebenslauf noch belegt“ und „Lebenslauf-Check“ im Master-CV, „Fit erklärt“ und Antworten auf Freitextfragen aus Bewerbungsportalen auf der Bewerbungsseite, Hinweise an Stellen, die nicht halten, was der Titel verspricht (z. B. „verlangt Berufserfahrung“), und „Muster aus Absagen“ im Rückblick.
+- **Günstiger:** Ältere Stellen liest die tägliche Suche jetzt gesammelt über die Batch-Schnittstelle von Anthropic nach – zum halben Preis.
 - **Genauerer Fit:** Mit KI entscheidet die KI, was eine Anzeige wirklich verlangt – Stichwort-Treffer wie „Richtlinien“ (wegen „Dokumentation“) oder „Hardware“ (wegen „Clients“) fallen weg, und Anforderungen außerhalb der Begriffsliste (z. B. Java, React, SAP) zählen mit und werden direkt mit deinem Lebenslauf abgeglichen. Ohne KI: aufgeräumte Begriffsliste mit weniger Fehltreffern und neuen Begriffen für Softwareentwicklung. Gespeicherte Stellen werden nach und nach neu bewertet.
 - **Eigene Stelle mit KI:** Ist ein KI-Schlüssel hinterlegt, liest die KI auch bei selbst eingefügten Anzeigen die Anforderungen (Pflicht oder Wunsch, Sprachen, Eckdaten) – wie bei den gefundenen Stellen.
 - **Windows: schnellerer, sichtbarer Start.** Beim Doppelklick erscheint sofort ein Startbild, bis das Fenster da ist. Die Programmdateien werden nur noch geprüft, wenn Windows sie nach dem Herunterladen neu markiert hat.

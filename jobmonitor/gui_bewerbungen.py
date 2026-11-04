@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from html import escape
+from urllib.parse import quote
 
 from . import antworten as aw
 from . import gui_gespraech as ggs
@@ -125,7 +126,9 @@ def _gespraech_item(r: dict, token: str, esc, fit: dict, im_kalender: set, ki_te
             f'<p class="muted">{esc(titel)}</p></div><form method="post" action="/bewerbungen/termin" class="row">'
             f'{hidden}{aktion}</form></div><details{" open" if link == offen_link else ""}>'
             f'<summary>Darauf vorbereiten</summary>'
-            f'{_vorbereitung(link, token, esc, punkte, (ki_texte or {}).get(link), ki_an)}</details>'
+            f'{_vorbereitung(link, token, esc, punkte, (ki_texte or {}).get(link), ki_an)}'
+            f'<p style="margin-top:8px"><a class="btn ghost small" href="/uebung?link={quote(link, safe="")}">'
+            f'Gespräch üben (KI)</a></p></details>'
             f'{_firmenprofil(link, r.get("firma", ""), token, esc, (profile or {}).get(str(r.get("firma", "")).lower()), ki_an)}'
             f'{ggs.nachbereitung_html(link, (notizen or {}).get(link), token, ki_an) if termin else ""}'
             f'</li>')

@@ -130,6 +130,7 @@ AUFGABEN = [
         "(Mac: Kalender, Windows: Kalenderdatei).",
         "<b>Darauf vorbereiten</b>: wahrscheinliche Fragen und passende Beispiele aus deinem Lebenslauf; mit KI ausführlich.",
         "<b>Firmenprofil</b>: kurze Zusammenfassung der Firma aus ihrer Webseite.",
+        "<b>Gespräch üben (KI)</b>: Die KI stellt dir fünf Fragen zur Stelle und gibt nach jeder Antwort Rückmeldung.",
         "Nach dem Gespräch Notizen und Bauchgefühl festhalten; die KI entwirft eine Danke-Mail, die du selbst schickst."],
      "gespräch interview vorbereitung termin danke"),
     ("nachfassen", "Wie fasse ich nach, wenn keine Antwort kommt?", [

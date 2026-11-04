@@ -338,6 +338,22 @@ TEXTE: dict[str, str] = {
     "Neue App laden und die alte ersetzen – deine Daten bleiben.": "Download the new app and replace the old one – your "
                                                                   "data stays.",
     "KI liest die Anforderungen der Anzeige …": "AI is reading the ad's requirements …",
+    ": Die KI stellt dir fünf Fragen zur Stelle und gibt nach jeder Antwort Rückmeldung.":
+        ": the AI asks you five questions about the job and gives feedback after each answer.",
+    "Übungsgespräch": "Practice interview", "Gespräch üben": "Practice interview", "Gespräch üben (KI)":
+        "Practice interview (AI)", "Gespräch beginnen": "Start interview", "Antwort senden": "Send answer",
+    "Deine Antwort": "Your answer", "Rückmeldung": "Feedback", "Zusammenfassung": "Summary",
+    "Neues Gespräch": "New interview", "Abbrechen und neu beginnen": "Cancel and start over",
+    "auf Englisch üben": "practise in English", "So funktioniert es": "How it works",
+    "KI bereitet das Gespräch vor …": "AI is preparing the interview …", "KI hört zu …": "AI is listening …",
+    "Fit erklärt": "Fit explained", "Fit erklären": "Explain fit", "Neu erklären": "Explain again",
+    "KI erklärt den Fit …": "AI is explaining the fit …", "Fragen im Portal": "Portal questions",
+    "Antwort entwerfen": "Draft answer", "KI beantwortet die Frage …": "AI is answering the question …",
+    "Was dein Lebenslauf noch belegt": "What else your CV shows", "Mit KI prüfen": "Check with AI",
+    "Erneut prüfen": "Check again", "Ausgewählte als Kenntnisse eintragen": "Add selected as skills",
+    "Lebenslauf-Check": "CV check", "Formulierungen prüfen": "Check wording",
+    "KI prüft die Formulierungen …": "AI is checking the wording …", "Muster aus Absagen": "Patterns in rejections",
+    "Muster suchen": "Find patterns", "Neu auswerten": "Analyse again", "KI sucht Muster …": "AI is looking for patterns …",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
     "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
     "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":

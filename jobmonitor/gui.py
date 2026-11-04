@@ -721,6 +721,10 @@ class App(BewerbungenSeiten):
                        + sprache.auswahl_html(self.token, ziel, lang, sprache.erkennen(anzeige_text), hat_en,
                                               bool(ki.schluessel()), esc)
                        + ki_extra.fit_erklaert_html(self.root, stelle, ziel, self.token, bool(ki.schluessel()), esc)
+                       + (f'<div class="card"><h2>Gespräch üben</h2><p class="muted">Die KI stellt dir Fragen, wie sie '
+                          f'im Gespräch für diese Stelle kommen könnten, und gibt nach jeder Antwort Rückmeldung.</p>'
+                          f'<a class="btn ghost small" href="/uebung?link={quote(stelle.get("url") or "", safe="")}">'
+                          f'Übungsgespräch</a></div>' if ki.schluessel() and stelle.get("url") else "")
                        + gbw.anzeige_karte(self.token, ziel, stelle, anzeige_text, gesichert)
                        + self.portal_karte(folder, cfg, stelle, data, lang, ziel))
         body = gbw.render(slug, stelle, data, fit_line(job), bw.files(folder), anlagen, self.token, message, ki_an,

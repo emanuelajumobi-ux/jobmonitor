@@ -87,6 +87,8 @@ def handler_for(app: App, server_ref: list):
                 return self._send(app.index(show_hidden=alle, nur_traum=traum, profil=profil))
             if path == "/master":
                 return self._send(app.master())
+            if path == "/uebung":
+                return self._send(app.uebung_seite(parse_qs(query).get("link", [""])[0]))
             if path == "/einrichten":
                 return self._send(app.einrichten())
             if path == "/ki-anleitung":
@@ -245,6 +247,8 @@ def handler_for(app: App, server_ref: list):
             if self.path == "/oeffnen":
                 ok = app.open_file(form.get("pfad", ""))
                 return self._send(b"ok" if ok else b"nicht gefunden", "text/plain; charset=utf-8", 200 if ok else 404)
+            if self.path == "/uebung":
+                return self._send(app.uebung_post(form))
             if self.path == "/ki":
                 return self._send(app.ki_aktion(form))
             if self.path == "/update":

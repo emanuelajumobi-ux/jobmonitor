@@ -163,6 +163,63 @@ class BewerbungenSeiten:
         return self.bewerbungen(f'<div class="card"><p class="ok">{neu} Karte(n) im Anki-Stapel „{esc(stapel)}“ angelegt.'
                                 f'{esc(rest)} Viel Erfolg beim Üben!</p></div>', offen_link=link)
 
+    def _uebung_stelle(self, link: str) -> tuple[dict, str, bool] | None:
+        """(Stelle, Anzeigentext, Englisch vorgeschlagen) für ein Übungsgespräch – aus der Bewerbungsliste oder einem
+        Bewerbungsordner."""
+        from . import bewerbung as bw
+        from . import sprache
+        cfg = load_config(self.root / "config.yaml")
+        row = next((r for r in tracking.load(self.root / "applications.csv") if r.get("link") == link), None)
+        ordner = next((f for f in bw.workspaces(self.root, cfg) if bw.meta(f).get("url") == link), None)
+        if row is None and ordner is None:
+            return None
+        d = next((x for x in self.jobs() if x["url"] == link), None) or {}
+        meta = bw.meta(ordner) if ordner else {}
+        stelle = {"title": d.get("title") or meta.get("title") or ((row or {}).get("notizen") or "").split("\n")[0]
+                  or "Stelle", "company": (row or {}).get("firma") or meta.get("company") or "",
+                  "anforderungen": d.get("anforderungen") or meta.get("anforderungen") or {}}
+        cache = ordner / "anzeige.txt" if ordner else None
+        try:
+            anzeige = ki.anzeige(self.root, link, fetcher_from(cfg), cache)
+        except Exception:
+            anzeige = ""
+        return stelle, anzeige, bool(ordner and sprache.fuer_bewerbung(ordner) == "en")
+
+    def uebung_seite(self, link: str, message: str = "") -> bytes:
+        from . import uebung
+        gefunden = self._uebung_stelle(link)
+        if gefunden is None:
+            return self.bewerbungen('<div class="card err">Bewerbung nicht gefunden.</div>')
+        stelle, _, en = gefunden
+        body = message + uebung.render(link, stelle["title"], stelle["company"], uebung.laden(self.root, link),
+                                       self.token, bool(ki.schluessel()), esc, en)
+        return self.page("Übungsgespräch", body, "bewerbungen", uebung.CSS)
+
+    def uebung_post(self, form: dict) -> bytes:
+        from . import uebung
+        link, aktion = form.get("link", ""), form.get("aktion", "")
+        gefunden = self._uebung_stelle(link)
+        if gefunden is None:
+            return self.bewerbungen('<div class="card err">Bewerbung nicht gefunden.</div>')
+        stelle, anzeige, _ = gefunden
+        cfg = load_config(self.root / "config.yaml")
+        try:
+            if aktion == "neu":
+                uebung.beenden(self.root, link)
+                return self.uebung_seite(link)
+            cv, _ = load_cv_master(self.root)
+            if not cv:
+                raise ki.KiError("Keine cv_master.yaml – ohne Lebenslauf kann die KI nichts zuordnen.")
+            if aktion == "start":
+                uebung.starten(self.root, cfg, link, stelle, anzeige, cv, bool(form.get("englisch")))
+            elif aktion == "antwort":
+                if not form.get("antwort", "").strip():
+                    return self.uebung_seite(link, '<div class="card err">Bitte eine Antwort eingeben.</div>')
+                uebung.antworten(self.root, cfg, link, form["antwort"], anzeige, cv)
+        except (ki.KiError, CvDataError) as exc:
+            return self.uebung_seite(link, f'<div class="card err">{esc(exc)}</div>')
+        return self.uebung_seite(link)
+
     def vorbereitung(self, form: dict) -> bytes:
         """Gesprächsvorbereitung mit KI für eine Bewerbung aus der Karte „Gespräche“."""
         cfg = load_config(self.root / "config.yaml")
