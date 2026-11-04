@@ -104,10 +104,11 @@ werden hier übersprungen – diese Seiten werden aus Urheberrechtsgründen nich
 Die tägliche Suche kann auch als GitHub Action in einem **privaten** Fork laufen (eigene Daten nie in ein öffentliches
 Repo committen).
 
-## Unterstützen
+## Weiterempfehlen
 
-Job-Monitor ist kostenlos und bleibt es. Wenn dir die App bei der Jobsuche geholfen hat, freue ich mich über eine
-kleine, freiwillige Unterstützung: [paypal.me/EmanuelAjumobi](https://www.paypal.me/EmanuelAjumobi).
+Job-Monitor ist ein privates, kostenloses Open-Source-Projekt und bleibt es. Wenn dir die App bei der Jobsuche geholfen
+hat, erzähl anderen davon – am besten mit dem Link zur Website:
+[emanuelajumobi-ux.github.io/jobmonitor](https://emanuelajumobi-ux.github.io/jobmonitor/).
 
 ## Lizenz
 
