@@ -119,6 +119,7 @@ def ki_kuerzen(root: Path, cfg: dict, folder: Path, key: str, text: str, grenze:
 
 def render(felder_: list[dict], token: str, ziel: str, grenze: int, ki_an: bool, ki_texte: dict) -> str:
     """Karte „Für Bewerbungsportale“ mit Kopier-Knöpfen; lange Felder mit Zeichenzähler und Grenze."""
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     zeilen, kurz = [], []
     for f in felder_:
         if not f["wert"]:
@@ -161,6 +162,7 @@ def render(felder_: list[dict], token: str, ziel: str, grenze: int, ki_an: bool,
 
 def fragen_html(fragen: list[dict], token: str, ziel: str, grenze: int, ki_an: bool) -> str:
     """Freitextfragen des Portals („Warum möchten Sie bei uns arbeiten?“) mit KI-Antwort zum Kopieren."""
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     if not ki_an and not fragen:
         return ""
     liste = "".join(

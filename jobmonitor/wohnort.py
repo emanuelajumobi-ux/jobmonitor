@@ -95,6 +95,7 @@ def speichern(root: Path, stadt: str, tabelle: dict[str, int]) -> Path:
 
 
 def karte(token: str, ort_cfg: dict, ki_an: bool, esc) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     from .location import zentrum as wohnort
     zentrum = wohnort(ort_cfg)
     n = len(ort_cfg.get("fahrzeiten") or {}) or None

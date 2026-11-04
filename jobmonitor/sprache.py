@@ -185,6 +185,7 @@ def uebersetzen(root: Path, cfg: dict, cv: dict, ask=None) -> Path:
 
 def auswahl_html(token: str, ziel: str, aktuell: str, vorschlag: str | None, hat_en: bool, ki_an: bool, esc) -> str:
     """Karte „Sprache der Bewerbung“ auf der Bewerbungsseite."""
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     optionen = "".join(f'<option value="{k}"{" selected" if k == aktuell else ""}>{v}</option>'
                        for k, v in SPRACHEN.items())
     hinweis = ""

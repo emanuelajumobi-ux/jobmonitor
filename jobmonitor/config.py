@@ -1,6 +1,7 @@
 """Laden von config.yaml und companies.yaml (companies mit Round-Trip, damit Kommentare erhalten bleiben)."""
 from __future__ import annotations
 
+import copy
 import os
 from pathlib import Path
 
@@ -21,8 +22,22 @@ def _yaml() -> YAML:
     return y
 
 
+_CACHE: dict = {}
+
+
 def load_config(path: Path | None = None) -> dict:
-    with open(path or ROOT / "config.yaml", encoding="utf-8") as fh:
+    """Liest config.yaml. Gleiche Datei mit gleichem Stand (Änderungszeit und Größe) wird nur einmal geparst;
+    jeder Aufruf bekommt eine eigene Kopie, Änderungen daran wirken also nicht zurück."""
+    pfad = Path(path or ROOT / "config.yaml")
+    st = pfad.stat()
+    schluessel = (str(pfad.resolve()), st.st_mtime_ns, st.st_size)
+    if _CACHE.get("schluessel") != schluessel:
+        _CACHE.update(schluessel=schluessel, cfg=_load_config(pfad))
+    return copy.deepcopy(_CACHE["cfg"])
+
+
+def _load_config(path: Path) -> dict:
+    with open(path, encoding="utf-8") as fh:
         cfg = YAML(typ="safe").load(fh)
     # Fit-Begriffe der Suchprofile (z. B. eines Profils mit eigenem Fachgebiet) ergänzen fit.begriffe. Sie gelten für
     # alle Stellen: ein zusätzlich erkannter Begriff macht den Fit nur genauer.

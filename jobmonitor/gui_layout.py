@@ -5,6 +5,7 @@ gestaltet, damit alle Seiten einheitlich aussehen. Farben: Akzent wie im Lebensl
 """
 from __future__ import annotations
 
+import re
 from html import escape
 
 ICONS = {
@@ -66,6 +67,21 @@ NAV = [
     ("einstellungen", "Einstellungen", "/einstellungen", "System"),
     ("hilfe", "Anleitung", "/hilfe", "System"),
 ]
+
+
+KI_KNOPF = re.compile(r'<button([^>]*?)\sdata-ki="[^"]*"([^>]*)>')
+KI_AUS_TITEL = "Braucht KI – einrichten unter Einstellungen → KI"
+
+
+def ki_aus(html: str) -> str:
+    """Ohne eingerichtete KI: alle KI-Knöpfe (data-ki) ausgrauen. Ein Klick erklärt, wo man die KI einrichtet.
+    Knöpfe mit data-ki-immer (Schlüssel speichern, Update laden) bleiben bedienbar."""
+    def ersetzen(m: re.Match) -> str:
+        if "data-ki-immer" in m.group(0):
+            return m.group(0)
+        attrs = re.sub(r'\stitle="[^"]*"', "", m.group(1) + m.group(2))
+        return f'<button{attrs} data-ki-aus aria-disabled="true" title="{KI_AUS_TITEL}">'
+    return KI_KNOPF.sub(ersetzen, html)
 
 
 def icon(name: str, size: int = 18) -> str:
@@ -399,6 +415,18 @@ td.fit { white-space:nowrap; font-weight:500; width:70px; font-variant-numeric:t
   #busy div::before, button[aria-busy=true]::after { animation:pulse 1.2s ease-in-out infinite; }
 }
 @keyframes pulse { 50% { opacity:.35; } }
+/* Sprungziel (Link mit #…): mittig ins Bild und kurz farbig markiert, damit man sofort sieht, wo man gelandet ist */
+@keyframes sprungziel { 0%, 55% { box-shadow:0 0 0 3px var(--accent); background-color:var(--accent-soft); }
+  100% { box-shadow:0 0 0 3px transparent; } }
+.sprungziel { animation:sprungziel 2.4s var(--press) 1; }
+/* Ohne KI: KI-Knöpfe ausgegraut; Klick zeigt den Hinweis */
+button[data-ki-aus] { opacity:.45; cursor:not-allowed; filter:grayscale(1); }
+button[data-ki-aus]:active { transform:none; }
+.ki-hinweis { position:fixed; left:50%; bottom:28px; transform:translateX(-50%); z-index:60; max-width:min(520px, 92vw);
+  background:var(--primary); color:var(--primary-ink); border-radius:14px; padding:12px 16px; font-size:14px;
+  box-shadow:var(--shadow-lg); animation:materialize .18s var(--press); }
+.ki-hinweis a { color:inherit; font-weight:600; }
+@media (prefers-reduced-motion: reduce) { .sprungziel { animation-duration:3.5s; } }
 @media (prefers-reduced-transparency: reduce) {
   .filters { background:var(--bg); -webkit-backdrop-filter:none; backdrop-filter:none; }
   html.native body { background:var(--bg); }
@@ -449,6 +477,38 @@ html.native[data-theme=dunkel] .side { border-right-color:rgba(255,255,255,.06);
 """
 
 JS = """
+// Sprungziele: Seite mit #anker oder Klick auf einen Anker auf derselben Seite → Ziel mittig zeigen und markieren
+function sprung(id, sanft) {
+  const el = id && document.getElementById(decodeURIComponent(id));
+  if (!el) return false;
+  const leise = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.scrollIntoView({ block: el.offsetHeight > window.innerHeight * 0.8 ? 'start' : 'center',
+                      behavior: sanft && !leise ? 'smooth' : 'auto' });
+  el.classList.remove('sprungziel'); void el.offsetWidth; el.classList.add('sprungziel');
+  return true;
+}
+// Der Browser springt beim Laden selbst zum Anker (Ziel oben am Rand) – danach mittig ausrichten
+if (location.hash.length > 1) {
+  const ausrichten = () => setTimeout(() => sprung(location.hash.slice(1), false), 0);
+  if (document.readyState === 'complete') ausrichten(); else window.addEventListener('load', ausrichten, { once: true });
+}
+// Ausgegraute KI-Knöpfe: nicht absenden, sondern kurz erklären, wo man die KI einrichtet
+document.addEventListener('click', e => {
+  const b = e.target.closest('button[data-ki-aus]');
+  if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  let h = document.querySelector('.ki-hinweis');
+  if (!h) { h = document.createElement('div'); h.className = 'ki-hinweis'; h.setAttribute('role', 'status'); document.body.append(h); }
+  h.innerHTML = 'Diese Funktion braucht KI. <a href="/einstellungen#ki">KI einrichten</a> – Google Gemini geht kostenlos.';
+  clearTimeout(h._t); h._t = setTimeout(() => h.remove(), 6000);
+}, true);
+document.addEventListener('click', e => {
+  const a = e.target.closest('a[href*="#"]');
+  if (!a || a.target) return;
+  const u = new URL(a.href, location.href);
+  if (u.pathname !== location.pathname || u.search !== location.search || u.hash.length < 2) return;
+  if (sprung(u.hash.slice(1), true)) { e.preventDefault(); history.replaceState(null, '', u.hash); }
+});
 // Sofort: der gedrückte Knopf zeigt „arbeitet“ (und verhindert Doppelklicks). Das Overlay kommt erst, wenn es
 // länger als 400 ms dauert – kurze Aktionen wie Merken oder Ausblenden bleiben so ohne Flackern.
 // KI-Knöpfe (data-ki="Was gerade passiert"): Overlay sofort, mit Sekundenzähler – KI-Aufrufe dauern 10–60 s.

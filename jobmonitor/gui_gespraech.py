@@ -80,6 +80,7 @@ def frueher_notizen(data: dict, rows: list[dict], firma: str, link: str) -> str:
 
 
 def nachbereitung_html(link: str, eintrag: dict | None, token: str, ki_an: bool) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     eintrag = eintrag or {}
     hidden = (f'<input type="hidden" name="token" value="{token}"><input type="hidden" name="link" '
               f'value="{esc(link)}">')

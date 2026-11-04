@@ -3,6 +3,12 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.3.6
+
+- **Du siehst sofort, wo du gelandet bist:** Führt ein Link an eine bestimmte Stelle einer Seite (zum Beispiel „Weiterempfehlen“ in der Seitenleiste), steht das Ziel jetzt mittig im Fenster und leuchtet kurz farbig auf.
+- **Einstellungen schneller:** Die Liste der letzten GitHub-Läufe lädt jetzt im Hintergrund und hält den nächsten Klick nicht mehr auf. Außerdem liest die App ihre Einstellungen nur noch einmal statt mehrfach pro Seite.
+- **Ohne KI klarer:** Ist keine KI eingerichtet, sind alle KI-Funktionen sichtbar, aber ausgegraut. Ein Klick darauf erklärt kurz, wo du die KI einrichtest (mit Google Gemini auch kostenlos).
+
 ## 1.3.5
 
 - **Weiterempfehlen:** In der Seitenleiste steht jetzt „Weiterempfehlen“ (führt zu Einstellungen → Weiterempfehlen). Die Knöpfe kopieren den Link oder öffnen WhatsApp, LinkedIn oder dein Mailprogramm mit einem fertigen Text und dem Link zur neuen Website – abschicken tust du selbst, die App verschickt nichts. Nach der ersten fertigen Mappe (einmalig), bei der ersten Einladung und bei einer Zusage steht der Vorschlag zusätzlich in der Glückwunsch-Karte.

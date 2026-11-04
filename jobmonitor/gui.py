@@ -149,6 +149,11 @@ class App(BewerbungenSeiten):
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
         if self.echt is not None:
             body = demo.banner(self.token) + body
+        try:
+            if not ki.schluessel():
+                body = layout.ki_aus(body)
+        except Exception:
+            log.exception("KI-Stand nicht ermittelt")
         if (knopf := gh.knopf(active)):                 # „?“ unten rechts: Hilfe zu dieser Seite
             body, extra_css = body + knopf, extra_css + gh.KNOPF_CSS
         seite = layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name,
@@ -725,7 +730,7 @@ class App(BewerbungenSeiten):
                        + (f'<div class="card"><h2>Gespräch üben</h2><p class="muted">Die KI stellt dir Fragen, wie sie '
                           f'im Gespräch für diese Stelle kommen könnten, und gibt nach jeder Antwort Rückmeldung.</p>'
                           f'<a class="btn ghost small" href="/uebung?link={quote(stelle.get("url") or "", safe="")}">'
-                          f'Übungsgespräch</a></div>' if ki.schluessel() and stelle.get("url") else "")
+                          f'Übungsgespräch</a></div>' if stelle.get("url") else "")
                        + gbw.anzeige_karte(self.token, ziel, stelle, anzeige_text, gesichert)
                        + self.portal_karte(folder, cfg, stelle, data, lang, ziel))
         body = gbw.render(slug, stelle, data, fit_line(job), bw.files(folder), anlagen, self.token, message, ki_an,
@@ -1199,9 +1204,7 @@ class App(BewerbungenSeiten):
                  f'<input type="hidden" name="traum" value="{"1" if nur_traum else ""}">'
                  f'<button class="{"ghost " if plan else ""}small" data-ki="KI erstellt deinen Lernplan …">'
                  f'{"Lernplan neu erstellen" if plan else "Lernplan mit KI erstellen"}</button>'
-                 f'<span class="muted">Aus deinen teuersten Lücken und deinem Master-CV.</span></form>'
-                 if ki.schluessel() else
-                 '<p class="muted"><a href="/einstellungen#ki">Lernplan mit KI: API-Schlüssel hinterlegen</a></p>')
+                 f'<span class="muted">Aus deinen teuersten Lücken und deinem Master-CV.</span></form>')
         if not plan:
             return f'<div class="card"><h2>Lernplan</h2>{knopf}</div>'
         stand = f"{plan['datum'][8:10]}.{plan['datum'][5:7]}.{plan['datum'][:4]}"
@@ -1690,7 +1693,7 @@ class App(BewerbungenSeiten):
                          + '</ul></div>')
         ki_knopf = ('<button name="aktion" value="ki_profil" class="ghost" data-ki="KI schlägt einen Profiltext vor …" '
                     'title="Aus deinen Einträgen; ersetzt den Text im Feld Profil, gespeichert wird erst mit Speichern">'
-                    'Profiltext mit KI vorschlagen</button>' if ki.schluessel() else "")
+                    'Profiltext mit KI vorschlagen</button>')
         body = f"""
 <h1>Master-CV bearbeiten</h1>
 <p class="sub">{esc(rel)} · nur Nicht-Persönliches (Kontaktdaten und Foto stehen in cv/profile.yaml).

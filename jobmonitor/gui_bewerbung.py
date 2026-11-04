@@ -30,9 +30,7 @@ def render(slug: str, stelle: dict, data: dict, fit_line: str, files: list[str],
         f'</span></li>' for a in anlagen)
     ki = ('<button name="aktion" value="ki" class="ghost" data-ki="KI schreibt das Anschreiben …" '
           'onclick="return confirm(\'Text durch einen KI-Entwurf ersetzen? Gesendet werden die Anzeige und dein '
-          'Master-CV, keine persönlichen Daten.\')">Entwurf mit KI</button>' if ki_an else
-          '<a class="btn ghost" href="/einstellungen#ki" title="API-Schlüssel in den Einstellungen hinterlegen">'
-          'Entwurf mit KI …</a>')
+          'Master-CV, keine persönlichen Daten.\')">Entwurf mit KI</button>')   # ohne KI: ausgegraut
     ki_cv = ' data-ki="KI schneidet den Lebenslauf auf die Stelle zu …"' if ki_an else ""
     alles = (f'<div class="card vorbereiten row"><button form="anschreiben-form" name="aktion" value="vorbereiten"'
              f'{' data-ki="KI bereitet die Bewerbung vor …"' if ki_an else ""}>Alles vorbereiten</button>'

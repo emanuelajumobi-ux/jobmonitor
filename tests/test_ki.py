@@ -1,6 +1,7 @@
 """KI-Hilfen (ki.py): Anschreiben-Entwurf und Gesprächsvorbereitung auf Knopfdruck, Schlüssel, Limit, Datenschutz.
 Die Claude-API wird nie aufgerufen; llm._ask ist gefälscht."""
 import json
+import re
 import subprocess
 from datetime import date
 
@@ -131,7 +132,8 @@ def test_bewerbung_mit_ki(root, mit_schluessel, monkeypatch):  # noqa: F811
     assert (folder / "anschreiben.json.bak").is_file()                  # vorheriger Text gesichert
     monkeypatch.setattr(ki, "schluessel", lambda run=None: None)
     html = app.bewerbung(folder.name).decode()
-    assert "Entwurf mit KI</button>" not in html and 'href="/einstellungen#ki"' in html
+    # ohne KI: Knopf sichtbar, aber ausgegraut (Klick erklärt die Einrichtung unter Einstellungen → KI)
+    assert re.search(r'<button[^>]*data-ki-aus[^>]*>Entwurf mit KI</button>', html) and "/einstellungen#ki" in html
 
 
 def test_gespraech_vorbereiten(root, mit_schluessel, monkeypatch):  # noqa: F811

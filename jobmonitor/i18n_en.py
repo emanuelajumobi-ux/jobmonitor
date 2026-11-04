@@ -602,6 +602,7 @@ TEXTE: dict[str, str] = {
         "The password is not stored anywhere – without it the image cannot be opened.",
     "Job-Monitor unterstützen": "Support Job-Monitor", "Darstellung": "Appearance",
     "Weiterempfehlen": "Recommend", "Link kopieren": "Copy link",
+    "Braucht KI – einrichten unter Einstellungen → KI": "Needs AI – set it up under Settings → AI",
     "Kennst du jemanden, der gerade sucht – einen Minijob, eine Ausbildung, eine Werkstudentenstelle oder den ersten "
     "Job? Teilen ist die einfachste Art, Job-Monitor zu unterstützen.":
         "Do you know someone who is looking right now – for a part-time job, an apprenticeship, a student job or their "
@@ -1267,4 +1268,6 @@ SKRIPT: dict[str, str] = {
     "'oder Datei hierher ziehen'": "'or drag a file here'",
     "'Diese Datei passt hier nicht (erwartet: '": "'This file does not fit here (expected: '",
     "' Zeichen'": "' characters'",
+    "'Diese Funktion braucht KI. <a href=\"/einstellungen#ki\">KI einrichten</a> – Google Gemini geht kostenlos.'":
+        "'This feature needs AI. <a href=\"/einstellungen#ki\">Set up AI</a> – Google Gemini works for free.'",
 }

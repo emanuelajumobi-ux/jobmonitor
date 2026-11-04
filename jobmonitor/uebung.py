@@ -96,9 +96,7 @@ def render(link: str, titel: str, firma: str, sitzung: dict | None, token: str, 
     kopf = (f'<h1>Übungsgespräch</h1><p class="sub">{esc(titel)} · {esc(firma)} · <a href="/bewerbungen">zurück zu '
             f'den Bewerbungen</a></p>')
     hidden = f'<input type="hidden" name="token" value="{token}"><input type="hidden" name="link" value="{esc(link)}">'
-    if not ki_an:
-        return kopf + ('<div class="card"><p>Das Übungsgespräch braucht die KI. <a href="/einstellungen#ki">KI '
-                       'einrichten</a></p></div>')
+    # Ohne KI: Startseite mit ausgegrautem Knopf (App.page → gui_layout.ki_aus); der Klick erklärt die Einrichtung
     if not sitzung:
         return kopf + (
             f'<div class="card"><h2>So funktioniert es</h2><p>Die KI stellt dir {FRAGEN} Fragen, wie sie in einem '

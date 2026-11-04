@@ -12,7 +12,7 @@ import signal
 import subprocess
 import threading
 import webbrowser
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
@@ -24,6 +24,8 @@ from .gui_sync import sync
 
 log = logging.getLogger("jobmonitor.gui")
 
+SERIELL = threading.RLock()                       # normale Anfragen weiter nacheinander (App-Zustand, Dateien)
+NEBENHER = {"/einstellungen/laeufe", "/ping", "/fokus"}   # dürfen parallel laufen
 MAX_BODY = 25 * 1024 * 1024   # Uploads (Zeugnisse, Foto) bis 20 MB plus Formular
 
 def parse_body(content_type: str, raw: bytes) -> tuple[dict, dict[str, list[tuple[str, bytes]]]]:
@@ -68,6 +70,18 @@ def handler_for(app: App, server_ref: list):
             self.end_headers()
 
         def do_GET(self):
+            # Anfragen nacheinander wie bisher; nur Nachgeladenes, das auf GitHub wartet, läuft nebenher, damit es
+            # den nächsten Klick nicht aufhält
+            if self.path.partition("?")[0] in NEBENHER:
+                return self._do_GET()
+            with SERIELL:
+                return self._do_GET()
+
+        def do_POST(self):
+            with SERIELL:
+                return self._do_POST()
+
+        def _do_GET(self):
             path, _, query = self.path.partition("?")
             if path == "/ping":   # erkennt eine schon laufende Oberfläche (zweiter Start öffnet nur den Browser)
                 return self._send(b"jobmonitor", "text/plain; charset=utf-8")
@@ -167,7 +181,7 @@ def handler_for(app: App, server_ref: list):
                     return self._send(path.read_bytes(), "application/pdf")
             self._send(b"Nicht gefunden", "text/plain; charset=utf-8", 404)
 
-        def do_POST(self):
+        def _do_POST(self):
             length = int(self.headers.get("Content-Length") or 0)
             if length > MAX_BODY:
                 return self._send("Datei zu groß (max. 20 MB).".encode(), "text/plain; charset=utf-8", 413)
@@ -289,7 +303,8 @@ def make_server(app: App, port: int) -> HTTPServer | None:
     server_ref: list = []
     for candidate in range(port, port + 20):
         try:
-            server = HTTPServer(("127.0.0.1", candidate), handler_for(app, server_ref))
+            server = ThreadingHTTPServer(("127.0.0.1", candidate), handler_for(app, server_ref))
+            server.daemon_threads = True
         except OSError:
             continue
         server_ref.append(server)

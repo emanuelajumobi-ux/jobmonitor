@@ -80,6 +80,7 @@ def pruefen(folder: Path, data: dict, stelle: dict, cfg: dict, anlagen: list[dic
 
 
 def render(punkte: list[Punkt], token: str, slug_url: str, ki_an: bool) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     offen = sum(not p.ok for p in punkte)
     items = "".join(f'<li class="{"" if p.ok else "warnung"}"><b>{"✓" if p.ok else "✗"}</b> {esc(p.text)}</li>'
                     for p in punkte)

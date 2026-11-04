@@ -64,6 +64,7 @@ def gespraeche(rows: list[dict], heute: date) -> list[dict]:
 
 def _firmenprofil(link: str, firma: str, token: str, esc, profil: dict | None, ki_an: bool) -> str:
     """Zweites Aufklappfeld in der Gesprächskarte: Firmen-Kurzprofil (ki.firmenprofil)."""
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     if not ki_an and not profil:
         return ""
     knopf = (f'<form method="post" action="/bewerbungen/firmenprofil" class="row" style="margin-top:8px">'
@@ -78,6 +79,7 @@ def _firmenprofil(link: str, firma: str, token: str, esc, profil: dict | None, k
 
 def _vorbereitung(link: str, token: str, esc, punkte: str, ki_text: str | None, ki_an: bool) -> str:
     """Inhalt von „Darauf vorbereiten“: KI-Vorbereitung, sobald vorhanden, sonst die kurze Liste aus dem Fit."""
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     hidden = (f'<input type="hidden" name="token" value="{token}"><input type="hidden" name="link" '
               f'value="{esc(link)}">')
     knopf = (f'<form method="post" action="/bewerbungen/vorbereitung" class="row" style="margin-top:8px">{hidden}'
@@ -200,6 +202,7 @@ def apply(rows: list[dict], form: dict, today: date) -> tuple[list[dict], int]:
 
 def _nachfassen_item(i: int, r: dict, entwurf: tuple[str, str] | None, token: str, esc, ki_an: bool = False,
                      von_ki: bool = False) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     link = r.get("link", "")
     anzeige = (f' <a href="{esc(link)}" target="_blank" rel="noopener">Anzeige</a>' if link.startswith("http") else "")
     head = (f"<b>{esc(r['firma'])}</b> – beworben am {esc(r['datum'])}, seit {r['tage']} Tagen keine Antwort."

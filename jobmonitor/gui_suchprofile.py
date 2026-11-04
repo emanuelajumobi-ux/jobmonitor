@@ -304,6 +304,7 @@ NEU = {"name": "", "enabled": True, "zielrolle": "", "absicht": "", "ausblick": 
 
 def render_formular(token: str, cfg: dict, key: str, n_portale: int, fehler: str = "",
                     eingabe: dict | None = None, ki_an: bool = False, hinweis: str = "") -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     raw = (cfg.get("profile") or {}).get(key) or {}
     f = {**(_profil_formdaten(raw) if key else NEU), **(eingabe or {})}
     if eingabe is not None:

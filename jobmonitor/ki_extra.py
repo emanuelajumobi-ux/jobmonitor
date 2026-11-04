@@ -75,6 +75,7 @@ def cv_verstehen(root: Path, cfg: dict, cv: dict, ask=None) -> list[dict]:
 
 
 def cv_verstehen_html(root: Path, cv: dict, token: str, ki_an: bool, esc) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     letzter = gemerkt(root, "cv_verstehen", "letzter") or {}
     vorschlaege = [v for v in letzter.get("vorschlaege") or [] if v["begriff"].lower() not in _explizit(cv)]
     knopf = (f'<button name="aktion" value="cv_verstehen" class="ghost small" data-ki="KI liest deinen Lebenslauf …">'
@@ -112,6 +113,7 @@ def fit_erklaeren(root: Path, cfg: dict, stelle: dict, passt: list[str], fehlt: 
 
 
 def fit_erklaert_html(root: Path, stelle: dict, ziel: str, token: str, ki_an: bool, esc) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     alt = gemerkt(root, "fit_erklaert", str(stelle.get("url") or stelle.get("id")))
     if not ki_an and not alt:
         return ""
@@ -155,6 +157,7 @@ def cv_check(root: Path, cfg: dict, cv: dict, ask=None) -> list[dict]:
 
 
 def cv_check_html(root: Path, cv: dict, token: str, ki_an: bool, esc) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     letzter = gemerkt(root, "cv_check", "letzter") or {}
     if not ki_an and not letzter:
         return ""
@@ -187,6 +190,7 @@ def absagen_muster(root: Path, cfg: dict, zeilen: list[dict], ask=None) -> str:
 
 
 def absagen_html(root: Path, n_absagen: int, token: str, ki_an: bool, esc) -> str:
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     letzter = gemerkt(root, "absagen_muster", "letzter")
     if n_absagen < MIN_ABSAGEN and not letzter:
         return (f'<div class="card"><h2>Muster aus Absagen</h2><p class="muted">Ab {MIN_ABSAGEN} Absagen sucht die KI '

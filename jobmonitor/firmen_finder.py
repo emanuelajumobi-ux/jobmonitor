@@ -107,6 +107,7 @@ def gespeichert(root: Path) -> dict:
 
 def karte(root: Path, token: str, ki_an: bool) -> str:
     """Karte „Passende Firmen finden“ auf der Seite Firmen."""
+    ki_an = True   # KI-Knöpfe immer zeigen; ohne KI graut App.page sie aus (gui_layout.ki_aus)
     from .gui_firmen import _ignored, _key, firmen
     esc = lambda v: escape(str(v if v is not None else ""))  # noqa: E731
     letzte = gespeichert(root)
