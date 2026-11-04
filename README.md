@@ -5,7 +5,7 @@ Berufserfahrung –, bewertet, wie gut sie zu deinem Lebenslauf passen, und hilf
 Gesprächsvorbereitung und Nachfassen. Alles läuft auf deinem Rechner. **Bewerbungen und Mails an Firmen schickst du
 immer selbst ab** – die App liefert nur Hinweise und Entwürfe.
 
-**Fertige App für Mac und Windows:** [Downloads](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest) –
+**Website:** [emanuelajumobi-ux.github.io/jobmonitor](https://emanuelajumobi-ux.github.io/jobmonitor/) · **Fertige App für Mac und Windows:** [Downloads](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest) –
 siehe [Installieren](#installieren). Was neu ist, steht in den [Neuigkeiten](NEUIGKEITEN.md). Ohne Einrichtung
 ausprobieren: im Einrichtungs-Assistenten **Demo ansehen** (erfundene Beispieldaten).
 
