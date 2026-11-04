@@ -1493,6 +1493,8 @@ class App(BewerbungenSeiten):
             elif aktion == "ki_modelle_laden":
                 schluessel = ki.schluessel()
                 self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, None if schluessel == "lokal" else schluessel)
+                if llm.ANBIETER == "gemini":
+                    gki_anbieter.gemini_pruefen(schluessel, self._ki_modelle)
                 msg = ok(f"{len(self._ki_modelle)} Modelle geladen – passende sind vorausgewählt, bitte übernehmen.")
             elif aktion == "ki_modelle":
                 gki.speichern(self.root, llm.ANBIETER, {"schnell": form.get("schnell", ""), "gut": form.get("gut", "")})
@@ -1503,6 +1505,8 @@ class App(BewerbungenSeiten):
                 ki.schluessel_speichern(form.get("schluessel", ""))
                 if llm.ANBIETER != "claude" and not llm.MODELLE.get("schnell"):
                     self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, ki.schluessel())
+                    if llm.ANBIETER == "gemini":
+                        gki_anbieter.gemini_pruefen(ki.schluessel(), self._ki_modelle)
                     msg = ok("Schlüssel gespeichert und geprüft. Jetzt die Modelle übernehmen.")
                 else:
                     msg = ok("Schlüssel sicher gespeichert. Die KI-Knöpfe sind jetzt aktiv.")

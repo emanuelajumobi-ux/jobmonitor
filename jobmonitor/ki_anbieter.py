@@ -102,6 +102,8 @@ def vorschlag(ids: list[str], anbieter: str = "") -> dict[str, str]:
     """Vorschlag für schnell/gut aus der Modell-Liste (neueste Namen zuerst durch umgekehrte Sortierung).
     Gemini: beide aus der Flash-Reihe – Pro-Modelle sind im kostenlosen Kontingent oft nicht enthalten."""
     neu = sorted(ids, reverse=True)
+    if GEPRUEFT.get(anbieter) and all(m in ids for m in GEPRUEFT[anbieter].values()):
+        return dict(GEPRUEFT[anbieter])
     if anbieter == "gemini":
         flash = [m for m in neu if "flash" in m and "image" not in m and "live" not in m and "tts" not in m]
         stabil = [m for m in flash if "preview" not in m and "exp" not in m] or flash
@@ -114,27 +116,54 @@ def vorschlag(ids: list[str], anbieter: str = "") -> dict[str, str]:
     return {"schnell": schnell, "gut": gut}
 
 
+VORUEBERGEHEND = {500, 502, 503, 504}     # überlastet oder kurz gestört: noch einmal versuchen
+WARTEN = (0, 3, 8)                         # Sekunden vor dem 1., 2. und 3. Versuch
+LETZTER_FEHLER: dict = {}                  # Status des letzten Fehlschlags (für das Ausweichmodell in llm._ask)
+GEPRUEFT: dict[str, dict] = {}             # Anbieter → beim Einrichten geprüfter Modellvorschlag
+
+
 def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, system: str | None = None,
-           max_tokens: int = 4000, usage: list | None = None, post=requests.post) -> str | None:
-    """Eine Frage über die OpenAI-kompatible Schnittstelle (chat/completions). None bei Fehlern (wird geloggt)."""
+           max_tokens: int = 4000, usage: list | None = None, post=requests.post, warten=None) -> str | None:
+    """Eine Frage über die OpenAI-kompatible Schnittstelle (chat/completions). None bei Fehlern (wird geloggt).
+    Überlastung (503 & Co.) und Zeitüberschreitung werden bis zu zweimal mit kurzer Pause wiederholt."""
     import logging
+    import time
     log = logging.getLogger("jobmonitor.llm")
     a = ANBIETER[gueltig(anbieter)]
     nachrichten = ([{"role": "system", "content": system}] if system else []) + [{"role": "user", "content": prompt}]
     body = {"model": modell, "messages": nachrichten}
     body["max_completion_tokens" if anbieter == "openai" else "max_tokens"] = max_tokens
     headers = {"Authorization": f"Bearer {schluessel}"} if schluessel else {}
-    try:
-        resp = post(f"{a['basis']}/chat/completions", json=body, headers=headers, timeout=180)
-    except requests.RequestException as exc:
-        log.warning("%s nicht erreichbar (%s)", a["name"], exc.__class__.__name__)
+    LETZTER_FEHLER.clear()
+    resp = None
+    for i, pause in enumerate(WARTEN):
+        if pause:
+            (warten or time.sleep)(pause)
+        try:
+            resp = post(f"{a['basis']}/chat/completions", json=body, headers=headers, timeout=120)
+        except requests.RequestException as exc:
+            log.warning("%s nicht erreichbar (%s)%s", a["name"], exc.__class__.__name__,
+                        " – neuer Versuch" if i < len(WARTEN) - 1 else "")
+            LETZTER_FEHLER["status"] = "netz"
+            continue
+        if resp.status_code in VORUEBERGEHEND:
+            log.warning("%s: %s ist gerade überlastet (%s)%s", a["name"], modell, resp.status_code,
+                        " – neuer Versuch" if i < len(WARTEN) - 1 else "")
+            LETZTER_FEHLER["status"] = resp.status_code
+            continue
+        break
+    else:
+        return None
+    if resp is None:
         return None
     if resp.status_code == 429:
         log.warning("%s: Kontingent erschöpft (zu viele Anfragen pro Minute oder Tag) – später erneut versuchen",
                     a["name"])
+        LETZTER_FEHLER["status"] = 429
         return None
     if resp.status_code != 200:
         log.warning("%s-Fehler %s: %s", a["name"], resp.status_code, resp.text[:200])
+        LETZTER_FEHLER["status"] = resp.status_code
         return None
     data = resp.json()
     u = data.get("usage") or {}
@@ -145,3 +174,35 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
         log.warning("%s: Antwort abgeschnitten (max_tokens zu klein)", a["name"])
         return None
     return str((wahl.get("message") or {}).get("content") or "").strip() or None
+
+
+def _version(mid: str) -> tuple:
+    import re as _re
+    m = _re.search(r"gemini-(\d+)(?:\.(\d+))?", mid)
+    return (int(m.group(1)), int(m.group(2) or 0)) if m else (0, 0)
+
+
+def gemini_pruefen(schluessel: str | None, ids: list[str], post=requests.post) -> dict[str, str]:
+    """Beim Einrichten: welche Flash-Modelle antworten im Kontingent dieses Schlüssels wirklich? Neue Modelle sind oft
+    überlastet, ältere für neue Nutzer abgeschaltet und „Pro“ ist nicht kostenlos – darum je eine kurze Probe (wenige
+    Token). Gibt {schnell, gut} zurück (leer, wenn nichts antwortet) und merkt es für vorschlag()."""
+    voll = sorted((m for m in ids if re.fullmatch(r"gemini-\d+(\.\d+)?-flash", m)), key=_version, reverse=True)
+    lite = sorted((m for m in ids if re.fullmatch(r"gemini-\d+(\.\d+)?-flash-lite", m)), key=_version, reverse=True)
+    voll += [m for m in ("gemini-flash-latest",) if m in ids]
+    lite += [m for m in ("gemini-flash-lite-latest",) if m in ids]
+
+    def antwortet(m: str) -> bool:
+        try:
+            r = post(f"{ANBIETER['gemini']['basis']}/chat/completions", timeout=40,
+                     headers={"Authorization": f"Bearer {schluessel}"},
+                     json={"model": m, "messages": [{"role": "user", "content": "Antworte nur mit: ok"}],
+                           "max_tokens": 300})
+            return r.status_code == 200
+        except requests.RequestException:
+            return False
+    gut = next((m for m in voll[:5] if antwortet(m)), "")
+    schnell = next((m for m in lite[:4] if antwortet(m)), "") or gut
+    out = {"schnell": schnell, "gut": gut or schnell} if (gut or schnell) else {}
+    if out:
+        GEPRUEFT["gemini"] = out
+    return out

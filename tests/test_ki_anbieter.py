@@ -129,3 +129,58 @@ def test_gemini_anleitung(root):  # noqa: F811
     assert "kostenlos" in html.lower() and "Claude ist besser" in html and "aistudio.google.com/apikey" in html
     assert "Anleitung für Google Gemini" in app.ki_anleitung().decode()
     assert "anbieter=gemini" in app.einstellungen().decode()
+
+
+class _Antw:
+    def __init__(self, status, data=None):
+        self.status_code, self._data, self.text = status, data or {}, json.dumps(data or {})
+
+    def json(self):
+        return self._data
+
+
+def _ok(text="ok"):
+    return _Antw(200, {"choices": [{"message": {"content": text}, "finish_reason": "stop"}],
+                       "usage": {"prompt_tokens": 3, "completion_tokens": 1}})
+
+
+def test_wiederholen_bei_ueberlastung():
+    folge = [_Antw(503), _Antw(503), _ok("fertig")]
+    pausen = []
+    antwort = ki_anbieter.fragen("gemini", "k", "m", "p", post=lambda *a, **k: folge.pop(0), warten=pausen.append)
+    assert antwort == "fertig" and pausen == [3, 8]
+    assert ki_anbieter.fragen("gemini", "k", "m", "p", post=lambda *a, **k: _Antw(503), warten=lambda s: None) is None
+    assert ki_anbieter.LETZTER_FEHLER["status"] == 503
+    assert ki_anbieter.fragen("gemini", "k", "m", "p", post=lambda *a, **k: _Antw(429), warten=lambda s: None) is None
+    assert ki_anbieter.LETZTER_FEHLER["status"] == 429
+
+
+def test_gemini_pruefen_nimmt_was_antwortet(monkeypatch):
+    ids = ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-pro-latest",
+           "gemini-2.5-flash", "gemini-flash-latest"]
+    status = {"gemini-3.8-flash": 503, "gemini-3.6-flash": 200, "gemini-3.5-flash-lite": 200}
+    gefragt = []
+
+    def post(url, json=None, **kw):
+        gefragt.append(json["model"])
+        return _Antw(status.get(json["model"], 404))
+    monkeypatch.setattr(ki_anbieter, "GEPRUEFT", {})
+    v = ki_anbieter.gemini_pruefen("k", ids, post=post)
+    assert v == {"schnell": "gemini-3.5-flash-lite", "gut": "gemini-3.6-flash"}
+    assert gefragt == ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"] and "gemini-pro-latest" not in gefragt
+    assert ki_anbieter.vorschlag(ids, "gemini") == v
+
+
+def test_llm_weicht_auf_anderes_modell_aus(monkeypatch):
+    monkeypatch.setattr(llm, "ANBIETER", "gemini")
+    monkeypatch.setattr(llm, "MODELLE", {"schnell": "lite", "gut": "voll"})
+    gefragt = []
+
+    def fragen(anbieter, schluessel, modell, *a, **k):
+        gefragt.append(modell)
+        if modell == "voll":
+            ki_anbieter.LETZTER_FEHLER["status"] = 503
+            return None
+        return "antwort"
+    monkeypatch.setattr(ki_anbieter, "fragen", fragen)
+    assert llm._ask("claude-opus-5-5", "p", api_key="k") == "antwort" and gefragt == ["voll", "lite"]

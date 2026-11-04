@@ -133,6 +133,10 @@ def _ask(model: str, prompt: str, effort: str = "low", max_tokens: int = 4000, a
         schluessel = api_key or os.environ.get("KI_API_KEY")
         nutzung: list = []
         antwort = ki_anbieter.fragen(ANBIETER, schluessel, modell, prompt, system, max_tokens, nutzung)
+        anderes = next((m for m in (MODELLE.get("gut"), MODELLE.get("schnell")) if m and m != modell), None)
+        if antwort is None and anderes and ki_anbieter.LETZTER_FEHLER.get("status") in (500, 502, 503, 504, "netz"):
+            log.info("KI: %s überlastet – weiche auf %s aus", modell, anderes)
+            antwort = ki_anbieter.fragen(ANBIETER, schluessel, anderes, prompt, system, max_tokens, nutzung)
         for ein, aus in nutzung:
             NUTZUNG["aufrufe"] += 1
             NUTZUNG["eingabe"] += ein

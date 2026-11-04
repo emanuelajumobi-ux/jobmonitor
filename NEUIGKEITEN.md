@@ -3,6 +3,10 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## Unveröffentlicht
+
+- **Gemini im Alltag getestet und robuster:** Beim Einrichten prüft die App kurz, welche Gemini-Modelle mit deinem Schlüssel wirklich antworten (neue sind oft überlastet, ältere für neue Nutzer abgeschaltet, „Pro“ ist nicht kostenlos) und wählt diese. Ist ein Modell gerade überlastet, versucht die App es nach kurzer Pause erneut und weicht notfalls auf das zweite Modell aus – das gilt für alle Anbieter außer Claude.
+
 ## 1.3.2
 
 - **KI leichter einrichten:** Im Einrichtungs-Assistenten und unter Einstellungen → KI stehen Claude (empfohlen) und Google Gemini (kostenlos) jetzt nebeneinander zur Wahl – mit kurzer Einordnung und direktem Weg zur jeweiligen Anleitung.
