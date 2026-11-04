@@ -120,3 +120,12 @@ def test_gemini_modellliste_ausweichen_und_vorschlag():
     ids = ki_anbieter.modelle("gemini", "AIza-test", get=get)
     assert len(aufrufe) == 2 and "text-embedding-005" not in ids and "gemini-3.1-pro" in ids
     assert ki_anbieter.vorschlag(ids, "gemini") == {"schnell": "gemini-3.1-flash-lite", "gut": "gemini-3.1-flash"}
+
+
+def test_gemini_anleitung(root):  # noqa: F811
+    from jobmonitor.gui import App
+    app = App(root, compile_pdf=False)
+    html = app.ki_anleitung("gemini").decode()
+    assert "kostenlos" in html.lower() and "Claude ist besser" in html and "aistudio.google.com/apikey" in html
+    assert "Anleitung für Google Gemini" in app.ki_anleitung().decode()
+    assert "anbieter=gemini" in app.einstellungen().decode()

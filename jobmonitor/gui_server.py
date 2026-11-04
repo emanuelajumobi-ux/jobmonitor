@@ -92,7 +92,7 @@ def handler_for(app: App, server_ref: list):
             if path == "/einrichten":
                 return self._send(app.einrichten())
             if path == "/ki-anleitung":
-                return self._send(app.ki_anleitung())
+                return self._send(app.ki_anleitung(parse_qs(query).get("anbieter", [""])[0]))
             if path.startswith("/designs/vorschau/"):
                 html = app.design_vorschau(path.removeprefix("/designs/vorschau/"))
                 if html is not None:

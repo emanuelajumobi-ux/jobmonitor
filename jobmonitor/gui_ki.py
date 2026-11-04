@@ -116,7 +116,8 @@ def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipel
     else:
         modell_html = ""
     anleitung = ('<p style="margin-top:10px"><a href="/ki-anleitung"><b>Schritt-für-Schritt-Anleitung für Claude</b></a> '
-                 '– mit allem, was du vorher wissen willst (Kosten, Kontrolle, Datenschutz).</p>')
+                 '– mit allem, was du vorher wissen willst (Kosten, Kontrolle, Datenschutz). Kostenlos ausprobieren: '
+                 '<a href="/ki-anleitung?anbieter=gemini">Anleitung für Google Gemini</a>.</p>')
     return f"""<div class="card" id="ki"><h2>KI</h2>
 <p class="muted">Die KI nutzt <b>deinen eigenen</b> Zugang beim Anbieter; Kosten laufen über dein Konto dort, nach
 Verbrauch. Gesendet werden Anzeigentexte und dein Master-CV ohne persönliche Angaben – direkt an den Anbieter, nie an
@@ -177,6 +178,59 @@ Es entstehen keine Schulden.</dd>
 schickst selbst. Beim Lebenslauf sortiert sie nur deine eigenen Einträge – sie erfindet nichts.</dd>
 <dt>Ich möchte lieber einen anderen Anbieter.</dt><dd>Unter Einstellungen → KI gehen auch OpenAI, Google Gemini, Mistral
 und Ollama (läuft kostenlos auf deinem Rechner). Die App ist aber auf Claude abgestimmt.</dd>
+<dt>Gibt es das auch kostenlos?</dt><dd>Ja, mit Google Gemini – ohne Kreditkarte, mit Tagesgrenzen und etwas schwächeren
+Ergebnissen: <a href="/ki-anleitung?anbieter=gemini">Anleitung für Google Gemini</a>.</dd>
+</dl></div></div>"""
+
+ANLEITUNG_GEMINI = """<div class="page-head"><div><h1>Google Gemini einrichten – kostenlos</h1><p class="sub">In etwa fünf
+Minuten, ohne Kreditkarte. Ideal zum Ausprobieren der KI-Funktionen.</p></div><div class="row"><a class="btn ghost small"
+href="/einstellungen#ki">Zu Einstellungen → KI</a></div></div>
+<div class="ki-anleitung">
+<div class="card beruhigung"><h2>Das Wichtigste in Kürze</h2><ul>
+<li><b>Kostenlos.</b> Google bietet für die Gemini-Schnittstelle ein kostenloses Kontingent an. Du brauchst nur ein
+Google-Konto – keine Kreditkarte, kein Abo, keine Rechnung.</li>
+<li><b>Mit Tagesgrenzen.</b> Das kostenlose Kontingent erlaubt nur eine begrenzte Zahl Anfragen pro Minute und pro Tag;
+wie viele, zeigt dir Google in AI Studio unter „Rate limits“. Ist es aufgebraucht, melden die KI-Knöpfe einen Fehler und
+die App arbeitet ohne KI weiter – am nächsten Tag (gegen 9 Uhr) geht es wieder. Es entstehen nie Kosten, solange du
+keine Zahlungsart hinterlegst.</li>
+<li><b>Ehrlich gesagt: Claude ist besser.</b> Die App ist auf Claude abgestimmt. Mit Gemini funktionieren alle
+KI-Funktionen, aber Anschreiben, Gesprächsvorbereitung und Lebenslauf-Zuschnitt fallen meist etwas weniger treffend
+aus, und die stärksten Gemini-Modelle („Pro“) sind im kostenlosen Kontingent in der Regel nicht enthalten. Zum
+Kennenlernen und für die meisten Aufgaben reicht Gemini gut – wer viel bewirbt, fährt mit
+<a href="/ki-anleitung">Claude</a> besser.</li>
+<li><b>Datenschutz:</b> Name, Adresse, Telefon, E-Mail und Foto sendet die App nie – nur Anzeigentexte und den fachlichen
+Teil deines Lebenslaufs. Beim kostenlosen Kontingent darf Google Eingaben laut seinen Bedingungen grundsätzlich auch
+zur Verbesserung seiner Produkte nutzen (auch durch menschliche Prüfer, losgelöst von deinem Konto). Für Nutzer in der
+EU, der Schweiz und Großbritannien gelten laut Google die strengeren Regeln der bezahlten Nutzung – lies die
+<a href="https://ai.google.dev/gemini-api/terms" target="_blank" rel="noopener">aktuellen Bedingungen</a> im Zweifel
+selbst nach.</li>
+<li><b>Der Entwickler dieser App bekommt nichts</b> – weder deinen Schlüssel noch deine Daten. Alles läuft direkt
+zwischen deinem Rechner und Google.</li>
+</ul></div>
+<div class="card"><h2>Schritt für Schritt</h2><ol class="schritte">
+<li><b>Google AI Studio öffnen</b><span>Öffne <a href="https://aistudio.google.com/apikey" target="_blank"
+rel="noopener">Google AI Studio</a> und melde dich mit deinem Google-Konto an. Beim ersten Mal bestätigst du die
+Nutzungsbedingungen.</span></li>
+<li><b>Schlüssel erstellen</b><span>Auf <b>Create API key</b> bzw. „API-Schlüssel erstellen“ klicken. Den Schlüssel
+(beginnt meist mit <code>AIza</code>) kopieren und mit niemandem teilen. Eine Zahlungsart musst du dafür nicht
+hinterlegen – lass das aus, dann bleibt es garantiert kostenlos.</span></li>
+<li><b>In der App eintragen</b><span>In <a href="/einstellungen#ki">Einstellungen → KI</a> als Anbieter
+„Google Gemini“ wählen und <b>Wechseln</b>, den Schlüssel einfügen und <b>Sicher speichern</b>. Er landet im
+Schlüsselbund deines Rechners (Windows: Anmeldeinformationsverwaltung), nicht in einer Datei.</span></li>
+<li><b>Modelle übernehmen</b><span>Die App lädt die verfügbaren Modelle und schlägt zwei aus der „Flash“-Reihe vor: ein
+leichtes für die tägliche Suche und ein stärkeres für Anschreiben und Vorbereitung. Mit <b>Übernehmen</b> bestätigen –
+ändern kannst du das jederzeit.</span></li>
+<li><b>Ausprobieren</b><span>Zum Beispiel bei einer Bewerbung „Entwurf mit KI“ oder „Gespräch üben“ klicken.</span></li>
+</ol></div>
+<div class="card"><h2>Häufige Fragen</h2><dl>
+<dt>Kostet mich das wirklich nichts?</dt><dd>Ja, solange du in Google AI Studio bzw. Google Cloud keine Zahlungsart
+hinterlegst. Dann gibt es nur das kostenlose Kontingent – ist es aufgebraucht, wartet die KI bis zum nächsten Tag.</dd>
+<dt>Warum funktioniert die KI plötzlich nicht mehr?</dt><dd>Meist ist das Tages- oder Minutenkontingent erschöpft. Kurz
+warten bzw. am nächsten Tag weitermachen. In AI Studio unter „Rate limits“ siehst du deinen Stand.</dd>
+<dt>Kann ich später zu Claude wechseln?</dt><dd>Jederzeit unter Einstellungen → KI. Die App merkt sich jeden Schlüssel
+getrennt; du kannst also auch hin und her wechseln.</dd>
+<dt>Schreibt die KI meine Bewerbungen und schickt sie ab?</dt><dd>Nein. Sie macht Entwürfe; du liest, änderst und
+schickst selbst.</dd>
 </dl></div></div>"""
 
 CSS = """

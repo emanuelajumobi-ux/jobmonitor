@@ -1643,7 +1643,9 @@ class App(BewerbungenSeiten):
                           f'Lauf aussortiert. {esc(hoch)}</p></div>')
 
     # --- Master-CV ---
-    def ki_anleitung(self) -> bytes:
+    def ki_anleitung(self, anbieter: str = "") -> bytes:
+        if anbieter == "gemini":
+            return self.page("Gemini einrichten", gki.ANLEITUNG_GEMINI, "einstellungen", gki.CSS)
         return self.page("Claude einrichten", gki.ANLEITUNG, "einstellungen", gki.CSS)
 
     def design_vorschau(self, key: str) -> bytes | None:

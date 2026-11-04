@@ -212,7 +212,8 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
                 'Ollama (kostenlos auf deinem Rechner). Kosten laufen über dein Konto beim Anbieter; die App hat keinen '
                 'eigenen Zugang, und deine Daten gehen direkt dorthin, nie an den Entwickler. '
                 '<a href="/ki-anleitung">Schritt-für-Schritt-Anleitung für Claude</a> – mit allem zu Kosten und '
-                'Kontrolle.</p>'
+                'Kontrolle. Kostenlos ausprobieren: <a href="/ki-anleitung?anbieter=gemini">Anleitung für Google '
+                'Gemini</a>.</p>'
                 '<a class="btn ghost small" href="/einstellungen#ki">Schlüssel hinterlegen</a>')
     zentrum = (cfg.get("ort") or {}).get("zentrum") or ""
     ort = (f'<form method="post" action="/einrichten" class="row" style="gap:8px;flex-wrap:wrap">{hidden}'

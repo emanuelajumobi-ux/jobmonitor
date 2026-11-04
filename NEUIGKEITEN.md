@@ -5,6 +5,7 @@ Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was
 
 ## Unveröffentlicht
 
+- **Kostenlos mit Google Gemini:** neue Schritt-für-Schritt-Anleitung (Einstellungen → KI) – ohne Kreditkarte, mit Tagesgrenzen. Ehrlich dazu: Die Ergebnisse sind etwas schwächer als mit Claude.
 - **Google Gemini zuverlässiger:** Die Modellliste kommt notfalls über Googles eigene Schnittstelle, und die App schlägt Flash-Modelle vor, die im kostenlosen Kontingent enthalten sind.
 
 ## 1.3.0
