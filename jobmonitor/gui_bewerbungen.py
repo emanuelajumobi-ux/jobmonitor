@@ -166,6 +166,27 @@ def mark(rows: list[dict], job: dict, aktion: str, today: date) -> str:
             else f"„{job['title']}“ ausgeblendet (Status verworfen).")
 
 
+GELOESCHT = ".gui_geloescht.json"   # endgültig gelöschte Stellen (Links); der Eintrag „verworfen“ bleibt in
+                                   # applications.csv, damit die Pipeline sie nicht wieder einträgt
+
+
+def geloescht(root) -> set[str]:
+    import json
+    try:
+        return set(json.loads((root / GELOESCHT).read_text(encoding="utf-8")))
+    except (OSError, ValueError, TypeError):
+        return set()
+
+
+def loeschen(root, links) -> int:
+    """Ausgeblendete Stellen endgültig aus der Liste nehmen (auch nicht mehr unter „Ausgeblendet“)."""
+    import json
+    alt = geloescht(root)
+    neu = alt | {link for link in links if link}
+    (root / GELOESCHT).write_text(json.dumps(sorted(neu), ensure_ascii=False, indent=1), encoding="utf-8")
+    return len(neu) - len(alt)
+
+
 def undo_hide(rows: list[dict], job: dict, vorher: str) -> str:
     """Ausblenden zurücknehmen: alten Status wiederherstellen bzw. den dabei angelegten Eintrag entfernen."""
     row = by_link(rows).get(job["url"])

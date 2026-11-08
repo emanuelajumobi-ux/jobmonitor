@@ -30,6 +30,45 @@ ANBIETER = {
     "posteo": ("Posteo", "posteo.de", "https://posteo.de/hilfe"),
     "anderer": ("Anderer Anbieter", "", ""),
 }
+# Direkt zur Seite, auf der man das App-Passwort anlegt, und was vorher eingeschaltet sein muss
+DIREKT = {
+    "gmail": ("https://myaccount.google.com/apppasswords",
+              "Google zeigt die Seite nur, wenn die <b>Bestätigung in zwei Schritten</b> (2FA) eingeschaltet ist.",
+              "https://myaccount.google.com/signinoptions/twosv"),
+    "icloud": ("https://account.apple.com/account/manage",
+               "Apple verlangt die <b>Zwei-Faktor-Authentifizierung</b> für deinen Account (meist schon an). Dort unter "
+               "„Anmeldung und Sicherheit“ → „App-spezifische Passwörter“.", ""),
+    "yahoo": ("https://login.yahoo.com/account/security",
+              "Yahoo verlangt die <b>Bestätigung in zwei Schritten</b>. Dort unter „App-Passwort generieren“.",
+              "https://login.yahoo.com/account/security"),
+    "gmx": ("https://hilfe.gmx.net/pop-imap/einschalten.html",
+            "Bei GMX muss <b>IMAP eingeschaltet</b> sein (E-Mail → Einstellungen → POP3/IMAP Abruf). Hast du die "
+            "Zwei-Faktor-Authentifizierung an, brauchst du zusätzlich ein App-Passwort.", ""),
+    "webde": ("https://hilfe.web.de/pop-imap/einschalten.html",
+              "Bei WEB.DE muss <b>IMAP eingeschaltet</b> sein (E-Mail → Einstellungen → POP3/IMAP Abruf). Hast du die "
+              "Zwei-Faktor-Authentifizierung an, brauchst du zusätzlich ein App-Passwort.", ""),
+}
+
+
+def _direkt_html(esc) -> str:
+    """Pro Anbieter ein Kasten: Voraussetzung (z. B. 2FA bei Gmail) und ein Knopf direkt zur Einrichtung."""
+    teile = []
+    for k, (url, vorher, zwei) in DIREKT.items():
+        # 2FA einschalten als eigener Knopf (Schritt 1) – als Textlink war er im Hinweis kaum zu erkennen
+        zwei_html = (f'<a class="btn ghost small" href="{esc(zwei)}" target="_blank" rel="noopener">1. Bestätigung '
+                     f'in zwei Schritten einschalten ↗</a> ' if zwei and zwei != url else "")
+        teile.append(f'<div class="card info mail-direkt" data-mail="{k}" hidden><p style="margin:0 0 8px">'
+                     f'<b>Vorher:</b> {vorher}</p><div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">'
+                     f'{zwei_html}<a class="btn small" href="{esc(url)}" target="_blank" '
+                     f'rel="noopener">{"2. " if zwei_html else ""}{"App-Passwort jetzt anlegen" if k in ("gmail", "icloud", "yahoo") else "So schaltest du IMAP ein"} ↗'
+                     f'</a><span class="muted">öffnet die Seite des Anbieters, danach das Passwort hier einfügen</span>'
+                     f'</div></div>')
+    return "".join(teile) + ('<script>(() => { const s = document.getElementById("anbieter"); if (!s) return;'
+                             ' const zeigen = () => document.querySelectorAll(".mail-direkt").forEach(d =>'
+                             ' d.hidden = d.dataset.mail !== s.value); s.addEventListener("change", zeigen); zeigen();'
+                             ' })();</script>')
+
+
 # Versand des täglichen Berichts an dich selbst (gleiches App-Passwort, Port 587 mit STARTTLS)
 SMTP = {"icloud": "smtp.mail.me.com", "gmail": "smtp.gmail.com", "gmx": "mail.gmx.net", "webde": "smtp.web.de",
         "tonline": "securesmtp.t-online.de", "yahoo": "smtp.mail.yahoo.com", "posteo": "posteo.de"}
@@ -189,6 +228,7 @@ def formular(root: Path, token: str, esc, ziel: str = "/einrichten") -> str:
             f'Passwort.</p><form method="post" action="{ziel}"><input type="hidden" name="token" value="{token}">'
             f'<input type="hidden" name="aktion" value="mail"><div class="grid2">'
             f'<div><label for="anbieter">Anbieter</label><select id="anbieter" name="anbieter">{wahl}</select></div>'
+            f'<div class="mail-direkt-platz" style="grid-column:1/-1">{_direkt_html(esc)}</div>'
             f'<div><label for="host">IMAP-Server (nur bei „Anderer Anbieter“)</label><input id="host" name="host" '
             f'placeholder="imap.example.de"></div>'
             f'<div><label for="benutzer">E-Mail-Adresse</label><input id="benutzer" name="benutzer" type="email"></div>'

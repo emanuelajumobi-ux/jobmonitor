@@ -17,7 +17,7 @@ from functools import lru_cache
 SPRACHEN = {"de": "Deutsch", "en": "English"}
 TAG = re.compile(r"(<!--.*?-->|<[^>]+>)", re.S)
 ROH = {"script", "style", "textarea", "pre", "code", "title"}   # title: eigens übersetzt
-ATTR = re.compile(r'\b(placeholder|title|aria-label|alt|data-ki)="([^"]*)"')
+ATTR = re.compile(r'\b(placeholder|title|aria-label|alt|data-ki|data-laden|data-laden-info)="([^"]*)"')
 CONFIRM = re.compile(r"((?:confirm|alert)\(')((?:[^'\\]|\\.)*)(')")
 DEUTSCH = re.compile(r"[äöüÄÖÜß]|\b(?:und|der|die|das|nicht|mit|für|oder|noch|ist|sind|wird|werden|bitte|keine?|"
                      r"auf|aus|zum|zur|dein|deine|deinen|ein|eine|einen|bei|nach|vom|von|im|Stellen?)\b")

@@ -143,6 +143,76 @@ def _fix_context_menu() -> None:
                                         signature=b"v@:@@")])
 
 
+_ZIEL = None
+JS_RUECKGAENGIG = "window.jmRueckgaengig ? jmRueckgaengig() : false"
+
+
+def _rueckgaengig_ziel():
+    """⌘Z: Außerhalb von Textfeldern die letzte Aktion der Seite zurücknehmen (z. B. „Stelle ausgeblendet“ →
+    Rückgängig, siehe jmRueckgaengig in gui_layout.JS); sonst wie gewohnt die letzte Eingabe im Feld."""
+    global _ZIEL
+    if _ZIEL is not None:
+        return _ZIEL
+    import AppKit
+    import objc
+
+    class JobMonitorRueckgaengig(AppKit.NSObject):
+        @objc.typedSelector(b"v@:@")
+        def rueckgaengig_(self, sender):
+            fenster = AppKit.NSApp().keyWindow()
+            web = fenster.firstResponder() if fenster is not None else None
+
+            def nativ():
+                um = web.undoManager() if web is not None else None
+                if um is not None and um.canUndo():
+                    um.undo()
+                else:
+                    AppKit.NSApp().sendAction_to_from_("undo:", None, sender)
+
+            if web is None or not web.respondsToSelector_("evaluateJavaScript:completionHandler:"):
+                return nativ()
+
+            def fertig(ergebnis, fehler):
+                if not ergebnis:
+                    nativ()
+            web.evaluateJavaScript_completionHandler_(JS_RUECKGAENGIG, fertig)
+
+    _ZIEL = JobMonitorRueckgaengig.alloc().init()
+    return _ZIEL
+
+
+def _fix_edit_menu() -> None:
+    """pywebview legt im Bearbeiten-Menü nur Ausschneiden/Kopieren/Einsetzen/Alles an – ohne Widerrufen fehlt ⌘Z
+    (und ⇧⌘Z) in allen Feldern. WebKit kennt undo:/redo: selbst; es braucht nur die Menüeinträge."""
+    try:
+        import AppKit
+        from webview.platforms import cocoa
+    except ImportError:
+        return
+    original = cocoa.BrowserView._add_edit_menu
+    if getattr(original, "_jobmonitor", False):
+        return
+
+    ziel = _rueckgaengig_ziel()
+
+    def _add_edit_menu(self, main_menu):
+        original(self, main_menu)
+        try:
+            menu = main_menu.itemAtIndex_(1).submenu()
+            menu.insertItem_atIndex_(AppKit.NSMenuItem.separatorItem(), 0)
+            redo = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_("Wiederholen", "redo:", "z")
+            redo.setKeyEquivalentModifierMask_(AppKit.NSCommandKeyMask | AppKit.NSShiftKeyMask)
+            menu.insertItem_atIndex_(redo, 0)
+            undo = AppKit.NSMenuItem.alloc().initWithTitle_action_keyEquivalent_("Widerrufen", "rueckgaengig:", "z")
+            undo.setTarget_(ziel)
+            menu.insertItem_atIndex_(undo, 0)
+        except Exception:   # nur Komfort
+            log.debug("Widerrufen nicht ins Menü eingetragen", exc_info=True)
+
+    _add_edit_menu._jobmonitor = True
+    cocoa.BrowserView._add_edit_menu = _add_edit_menu
+
+
 def _startbild_zu() -> None:
     try:
         from jobmonitor.app_start import startbild_schliessen
@@ -198,6 +268,7 @@ def run(root: Path, port: int = PORT) -> int:
     _brand(root)
     _fix_file_dialog()
     _fix_context_menu()
+    _fix_edit_menu()
     app.native = True
     # transparent + vibrancy: macOS-Material hinter dem Fenster, sichtbar in der Seitenleiste (Inhalt bleibt deckend).
     # text_select: pywebview sperrt sonst die Textauswahl im ganzen Fenster (kein Kopieren); Bedienelemente sperrt das CSS.

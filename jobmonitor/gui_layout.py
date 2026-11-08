@@ -9,6 +9,9 @@ import re
 from html import escape
 
 ICONS = {
+    "auge": '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    "trash": '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>',
+    "einrichten": '<path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/>',
     "stellen": '<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
     "traum": '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 '
              '8.91 8.26 12 2"/>',
@@ -75,7 +78,7 @@ KI_AUS_TITEL = "Braucht KI – einrichten unter Einstellungen → KI"
 
 def ki_aus(html: str) -> str:
     """Ohne eingerichtete KI: alle KI-Knöpfe (data-ki) ausgrauen. Ein Klick erklärt, wo man die KI einrichtet.
-    Knöpfe mit data-ki-immer (Schlüssel speichern, Update laden) bleiben bedienbar."""
+    Knöpfe mit data-ki-immer (Schlüssel speichern, Modelle laden) bleiben bedienbar."""
     def ersetzen(m: re.Match) -> str:
         if "data-ki-immer" in m.group(0):
             return m.group(0)
@@ -165,6 +168,12 @@ a:hover { text-decoration-color:currentColor; }
 .side-foot button:hover { background:var(--side-2); color:var(--side-strong); }
 .side-foot button:active { background:var(--side-3); }
 .side-foot .hint { font-size:12px; color:var(--side-muted); padding:0 10px 6px; }
+/* Laufende Einrichtung: ganz oben in der Seitenleiste, farbig wie „Job-Monitor unterstützen“ */
+.nav a.einrichtung { height:auto; min-height:36px; margin:0 0 10px; color:var(--accent-2); background:var(--accent-soft);
+  font-weight:500; }
+.nav a.einrichtung .ic { color:var(--accent); }
+.nav a.einrichtung:hover, .nav a.einrichtung.active { background:var(--accent-soft); color:var(--accent-2);
+  box-shadow:inset 0 0 0 1.5px var(--accent); }
 .side-foot .spenden { display:flex; align-items:center; gap:10px; min-height:34px; padding:6px 10px; margin-bottom:6px;
   line-height:1.25;
   border-radius:8px; font-size:14px; font-weight:500; text-decoration:none; color:var(--accent-2);
@@ -345,8 +354,12 @@ td.fit { white-space:nowrap; font-weight:500; width:70px; font-variant-numeric:t
 .job h3 { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .job h3 a { color:var(--text); text-decoration:none; }
 .job h3 a:hover { color:var(--accent); }
-.job .meta { color:var(--muted); font-size:13px; margin-top:2px; display:flex; gap:6px; align-items:center; min-width:0; }
-.job .meta > span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+/* Viele Chips (neu, Remote, nicht mehr online …) brechen in die nächste Zeile um, statt über die Bewertung zu laufen */
+.job > div:first-child { min-width:0; }
+.job .meta { color:var(--muted); font-size:13px; margin-top:2px; display:flex; flex-wrap:wrap; gap:4px 6px;
+             align-items:center; min-width:0; }
+.job .meta > span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; max-width:100%; }
+.job .meta .chip { white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
 .job .mark { color:var(--accent); font-weight:500; }
 .req { display:flex; flex-direction:column; gap:5px; }
 .units { display:flex; flex-wrap:wrap; gap:2px; max-width:118px; }
@@ -393,11 +406,14 @@ td.fit { white-space:nowrap; font-weight:500; width:70px; font-variant-numeric:t
 .splash { display:grid; place-items:center; min-height:70vh; text-align:center; }
 
 /* Nur bei längeren Aktionen (erscheint verzögert, siehe JS); kurze Klicks behalten nur das Feedback am Knopf */
-#busy { display:none; position:fixed; inset:0; background:rgba(0,0,0,.25); align-items:center;
-        justify-content:center; z-index:10; animation:fade .2s ease-out; }
-#busy div { background:var(--surface); color:var(--text); padding:14px 20px; border-radius:14px;
-            box-shadow:var(--shadow-lg); display:flex; gap:12px; align-items:center; font-weight:500;
-            animation:materialize .25s var(--press); }
+/* Abgedunkelt und unscharf dahinter, Kasten mit Rand: auch im dunklen Design klar vom Inhalt zu unterscheiden */
+#busy { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); align-items:center;
+        -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+        justify-content:center; z-index:50; animation:fade .2s ease-out; }
+#busy div { background:var(--surface-2, var(--surface)); color:var(--text); padding:14px 20px; border-radius:14px;
+            border:1px solid var(--control); box-shadow:var(--shadow-lg); display:flex; gap:12px; align-items:center;
+            font-weight:500; animation:materialize .25s var(--press); }
+#busy.ki div::before { border-top-color:var(--accent); }
 #busy div::before { content:""; width:16px; height:16px; border-radius:50%; border:2px solid var(--control);
                     border-top-color:var(--text); animation:spin .8s linear infinite; }
 #busy span { display:grid; gap:4px; } #busy small { display:none; font-weight:400; font-size:12.5px; color:var(--muted);
@@ -509,6 +525,20 @@ document.addEventListener('click', e => {
   if (u.pathname !== location.pathname || u.search !== location.search || u.hash.length < 2) return;
   if (sprung(u.hash.slice(1), true)) { e.preventDefault(); history.replaceState(null, '', u.hash); }
 });
+// ⌘Z / Strg+Z außerhalb von Textfeldern: die letzte Aktion zurücknehmen, wenn die Seite dafür einen Knopf
+// anbietet (data-rueckgaengig, z. B. nach „Stelle ausgeblendet“). Im App-Fenster ruft das Bearbeiten-Menü das auf
+// (desktop.py), sonst der Tastendruck selbst. In Feldern bleibt es beim normalen Widerrufen.
+window.jmRueckgaengig = () => {
+  const a = document.activeElement;
+  if (a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) return false;
+  const b = document.querySelector('[data-rueckgaengig]');
+  if (!b) return false;
+  b.click(); return true;
+};
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' && jmRueckgaengig())
+    e.preventDefault();
+});
 // Sofort: der gedrückte Knopf zeigt „arbeitet“ (und verhindert Doppelklicks). Das Overlay kommt erst, wenn es
 // länger als 400 ms dauert – kurze Aktionen wie Merken oder Ausblenden bleiben so ohne Flackern.
 // KI-Knöpfe (data-ki="Was gerade passiert"): Overlay sofort, mit Sekundenzähler – KI-Aufrufe dauern 10–60 s.
@@ -525,6 +555,13 @@ document.querySelectorAll('form').forEach(f => f.addEventListener('submit', e =>
     const zeigen = () => { const s = Math.round((Date.now() - start) / 1000);
       zeit.textContent = `${s} s · die KI arbeitet, meist 10 bis 40 Sekunden. Fenster bitte offen lassen.`; };
     zeigen(); kiTakt = setInterval(zeigen, 1000);
+    busy.style.display = 'flex';
+    return;
+  }
+  if (b && b.dataset.laden) {   // lange Aktion ohne KI (z. B. Update laden): eigener Text, kein KI-Hinweis
+    busy.classList.add('ki');
+    busy.querySelector('b').textContent = b.dataset.laden;
+    busy.querySelector('small').textContent = b.dataset.ladenInfo || 'Einen Moment, Fenster bitte offen lassen.';
     busy.style.display = 'flex';
     return;
   }
@@ -614,9 +651,17 @@ document.addEventListener('click', e => {
 
 
 def nav(active: str, badges: dict[str, tuple[int, str]], token: str, hint: str = "",
-        traum_name: str | None = "Cloud Security", spenden_url: str = "") -> str:
-    """`traum_name`: Name des Traumprofils (config.yaml → traumprofil.name); None blendet den Eintrag aus."""
+        traum_name: str | None = "Cloud Security", spenden_url: str = "", einrichtung: bool = False,
+        beenden: bool = False) -> str:
+    """`traum_name`: Name des Traumprofils (config.yaml → traumprofil.name); None blendet den Eintrag aus.
+    `einrichtung`: Einrichtung läuft noch – Eintrag ganz oben und hervorgehoben (danach verschwindet er; neu
+    einrichten geht über Einstellungen). `beenden`: Knopf „Beenden“ nur ohne App-Fenster (im Browser stoppt er den
+    Server; im Fenster beendet Schließen bzw. ⌘Q die App und synchronisiert dabei)."""
     parts, section = [], None
+    if einrichtung:
+        cls = " active" if active == "einrichten" else ""
+        parts.append(f'<a class="einrichtung{cls}" href="/einrichten">{icon("einrichten")}<span>Einrichtung '
+                     f'fortsetzen</span></a>')
     for key, title, href, sec in NAV:
         if key == "traum":
             if traum_name is None:
@@ -633,13 +678,14 @@ def nav(active: str, badges: dict[str, tuple[int, str]], token: str, hint: str =
     spenden = (f'<a class="spenden" href="{escape(spenden_url)}" target="_blank" rel="noopener">{icon("herz", 16)}'
                f'<span>Job-Monitor unterstützen</span></a>' if spenden_url else "")
     spenden += f'<a class="teilen" href="/einstellungen#teilen">{icon("teilen", 16)}<span>Weiterempfehlen</span></a>'
+    beenden_html = (f'<form method="post" action="/quit"><input type="hidden" name="token" value="{token}"><button>'
+                    f'{icon("power", 16)}\nBeenden</button></form>' if beenden else "")
     return f"""<aside class="side"><div class="brand">{LOGO}Job-Monitor</div>
 <nav class="nav">{"".join(parts)}</nav>
 <div class="side-foot">{hint_html}{spenden}
 <form method="post" action="/sync"><input type="hidden" name="token" value="{token}"><button>{icon("sync", 16)}
 Synchronisieren</button></form>
-<form method="post" action="/quit"><input type="hidden" name="token" value="{token}"><button>{icon("power", 16)}
-Beenden</button></form></div></aside>"""
+{beenden_html}</div></aside>"""
 
 
 def document(title: str, body: str, side: str = "", extra_css: str = "", token: str = "",

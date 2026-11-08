@@ -187,7 +187,9 @@ def _boersen_html(root: Path, cfg: dict, hidden: str) -> str:
 
 
 # --- Seite ---
-def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
+def render(root: Path, token: str, ki_an: bool, message: str = "", ki_karte: str = "") -> str:
+    """ki_karte: Formulare aus Einstellungen → KI (gui_ki.karte mit ziel="/einrichten") – Schlüssel direkt hier
+    eintragen, prüfen oder wieder austragen."""
     cfg = load_config(root / "config.yaml")
     st = schritte(root, cfg, ki_an)
     profil = gp.load(root) if (root / "cv" / "profile.yaml").exists() else {}
@@ -207,14 +209,16 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
     person = (f'<form method="post" action="/einrichten">{hidden}<input type="hidden" name="aktion" value="person">'
               f'<div class="grid2">{felder}</div><p class="muted">Steht nur im Kopf deiner PDFs. Bleibt auf diesem '
               f'Rechner, geht nie an eine KI.</p><button class="small">Speichern</button></form>')
-    kschritt = ('<p class="ok">KI ist eingerichtet: Suchprofil und Lebenslauf füllt sie für dich aus.</p>' if ki_an else
+    kschritt = ('<p class="ok">KI ist eingerichtet: Suchprofil und Lebenslauf füllt sie für dich aus.</p>'
+                + (f'<div class="ki-hier">{ki_karte}</div>' if ki_karte else '') if ki_an else
                 '<p><b>Empfohlen:</b> Mit KI holst du das meiste aus der App heraus – genauerer Fit, Suchprofil und '
                 'Lebenslauf werden für dich ausgefüllt, Anschreiben und Gesprächsvorbereitung entworfen. Ohne geht alles '
                 'auch, nur mit mehr Tipparbeit.</p>' + gki.wahl_html("einrichten") +
                 '<p class="muted">Die KI nutzt <b>deinen eigenen</b> Zugang beim Anbieter – die App hat keinen '
                 'eigenen, und deine Daten gehen direkt dorthin, nie an den Entwickler. Möglich sind auch OpenAI, '
-                'Mistral oder Ollama (kostenlos auf deinem Rechner, unter Einstellungen → KI).</p>'
-                '<a class="btn ghost small" href="/einstellungen#ki">Schlüssel hinterlegen</a>')
+                'Mistral oder Ollama (kostenlos auf deinem Rechner).</p>'
+                + (f'<div class="ki-hier"><h3>Schlüssel hier eintragen</h3>{ki_karte}</div>' if ki_karte else
+                   '<a class="btn ghost small" href="/einstellungen#ki">Schlüssel hinterlegen</a>'))
     zentrum = (cfg.get("ort") or {}).get("zentrum") or ""
     ort = (f'<form method="post" action="/einrichten" class="row" style="gap:8px;flex-wrap:wrap">{hidden}'
            f'<input type="hidden" name="aktion" value="wohnort"><input name="stadt" required maxlength="40" '
@@ -242,8 +246,15 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
               f'suchen (auf diesem Rechner)</label><div class="row" style="margin-top:10px"><button>Fertig – zur '
               f'Stellenliste</button></div></form>')
     offen = sum(1 for k, v in st.items() if not v and k not in ("ki", "mail"))
-    return (f'<h1>Willkommen bei Job-Monitor</h1><p class="sub">In fünf Schritten zur ersten Suche, dazu optional KI und Postfach. '
-            f'{"Alles Wichtige erledigt." if not offen else f"Noch {offen} Schritt(e) offen."}</p>{message}'
+    pflicht = [k for k in st if k not in ("ki", "mail")]
+    erledigt = len(pflicht) - offen
+    return (f'<div class="einrichtung-kopf"><div class="eyebrow">Einrichtung · {erledigt} von {len(pflicht)} '
+            f'Pflichtschritten erledigt</div><h1>Willkommen bei Job-Monitor</h1><p class="sub">In vier Schritten zur '
+            f'ersten Suche, dazu optional KI und Postfach. '
+            f'{"Alles Wichtige erledigt." if not offen else f"Noch {offen} Schritt(e) offen."}</p>'
+            f'<div class="fortschritt" role="progressbar" aria-valuemin="0" aria-valuemax="{len(pflicht)}" '
+            f'aria-valuenow="{erledigt}"><i style="width:{round(100 * erledigt / max(1, len(pflicht)))}%"></i></div>'
+            f'</div>{message}'
             + karte(1, "person", "Deine Angaben", person) + karte(2, "ki", "KI (optional)", kschritt)
             + karte(3, "wohnort", "Wohnort", ort) + karte(4, "suche", "Was suchst du?", suche)
             + karte(5, "lebenslauf", "Lebenslauf", cv)
@@ -251,7 +262,19 @@ def render(root: Path, token: str, ki_an: bool, message: str = "") -> str:
             + f'<div class="card"><h2>Los geht’s</h2>{fertig}</div>')
 
 
-CSS = ".schritt.fertig h2 { color: var(--muted); } .schritt .head .ok { font-weight: 500; }" + gki.WAHL_CSS
+CSS = (".schritt.fertig h2 { color: var(--muted); } .schritt .head .ok { font-weight: 500; }"
+       # eigener Look: farbiger Kopf mit Fortschritt, offene Schritte mit Akzentkante, erledigte zurückgenommen
+       ".einrichtung-kopf { background:var(--accent-soft); border:1px solid var(--accent); border-radius:var(--radius);"
+       " padding:22px 24px; margin-bottom:18px; } .einrichtung-kopf h1 { margin:4px 0 6px; }"
+       ".einrichtung-kopf .eyebrow { color:var(--accent-2); font-size:13px; font-weight:600; }"
+       ".einrichtung-kopf .sub { margin:0 0 14px; }"
+       ".fortschritt { height:8px; border-radius:99px; background:var(--surface); overflow:hidden; }"
+       ".fortschritt i { display:block; height:100%; background:var(--accent); border-radius:99px;"
+       " transition:width .4s ease; }"
+       ".card.schritt { border-left:4px solid var(--accent); } .card.schritt.fertig { border-left-color:var(--line);"
+       " opacity:.8; }"
+       ".ki-hier { border-top:1px solid var(--line); margin-top:12px; padding-top:12px; display:grid; gap:8px; }"
+       ".ki-hier h3 { margin:0; font-size:15px; } .ki-hier p { margin:0; }" + gki.WAHL_CSS)
 
 
 def ausfuehren(root: Path, form: dict, uploads: dict, ki_an: bool, ask=None) -> str:

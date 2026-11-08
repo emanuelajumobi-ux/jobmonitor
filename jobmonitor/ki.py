@@ -198,7 +198,10 @@ def fragen(root: Path, cfg: dict, prompt: str, effort: str = "medium", max_token
         m["ausgabe"] += aus
     _speichern(root, data)
     if not antwort:
-        raise KiError("Die KI hat nicht geantwortet (Netz, Schlüssel oder Guthaben prüfen; Details im Protokoll).")
+        from . import ki_anbieter
+        grund = ki_anbieter.grund(llm.ANBIETER) if llm.ANBIETER != "claude" and not ask else ""
+        raise KiError(grund or "Die KI hat nicht geantwortet (Netz, Schlüssel oder Guthaben prüfen; Details im "
+                               "Protokoll).")
     return antwort.strip()
 
 

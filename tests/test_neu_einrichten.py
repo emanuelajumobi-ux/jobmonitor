@@ -79,7 +79,8 @@ def test_karte_nur_ausserhalb_des_codes(tmp_path):
     import html
     assert 'value="zuruecksetzen"' in zuruecksetzen.karte("t", tmp_path / "Job-Monitor", html.escape)
     from jobmonitor.config import CODE
-    assert zuruecksetzen.karte("t", CODE, html.escape) == ""
+    entwicklung = zuruecksetzen.karte("t", CODE, html.escape)
+    assert 'href="/einrichten"' in entwicklung and 'value="zuruecksetzen"' not in entwicklung
 
 
 # --- Startmenü ---

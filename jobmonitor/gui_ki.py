@@ -103,11 +103,13 @@ WAHL_CSS = """
 
 
 def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipeline: str = "",
-          liste: list[str] | None = None) -> str:
+          liste: list[str] | None = None, ziel: str = "/einstellungen") -> str:
+    """Einstellungen → KI. ziel="/einrichten": dieselben Formulare ohne Kartenrahmen im Einrichtungs-Assistenten
+    (Schlüssel eintragen, prüfen, austragen, ohne die Seite zu verlassen)."""
     anbieter, modelle = aus_config(cfg)
     a = ANBIETER[anbieter]
     form = lambda aktion, inhalt, extra="": (  # noqa: E731
-        f'<form method="post" action="/einstellungen" class="row" style="gap:8px;align-items:end{extra}">'
+        f'<form method="post" action="{ziel}" class="row" style="gap:8px;align-items:end{extra}">'
         f'<input type="hidden" name="token" value="{token}"><input type="hidden" name="aktion" value="{aktion}">'
         f'{inhalt}</form>')
     wahl = "".join(f'<option value="{k}"{" selected" if k == anbieter else ""}>{esc(v["name"])}</option>'
@@ -152,6 +154,8 @@ def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipel
                                                'laden</button>'))
     else:
         modell_html = ""
+    if ziel != "/einstellungen":
+        return f'{kopf}<p class="muted">{esc(a["hinweis"])}</p>{schluessel}{modell_html}'
     anleitung = ('' if not herkunft else
                  '<p class="muted" style="margin-top:10px">Anleitungen: <a href="/ki-anleitung">Claude</a> · '
                  '<a href="/ki-anleitung?anbieter=gemini">Google Gemini (kostenlos)</a></p>')

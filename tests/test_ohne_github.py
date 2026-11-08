@@ -183,7 +183,8 @@ def test_assistent_von_null(tmp_path, monkeypatch):
 def test_assistent_ohne_ki(tmp_path):
     erststart.vorbereiten(tmp_path)
     app = App(tmp_path, compile_pdf=False)
-    assert "Schlüssel hinterlegen" in app.einrichten().decode()
+    seite = app.einrichten().decode()
+    assert "Schlüssel hier eintragen" in seite and 'action="/einrichten"' in seite and "ki_schluessel" in seite
     assert "Wohnort Halle übernommen (1 Orte)" in app.einrichten({"aktion": "wohnort", "stadt": "Halle"}).decode()
     html = app.einrichten({"aktion": "suche", "wunsch": "Pflege, Gesundheit, Klinik", "stufe": "ausbildung"}).decode()
     assert "angelegt" in html

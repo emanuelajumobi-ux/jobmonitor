@@ -3,6 +3,17 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.3.8
+
+- **Rückgängig mit ⌘Z / Strg+Z:** In Textfeldern nimmt ⌘Z die letzte Eingabe zurück (⇧⌘Z stellt sie wieder her). Außerhalb von Feldern nimmt es die letzte Aktion zurück, etwa eine gerade ausgeblendete Stelle.
+- **Ausgeblendete Stellen zurückholen oder löschen:** Im Reiter „Ausgeblendet“ holt das Auge eine Stelle zurück, der Papierkorb löscht sie endgültig. Mit „Alle endgültig löschen“ räumst du die ganze Liste auf einmal auf.
+- **Einrichtung übersichtlicher:** Solange die Einrichtung läuft, steht „Einrichtung fortsetzen“ farbig ganz oben in der Seitenleiste. Die Seite selbst hat einen eigenen Kopf mit Fortschrittsbalken. Ist alles erledigt, verschwindet der Eintrag. Später öffnest du den Assistenten unter Einstellungen → Neu einrichten.
+- **KI direkt im Assistenten:** Den Schlüssel trägst du jetzt direkt im Einrichtungs-Assistenten ein, prüfst ihn und kannst ihn dort auch wieder entfernen. Bei Gemini übernimmt die App die passenden Modelle von selbst.
+- **Klare KI-Fehlermeldungen:** Statt „Die KI hat nicht geantwortet“ steht jetzt der Grund da, zum Beispiel kein Internet, Kontingent erschöpft, Schlüssel abgelehnt oder Modell nicht verfügbar. Ist das kostenlose Gemini-Kontingent einer Minute voll, versucht die App es nach 15 Sekunden noch einmal.
+- **Postfach leichter verbinden:** Wählst du deinen Anbieter, steht vorher da, was eingeschaltet sein muss. Bei Gmail ist das die Bestätigung in zwei Schritten. Knöpfe führen direkt zur richtigen Seite, um sie einzuschalten und das App-Passwort anzulegen.
+- **Sichtbarer Ladehinweis:** Während die KI arbeitet, zum Beispiel beim Fit-Prüfen einer eigenen Stelle, ist der Hinweis jetzt auch im dunklen Design deutlich zu sehen. Das Update hat einen eigenen Ladehinweis ohne KI-Text.
+- **Aufgeräumter:** Tags unter dem Jobtitel überlappen nicht mehr mit der Bewertung. Der Knopf „Beenden“ ist aus der Seitenleiste verschwunden: Schließen oder ⌘Q beendet die App.
+
 ## 1.3.7
 
 - **Einrichtung geht nicht mehr verloren:** Öffnest du im Einrichtungs-Assistenten die KI-Anleitung, führt dich oben und unten ein Knopf zurück. Solange die Einrichtung nicht abgeschlossen ist, zeigt jede Seite oben „Weiter einrichten“.

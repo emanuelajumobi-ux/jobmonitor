@@ -138,10 +138,15 @@ def beim_start(home: Path) -> str:
     return "Alte Daten gelöscht"
 
 
+ASSISTENT_LINK = ('<p>Nur einzelne Angaben ändern (KI, Wohnort, Suchprofil, Postfach)? '
+                  '<a class="btn ghost small" href="/einrichten">Einrichtungs-Assistent öffnen</a></p>')
+
+
 def karte(token: str, root: Path, esc) -> str:
     if not moeglich(root):
-        return ""
-    return (f'<div class="card" id="zuruecksetzen"><h2>Neu einrichten</h2><p>Setzt Job-Monitor zurück, als wäre die '
+        return f'<div class="card" id="zuruecksetzen"><h2>Neu einrichten</h2>{ASSISTENT_LINK}</div>'
+    return (f'<div class="card" id="zuruecksetzen"><h2>Neu einrichten</h2>{ASSISTENT_LINK}<p>Oder ganz von vorn: '
+            f'Setzt Job-Monitor zurück, als wäre die '
             f'App frisch installiert: Danach startet wieder der Einrichtungs-Assistent.</p>'
             f'<form method="post" action="/einstellungen"><input type="hidden" name="token" value="{token}">'
             f'<input type="hidden" name="aktion" value="zuruecksetzen">'

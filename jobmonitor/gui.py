@@ -108,6 +108,9 @@ def _kurz(firma: str) -> str:
     """„SUPERSCREENS GmbH“ → „SUPERSCREENS“ für knappe Knopfbeschriftungen."""
     return re.sub(r"\s+(GmbH|AG|SE|KG|mbH|e\.V\.|GmbH & Co\. KG)$", "", firma.strip())[:28]
 
+KI_AKTIONEN = ("ki_anbieter", "ki_modelle_laden", "ki_modelle", "ki_schluessel", "ki_entfernen")
+
+
 class App(BewerbungenSeiten):
     """Zustand und Aktionen, getrennt vom HTTP-Teil (testbar)."""
 
@@ -160,8 +163,12 @@ class App(BewerbungenSeiten):
             log.exception("KI-Stand nicht ermittelt")
         if (knopf := gh.knopf(active)):                 # „?“ unten rechts: Hilfe zu dieser Seite
             body, extra_css = body + knopf, extra_css + gh.KNOPF_CSS
+        try:
+            einrichtung = self.echt is None and not erststart.eingerichtet(self.root)
+        except Exception:
+            einrichtung = False
         seite = layout.document(title, body, layout.nav(active, badges, self.token, self.sync_hint, traum_name,
-                                                        spenden.url(cfg)),
+                                                        spenden.url(cfg), einrichtung, not self.native),
                                 extra_css, self.token, self.native, i18n.darstellung(cfg))
         return self.uebersetzt(seite)
 
@@ -304,13 +311,13 @@ class App(BewerbungenSeiten):
         return f'<div class="card"><p class="{cls}">{esc(result.message)}</p>{details}</div>'
 
     def form(self, action: str, fields: str, label: str, ghost: bool = False, small: bool = False,
-             icon_name: str = "", title: str = "", ki: str = "") -> str:
+             icon_name: str = "", title: str = "", ki: str = "", attr: str = "") -> str:
         classes = " ".join(c for c in ("ghost" if ghost else "", "small" if small else "",
                                        "icon" if icon_name and not label else "") if c)
         inner = (layout.icon(icon_name, 16) if icon_name else "") + esc(label)
         attrs = ((f' class="{classes}"' if classes else "")
                  + (f' title="{esc(title)}" aria-label="{esc(title)}"' if title else "")
-                 + (f' data-ki="{esc(ki)}"' if ki else ""))
+                 + (f' data-ki="{esc(ki)}"' if ki else "") + attr)
         return (f'<form method="post" action="{action}" style="display:inline">'
                 f'<input type="hidden" name="token" value="{self.token}">{fields}<button{attrs}>{inner}</button></form>')
 
@@ -320,6 +327,8 @@ class App(BewerbungenSeiten):
         state = State(self.root / "state" / "seen.sqlite", readonly=True)
         details = state.job_details()
         state.close()
+        weg = gb.geloescht(self.root)
+        details = [d for d in details if d["url"] not in weg]
         try:
             cv, _ = load_cv_master(self.root)
         except CvDataError:
@@ -350,6 +359,13 @@ class App(BewerbungenSeiten):
             except gw.WartungError as exc:
                 message = f'<div class="card err">{esc(exc)}</div>'
             form = None
+        if form and form.get("aktion") in KI_AKTIONEN:   # KI direkt im Assistenten einrichten oder austragen
+            try:
+                message = f'<div class="card"><p class="ok">{esc(self.ki_einrichten(form["aktion"], form))}</p></div>'
+            except (ki.KiError, gki_anbieter.AnbieterError) as exc:
+                message = f'<div class="card err">{esc(exc)}</div>'
+            ki_an = bool(ki.schluessel())
+            form = None
         if form:
             try:
                 ergebnis = gas.ausfuehren(self.root, form, uploads or {}, ki_an)
@@ -367,7 +383,13 @@ class App(BewerbungenSeiten):
                 message = f'<div class="card err">{esc(exc)}</div>'
         sprache_html = (i18n.karte(self.token, i18n.sprache(load_config(self.root / "config.yaml")), "/einrichten")
                         + (demo.einstieg(self.token) if self.echt is None else ""))
-        return self.page("Einrichten", gas.render(self.root, self.token, ki_an, message) + sprache_html, "", gas.CSS)
+        cfg = load_config(self.root / "config.yaml")
+        llm.einstellen(cfg)
+        ki_karte = gki.karte(self.token, cfg, ki.herkunft(), ki.nutzung(self.root),
+                             int(ki.settings(cfg)["max_aufrufe_monat"]), liste=getattr(self, "_ki_modelle", None),
+                             ziel="/einrichten")
+        return self.page("Einrichten", gas.render(self.root, self.token, ki_an, message, ki_karte) + sprache_html,
+                         "einrichten", gas.CSS)
 
     def index(self, message: str = "", show_hidden: bool = False, nur_traum: bool = False, profil: str = "") -> bytes:
         """Stellen: oben der Befund, darunter die Liste nach Fit und rechts die Belege (häufigste Lücken,
@@ -437,6 +459,14 @@ class App(BewerbungenSeiten):
             message += (f'<div class="card info"><p>{len(self.new_ids)} neue Stelle(n) seit deinem letzten Besuch '
                         f'– in der Liste mit „neu“ markiert.</p></div>')
 
+        if show_hidden and hidden_n:
+            message += ('<div class="card info row" style="justify-content:space-between;gap:12px"><p style="margin:0">'
+                        'Ausgeblendete Stellen: mit dem Auge holst du eine zurück, mit dem Papierkorb löschst du sie '
+                        'endgültig.</p>'
+                        + self.form("/markieren", '<input type="hidden" name="aktion" value="alle_loeschen">',
+                                    "Alle endgültig löschen", ghost=True, small=True,
+                                    attr=' onclick="return confirm(\'Alle ausgeblendeten Stellen endgültig löschen?\')"')
+                        + '</div>')
         tab = "hidden" if show_hidden else "traum" if nur_traum else f"profil:{profil}" if profil else "alle"
         stufen = [suchprofil.stufe_von(p) for p in suchprofil.alle(cfg)
                   if (p.key == profil if profil else p.enabled)]
@@ -568,7 +598,17 @@ class App(BewerbungenSeiten):
                           "", ghost=True, icon_name="bookmark", title="Merken")
                 if status in ("", gb.HIDDEN) else "")
         hide = (self.form("/markieren", job_field + '<input type="hidden" name="aktion" value="ausblenden">',
-                          "", ghost=True, icon_name="x", title="Ausblenden") if status != gb.HIDDEN else "")
+                          "", ghost=True, icon_name="x", title="Ausblenden") if status != gb.HIDDEN else
+                # unter „Ausgeblendet“: zurückholen oder endgültig löschen statt Merken
+                self.form("/markieren", job_field + '<input type="hidden" name="aktion" value="rueckgaengig">'
+                                                    '<input type="hidden" name="zurueck" value="ausgeblendet">',
+                          "", ghost=True, icon_name="auge", title="Wieder einblenden")
+                + self.form("/markieren", job_field + '<input type="hidden" name="aktion" value="loeschen">',
+                            "", ghost=True, icon_name="trash", title="Endgültig löschen",
+                            attr=' onclick="return confirm(\'Stelle endgültig löschen? Sie erscheint dann auch nicht '
+                                 'mehr unter „Ausgeblendet“.\')"'))
+        if status == gb.HIDDEN:
+            mark = ""
         bell = (self.form("/erinnern", job_field + '<input type="hidden" name="art" value="frist">', "", ghost=True,
                           icon_name="bell", title=f"Frist in Erinnerungen eintragen ({erinnerung.faellig:%d.%m.})")
                 if erinnerung is not None and not erinnert else "")
@@ -1431,6 +1471,44 @@ class App(BewerbungenSeiten):
             self._laeufe = (jetzt, gw.pipeline_laeufe(self.root))
         return gw.laeufe_html(*self._laeufe[1]).encode()
 
+    def ki_einrichten(self, aktion: str, form: dict) -> str:
+        """KI einrichten (Anbieter, Schlüssel, Modelle) – aus Einstellungen → KI und aus dem Einrichtungs-Assistenten.
+        Gibt die Erfolgsmeldung zurück; Fehler als ki.KiError bzw. AnbieterError."""
+        if aktion == "ki_anbieter":
+            gki.speichern(self.root, form.get("anbieter", ""))
+            llm.einstellen(load_config(self.root / "config.yaml"))
+            self._ki_modelle = None
+            return (f"Anbieter: {gki.ANBIETER[llm.ANBIETER]['name']}. "
+                     + ("Jetzt den Schlüssel eintragen." if not ki.schluessel() else "Schlüssel ist schon hinterlegt."))
+        if aktion == "ki_modelle_laden":
+            schluessel = ki.schluessel()
+            self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, None if schluessel == "lokal" else schluessel)
+            if llm.ANBIETER == "gemini":
+                gki_anbieter.gemini_pruefen(schluessel, self._ki_modelle)
+            return (f"{len(self._ki_modelle)} Modelle geladen – passende sind vorausgewählt, bitte übernehmen.")
+        if aktion == "ki_modelle":
+            gki.speichern(self.root, llm.ANBIETER, {"schnell": form.get("schnell", ""), "gut": form.get("gut", "")})
+            llm.einstellen(load_config(self.root / "config.yaml"))
+            self._ki_modelle = None
+            return ("Modelle übernommen. Die KI-Knöpfe sind jetzt aktiv.")
+        if aktion == "ki_schluessel":
+            ki.schluessel_speichern(form.get("schluessel", ""))
+            if llm.ANBIETER != "claude" and not llm.MODELLE.get("schnell"):
+                self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, ki.schluessel())
+                if llm.ANBIETER == "gemini":
+                    gki_anbieter.gemini_pruefen(ki.schluessel(), self._ki_modelle)
+                wahl = gki_anbieter.vorschlag(self._ki_modelle, llm.ANBIETER)   # gleich übernehmen: sofort startklar
+                gki.speichern(self.root, llm.ANBIETER, wahl)
+                llm.einstellen(load_config(self.root / "config.yaml"))
+                self._ki_modelle = None
+                return (f"Schlüssel gespeichert und geprüft – die KI ist startklar (Modelle {wahl['schnell']} und "
+                        f"{wahl['gut']}, änderbar unter Einstellungen → KI).")
+            return "Schlüssel sicher gespeichert. Die KI-Knöpfe sind jetzt aktiv."
+        if aktion == "ki_entfernen":
+            ki.schluessel_loeschen()
+            return "API-Schlüssel vom Rechner entfernt. Die KI-Knöpfe sind jetzt aus."
+        return ""
+
     def einstellungen_post(self, form: dict) -> bytes:
         aktion = form.get("aktion", "")
         ok = lambda text: f'<div class="card"><p class="ok">{esc(text)}</p></div>'  # noqa: E731
@@ -1505,35 +1583,8 @@ class App(BewerbungenSeiten):
             elif aktion == "sicherung_ordner":
                 subprocess.run(["open", str(self.sicherung_ziel)])
                 msg = ""
-            elif aktion == "ki_anbieter":
-                gki.speichern(self.root, form.get("anbieter", ""))
-                llm.einstellen(load_config(self.root / "config.yaml"))
-                self._ki_modelle = None
-                msg = ok(f"Anbieter: {gki.ANBIETER[llm.ANBIETER]['name']}. "
-                         + ("Jetzt den Schlüssel eintragen." if not ki.schluessel() else "Schlüssel ist schon hinterlegt."))
-            elif aktion == "ki_modelle_laden":
-                schluessel = ki.schluessel()
-                self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, None if schluessel == "lokal" else schluessel)
-                if llm.ANBIETER == "gemini":
-                    gki_anbieter.gemini_pruefen(schluessel, self._ki_modelle)
-                msg = ok(f"{len(self._ki_modelle)} Modelle geladen – passende sind vorausgewählt, bitte übernehmen.")
-            elif aktion == "ki_modelle":
-                gki.speichern(self.root, llm.ANBIETER, {"schnell": form.get("schnell", ""), "gut": form.get("gut", "")})
-                llm.einstellen(load_config(self.root / "config.yaml"))
-                self._ki_modelle = None
-                msg = ok("Modelle übernommen. Die KI-Knöpfe sind jetzt aktiv.")
-            elif aktion == "ki_schluessel":
-                ki.schluessel_speichern(form.get("schluessel", ""))
-                if llm.ANBIETER != "claude" and not llm.MODELLE.get("schnell"):
-                    self._ki_modelle = gki_anbieter.modelle(llm.ANBIETER, ki.schluessel())
-                    if llm.ANBIETER == "gemini":
-                        gki_anbieter.gemini_pruefen(ki.schluessel(), self._ki_modelle)
-                    msg = ok("Schlüssel gespeichert und geprüft. Jetzt die Modelle übernehmen.")
-                else:
-                    msg = ok("Schlüssel sicher gespeichert. Die KI-Knöpfe sind jetzt aktiv.")
-            elif aktion == "ki_entfernen":
-                ki.schluessel_loeschen()
-                msg = ok("API-Schlüssel aus dem Schlüsselbund entfernt.")
+            elif aktion in KI_AKTIONEN:
+                msg = ok(self.ki_einrichten(aktion, form))
             elif aktion == "mitteilung":
                 msg = ok(bn.einschalten(self.root, form.get("zeit", "")) if form.get("an") else bn.ausschalten())
             elif aktion == "mitteilung_test":
@@ -1607,6 +1658,11 @@ class App(BewerbungenSeiten):
         return self.firmen(msg) if von or name == "companies.yaml" else self.einstellungen(msg)
 
     def markieren(self, form: dict) -> bytes:
+        if form.get("aktion") == "alle_loeschen":
+            versteckt = {r.get("link") for r in tracking.load(self.root / "applications.csv")
+                         if r.get("status") == gb.HIDDEN}
+            n = gb.loeschen(self.root, [d["url"] for d in self.jobs() if d["url"] in versteckt])
+            return self.index(f'<div class="card"><p class="ok">{n} ausgeblendete Stelle(n) endgültig gelöscht.</p></div>')
         job = next((d for d in self.jobs() if d["id"] == form.get("job_id")), None)
         if job is None:
             return self.index('<div class="card err">Stelle nicht gefunden.</div>')
@@ -1616,7 +1672,12 @@ class App(BewerbungenSeiten):
         if aktion == "rueckgaengig":
             msg = gb.undo_hide(rows, job, form.get("vorher", ""))
             tracking.save(path, rows)
-            return self.index(f'<div class="card"><p class="ok">{esc(msg)}</p></div>')
+            return self.index(f'<div class="card"><p class="ok">{esc(msg)}</p></div>',
+                              show_hidden=form.get("zurueck") == "ausgeblendet")
+        if aktion == "loeschen":
+            gb.loeschen(self.root, [job["url"]])
+            return self.index(f'<div class="card"><p class="ok">„{esc(job["title"])}“ endgültig gelöscht.</p></div>',
+                              show_hidden=True)
         if aktion == "grund":   # „passt nicht“: Grund zur gerade ausgeblendeten Stelle
             try:
                 ablehnung.merken(self.root, job, form.get("grund", ""))
@@ -1632,7 +1693,8 @@ class App(BewerbungenSeiten):
             undo = self.form("/markieren", f'<input type="hidden" name="job_id" value="{esc(job["id"])}">'
                                            f'<input type="hidden" name="aktion" value="rueckgaengig">'
                                            f'<input type="hidden" name="vorher" value="{esc(vorher)}">',
-                             "Rückgängig", ghost=True, small=True)
+                             "Rückgängig", ghost=True, small=True, attr=" data-rueckgaengig",
+                             title="Rückgängig (⌘Z / Strg+Z)")
         grund = ablehnung.grund_html(job["id"], self.token, esc) if aktion == "ausblenden" else ""
         return self.index(f'<div class="card"><div class="row" style="justify-content:space-between"><p class="ok" '
                           f'style="margin:0">{esc(msg)}</p>{undo}</div>{grund}</div>')

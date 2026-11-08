@@ -1,3 +1,3 @@
 """Job-Monitor: sammelt passende Stellen, bewertet den Fit und hilft bei Bewerbungen."""
 
-__version__ = "1.3.7"     # erhöhen vor „App bauen“ mit Veröffentlichen (wird zum Release-Tag v1.0.0)
+__version__ = "1.3.8"     # erhöhen vor „App bauen“ mit Veröffentlichen (wird zum Release-Tag v1.0.0)

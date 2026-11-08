@@ -129,6 +129,8 @@ def _ask(model: str, prompt: str, effort: str = "low", max_tokens: int = 4000, a
         modell = MODELLE.get("schnell" if "haiku" in model else "gut") or MODELLE.get("gut") or MODELLE.get("schnell")
         if not modell:
             log.warning("KI: für %s sind noch keine Modelle gewählt (Einstellungen → KI)", ANBIETER)
+            ki_anbieter.LETZTER_FEHLER.clear()
+            ki_anbieter.LETZTER_FEHLER["status"] = "keine_modelle"
             return None
         schluessel = api_key or os.environ.get("KI_API_KEY")
         nutzung: list = []

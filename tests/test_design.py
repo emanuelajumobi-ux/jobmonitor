@@ -49,3 +49,48 @@ def test_hide_offers_undo(root):  # noqa: F811
     assert "Rückgängig" in html and 'class="native"' in html
     html = app.markieren({"job_id": job.short_id, "aktion": "rueckgaengig", "vorher": ""}).decode()
     assert "wird wieder angezeigt" in html and tracking.load(root / "applications.csv") == []
+
+
+def _app_mit_zwei(root):  # noqa: F811
+    state = State(root / "state" / "seen.sqlite")
+    jobs = [Job("Werkstudent Cloud", "Beispiel AG", "https://x/1", "test"),
+            Job("Junior Admin", "Muster GmbH", "https://x/2", "test")]
+    for job in jobs:
+        state.save_job_detail(job, "2026-11-01")
+    state.close()
+    return App(root, compile_pdf=False), jobs
+
+
+def test_ausgeblendete_zurueckholen_und_loeschen(root):  # noqa: F811
+    app, (a, b) = _app_mit_zwei(root)
+    html = app.markieren({"job_id": a.short_id, "aktion": "ausblenden"}).decode()
+    assert "data-rueckgaengig" in html                                  # ⌘Z klickt diesen Knopf
+    app.markieren({"job_id": b.short_id, "aktion": "ausblenden"})
+    seite = app.index(show_hidden=True).decode()
+    assert "Wieder einblenden" in seite and "Endgültig löschen" in seite and "Alle endgültig löschen" in seite
+    html = app.markieren({"job_id": a.short_id, "aktion": "rueckgaengig", "zurueck": "ausgeblendet"}).decode()
+    assert "wird wieder angezeigt" in html
+    html = app.markieren({"job_id": b.short_id, "aktion": "loeschen"}).decode()
+    assert "endgültig gelöscht" in html
+    assert [d["url"] for d in app.jobs()] == ["https://x/1"]           # gelöscht: auch nicht mehr unter Ausgeblendet
+    assert any(r["link"] == "https://x/2" for r in tracking.load(root / "applications.csv"))   # Pipeline trägt nicht neu ein
+
+
+def test_alle_ausgeblendeten_loeschen(root):  # noqa: F811
+    app, (a, b) = _app_mit_zwei(root)
+    app.markieren({"job_id": a.short_id, "aktion": "ausblenden"})
+    assert "1 ausgeblendete Stelle(n) endgültig gelöscht" in app.markieren({"aktion": "alle_loeschen"}).decode()
+    assert [d["url"] for d in app.jobs()] == ["https://x/2"]
+
+
+def test_cmd_z_klickt_rueckgaengig():
+    assert "data-rueckgaengig" in layout.JS and "jmRueckgaengig" in layout.JS
+    from jobmonitor import desktop
+    assert desktop.JS_RUECKGAENGIG.startswith("window.jmRueckgaengig")
+
+
+def test_beenden_nur_im_browser(root):  # noqa: F811
+    app = App(root, compile_pdf=False)
+    assert 'action="/quit"' in app.einstellungen().decode()        # Browser: einziger Weg, den Server zu stoppen
+    app.native = True
+    assert 'action="/quit"' not in app.einstellungen().decode()    # App-Fenster: Schließen bzw. ⌘Q reicht

@@ -2,11 +2,43 @@
 zusammengefasst). Fehlende Texte findet JOBMONITOR_I18N_SAMMELN=<datei> (siehe i18n.py)."""
 
 TEXTE: dict[str, str] = {
+    "1. Bestätigung in zwei Schritten einschalten ↗": "1. Turn on 2-Step Verification ↗",
+    "2. App-Passwort jetzt anlegen ↗": "2. Create app password now ↗",
+    "App-Passwort jetzt anlegen ↗": "Create app password now ↗",
+    "So schaltest du IMAP ein ↗": "How to turn on IMAP ↗",
+    "Nur einzelne Angaben ändern (KI, Wohnort, Suchprofil, Postfach)?": "Only change some details (AI, home town, search profile, mailbox)?",
+    "Einrichtungs-Assistent öffnen": "Open setup assistant",
+    "Oder ganz von vorn: Setzt Job-Monitor zurück, als wäre die App frisch installiert: Danach startet wieder der Einrichtungs-Assistent.": "Or start over: resets Job-Monitor as if freshly installed; the setup assistant then starts again.",
+    "(2FA) eingeschaltet ist.": "(2FA) is turned on.",
+    ". Dort unter „App-Passwort generieren“.": ". There under “Generate app password”.",
+    "App-Passwort jetzt anlegen": "Create app password now",
+    "Apple verlangt die": "Apple requires",
+    "Bei GMX muss": "At GMX,",
+    "Bei WEB.DE muss": "At WEB.DE,",
+    "Bestätigung in zwei Schritten": "2-Step Verification",
+    "Bestätigung in zwei Schritten einschalten": "Turn on 2-Step Verification",
+    "Google zeigt die Seite nur, wenn die": "Google only shows this page if",
+    "IMAP eingeschaltet": "IMAP must be turned on",
+    "So schaltest du IMAP ein": "How to turn on IMAP",
+    "Vorher:": "First:",
+    "Yahoo verlangt die": "Yahoo requires",
+    "Zwei-Faktor-Authentifizierung": "two-factor authentication",
+    "für deinen Account (meist schon an). Dort unter „Anmeldung und Sicherheit“ → „App-spezifische Passwörter“.": "for your account (usually already on). There under “Sign-In and Security” → “App-Specific Passwords”.",
+    "sein (E-Mail → Einstellungen → POP3/IMAP Abruf). Hast du die Zwei-Faktor-Authentifizierung an, brauchst du zusätzlich ein App-Passwort.": "(Email → Settings → POP3/IMAP). If two-factor authentication is on, you also need an app password.",
+    "öffnet die Seite des Anbieters, danach das Passwort hier einfügen": "opens the provider’s page, then paste the password here",
+    "Schlüssel hier eintragen": "Enter your key here",
+    "Für Google Gemini sind noch keine Modelle gewählt. Unter Einstellungen → KI auf „Modelle vom Anbieter laden“ klicken.": "No models are chosen for Google Gemini yet. Click “Load models from provider” under Settings → AI.",
+    "Google Gemini ist nicht erreichbar. Bitte die Internetverbindung prüfen und es noch einmal versuchen.": "Google Gemini can’t be reached. Please check your internet connection and try again.",
+    "Google Gemini: Kontingent erschöpft. Der kostenlose Zugang erlaubt nur wenige Anfragen pro Minute und pro Tag – eine Minute warten und noch einmal versuchen.": "Google Gemini: quota used up. The free tier allows only a few requests per minute and per day – wait a minute and try again.",
+    "Google Gemini lehnt den Schlüssel ab. Bitte unter Einstellungen → KI prüfen, ob er ganz kopiert ist. Ein gerade erstellter Schlüssel braucht manchmal ein, zwei Minuten, bis er funktioniert.": "Google Gemini rejects the key. Please check under Settings → AI that it was copied completely. A freshly created key sometimes needs a minute or two before it works.",
+    "Das gewählte Modell gibt es bei Google Gemini nicht (mehr). Unter Einstellungen → KI auf „Modelle vom Anbieter laden“ klicken.": "The chosen model isn’t available at Google Gemini (anymore). Click “Load models from provider” under Settings → AI.",
+    "Google Gemini ist gerade überlastet. In ein paar Minuten noch einmal versuchen.": "Google Gemini is overloaded right now. Try again in a few minutes.",
+    "API-Schlüssel vom Rechner entfernt. Die KI-Knöpfe sind jetzt aus.": "API key removed from this computer. The AI buttons are now off.",
     # --- Navigation, Grundgerüst ---
     "Übersicht": "Overview", "Stellen": "Jobs", "Bewerbungen": "Applications", "Eigene Stelle": "Own job ad",
     "Rückblick": "Review", "Recherche": "Research", "Firmen": "Companies", "Lücken-Auswertung": "Skill gaps",
     "Letzter Bericht": "Latest report", "Mein Profil": "My profile", "Master-CV": "Master CV", "Profil": "Profile",
-    "Unterlagen": "Documents", "System": "System", "Einstellungen": "Settings", "Anleitung": "Guide",
+    "Unterlagen": "Documents", "System": "System", "Einstellungen": "Settings", "Einrichtung": "Setup", "Einrichtung fortsetzen": "Continue setup", "Anleitung": "Guide",
     "Synchronisieren": "Sync", "Beenden": "Quit", "Bitte warten …": "Please wait …", "Job-Monitor": "Job-Monitor",
     "Hilfe zu dieser Seite": "Help for this page", "Bewerbung": "Application", "Bericht": "Report",
     "Dateien": "Files", "Start": "Start", "Beendet": "Closed", "Wird beendet …": "Closing …",
@@ -332,7 +364,7 @@ TEXTE: dict[str, str] = {
         ": the app downloads it, checks it and restarts – your data in the Documents/Job-Monitor folder is kept.",
     "Klappt das nicht (z. B. fehlende Schreibrechte im Programme-Ordner):":
         "If that does not work (e.g. no write permission in the Applications folder):",
-    ", die neue App entpacken und die alte ersetzen.": ", unzip the new app and replace the old one.", "Neue Version wird geladen …": "Downloading the new version …",
+    ", die neue App entpacken und die alte ersetzen.": ", unzip the new app and replace the old one.", "Neue Version wird geladen …": "Downloading the new version …", "Je nach Verbindung 10 bis 60 Sekunden. Danach startet die App von selbst neu.": "Takes 10 to 60 seconds depending on your connection. The app then restarts by itself.",
     "Ein Klick lädt sie und startet die App neu – deine Daten bleiben.":
         "One click downloads it and restarts the app – your data stays.",
     "Neue App laden und die alte ersetzen – deine Daten bleiben.": "Download the new app and replace the old one – your "
@@ -1239,8 +1271,8 @@ MUSTER: list[tuple[str, str]] = [
      "Bundesagentur und {n} bei Stellenwerk (Suchen plus nachgeladene Anzeigentexte).",
      "Applies from the next pipeline run. Active: {} of at most {}. Per run up to {} requests to the Federal "
      "Employment Agency and {} to Stellenwerk (searches plus loaded ad texts)."),
-    ("In fünf Schritten zur ersten Suche, dazu optional KI und Postfach. Noch {n} Schritt(e) offen.",
-     "Five steps to the first search, plus optional AI and mailbox. {} step(s) left."),
+    ("In vier Schritten zur ersten Suche, dazu optional KI und Postfach. Noch {n} Schritt(e) offen.",
+     "Four steps to the first search, plus optional AI and mailbox. {} step(s) left."),
     ("Die {n} häufigsten Anforderungen der letzten {n} Monate. Erst {n} Monat(e) mit genug Stellen – ein Trend zeigt "
      "sich ab etwa drei Monaten.", "The {} most common requirements of the last {} months. Only {} month(s) with "
                                   "enough jobs so far – a trend shows from about three months."),
@@ -1288,7 +1320,7 @@ MUSTER: list[tuple[str, str]] = [
      "jobs match over 75 %, {} are {}. Most often you are missing"),
     ("Stellen passen zu über 75 %, eine ist {}.", "jobs match over 75 %, one is {}."),
     ("Stellen passen zu über 75 %, {n} sind {}.", "jobs match over 75 %, {} are {}."), ("Design „{}“ gewählt. {}", "Design “{}” chosen. {}"),
-    ("Gespeichert: {}", "Saved: {}"), ("Gespeichert und erstellt: {}", "Saved and created: {}"),
+    ("Gespeichert: {}", "Saved: {}"), ("Einrichtung · {} von {} Pflichtschritten erledigt", "Setup · {} of {} required steps done"), ("Gespeichert und erstellt: {}", "Saved and created: {}"),
 ]
 
 # Texte in den Skripten der Seite (wörtlich ersetzt)
@@ -1296,6 +1328,7 @@ SKRIPT: dict[str, str] = {
     "'Kopiert'": "'Copied'",
     "die KI arbeitet, meist 10 bis 40 Sekunden. Fenster bitte offen lassen.":
         "the AI is working, usually 10 to 40 seconds. Please keep the window open.",
+    "'Einen Moment, Fenster bitte offen lassen.'": "'One moment, please keep the window open.'",
     "'oder Datei hierher ziehen'": "'or drag a file here'",
     "'Diese Datei passt hier nicht (erwartet: '": "'This file does not fit here (expected: '",
     "' Zeichen'": "' characters'",

@@ -146,6 +146,16 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
                         " – neuer Versuch" if i < len(WARTEN) - 1 else "")
             LETZTER_FEHLER["status"] = "netz"
             continue
+        if resp.status_code == 429 and anbieter == "gemini" and i == 0:
+            # kostenloses Gemini-Kontingent zählt pro Minute: einmal kurz warten (beim Einrichten kommen mehrere
+            # Anfragen direkt hintereinander), danach erst aufgeben
+            log.info("%s: Minutenkontingent erreicht – neuer Versuch in 15 s", a["name"])
+            (warten or time.sleep)(15)
+            try:
+                resp = post(f"{a['basis']}/chat/completions", json=body, headers=headers, timeout=120)
+            except requests.RequestException:
+                LETZTER_FEHLER["status"] = "netz"
+                return None
         if resp.status_code in VORUEBERGEHEND:
             log.warning("%s: %s ist gerade überlastet (%s)%s", a["name"], modell, resp.status_code,
                         " – neuer Versuch" if i < len(WARTEN) - 1 else "")
@@ -164,6 +174,7 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
     if resp.status_code != 200:
         log.warning("%s-Fehler %s: %s", a["name"], resp.status_code, resp.text[:200])
         LETZTER_FEHLER["status"] = resp.status_code
+        LETZTER_FEHLER["text"] = resp.text[:300]
         return None
     data = resp.json()
     u = data.get("usage") or {}
@@ -174,6 +185,34 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
         log.warning("%s: Antwort abgeschnitten (max_tokens zu klein)", a["name"])
         return None
     return str((wahl.get("message") or {}).get("content") or "").strip() or None
+
+
+def grund(anbieter: str) -> str:
+    """Verständlicher Grund für den letzten Fehlschlag von fragen() – statt nur „hat nicht geantwortet“."""
+    name = ANBIETER[gueltig(anbieter)]["name"]
+    status = LETZTER_FEHLER.get("status")
+    text = str(LETZTER_FEHLER.get("text") or "").lower()
+    if status == "keine_modelle":
+        return (f"Für {name} sind noch keine Modelle gewählt. Unter Einstellungen → KI auf „Modelle vom Anbieter "
+                "laden“ klicken.")
+    if status == "netz":
+        if anbieter == "ollama":
+            return "Ollama ist nicht erreichbar – läuft es auf diesem Rechner? (ollama.com)"
+        return f"{name} ist nicht erreichbar. Bitte die Internetverbindung prüfen und es noch einmal versuchen."
+    if status == 429:
+        return (f"{name}: Kontingent erschöpft. Der kostenlose Zugang erlaubt nur wenige Anfragen pro Minute und pro "
+                "Tag – eine Minute warten und noch einmal versuchen.")
+    if status in (400, 401, 403) and ("key" in text or "api_key" in text or "permission" in text or status != 400):
+        return (f"{name} lehnt den Schlüssel ab. Bitte unter Einstellungen → KI prüfen, ob er ganz kopiert ist. "
+                "Ein gerade erstellter Schlüssel braucht manchmal ein, zwei Minuten, bis er funktioniert.")
+    if status == 404:
+        return (f"Das gewählte Modell gibt es bei {name} nicht (mehr). Unter Einstellungen → KI auf „Modelle vom "
+                "Anbieter laden“ klicken.")
+    if status in VORUEBERGEHEND:
+        return f"{name} ist gerade überlastet. In ein paar Minuten noch einmal versuchen."
+    if status:
+        return f"{name} meldet Fehler {status}. Details stehen im Protokoll."
+    return ""
 
 
 def _version(mid: str) -> tuple:

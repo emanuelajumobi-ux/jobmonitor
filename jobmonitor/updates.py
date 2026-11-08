@@ -83,7 +83,8 @@ def hinweis(neu: dict | None, token: str = "", automatisch: bool = False) -> str
     url = neu["url"] if neu.get("url", "").startswith("https://github.com/") else ""
     notizen = notizen_html(neu.get("notizen", ""))
     knopf = (f'<form method="post" action="/update" style="margin:0"><input type="hidden" name="token" '
-             f'value="{escape(token)}"><button class="small" data-ki-immer data-ki="Neue Version wird geladen …">Jetzt '
+             f'value="{escape(token)}"><button class="small" data-laden="Neue Version wird geladen …" '
+             f'data-laden-info="Je nach Verbindung 10 bis 60 Sekunden. Danach startet die App von selbst neu.">Jetzt '
              f'aktualisieren</button></form>' if automatisch and token else "")
     text = ("Ein Klick lädt sie und startet die App neu – deine Daten bleiben." if knopf else
             "Neue App laden und die alte ersetzen – deine Daten bleiben.")
