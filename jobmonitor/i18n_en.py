@@ -1361,6 +1361,7 @@ MUSTER: list[tuple[str, str]] = [
 
 # Texte in den Skripten der Seite (wörtlich ersetzt)
 SKRIPT: dict[str, str] = {
+    "'Bitte warten …'": "'Please wait …'",
     "'Hier landen jeden Tag neue Stellen – sortiert nach Fit, also danach, wie gut sie zu deinem Lebenslauf passen.'": "'New jobs land here every day – sorted by fit, i.e. how well they match your CV.'",
     "'Eine Stelle'": "'A job'",
     "'Die Kästchen zeigen die Anforderungen der Anzeige, gefüllt heißt: kannst du. „Bewerbung“ baut Anschreiben und Lebenslauf für genau diese Stelle, × blendet sie aus.'": "'The boxes show the job’s requirements; filled means you have it. “Application” builds a cover letter and CV for exactly this job, × hides it.'",
@@ -1381,8 +1382,8 @@ SKRIPT: dict[str, str] = {
     "'Fertig' : 'Weiter'": "'Done' : 'Next'",
     ' von ${schritte.length}': ' of ${schritte.length}',
     "'Kopiert'": "'Copied'",
-    "die KI arbeitet, meist 10 bis 40 Sekunden. Fenster bitte offen lassen.":
-        "the AI is working, usually 10 to 40 seconds. Please keep the window open.",
+    "Die KI arbeitet, meist 10 bis 60 Sekunden. Fenster bitte offen lassen.":
+        "The AI is working, usually 10 to 60 seconds. Please keep the window open.",
     "'Einen Moment, Fenster bitte offen lassen.'": "'One moment, please keep the window open.'",
     "'oder Datei hierher ziehen'": "'or drag a file here'",
     "'Diese Datei passt hier nicht (erwartet: '": "'This file does not fit here (expected: '",

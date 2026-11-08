@@ -110,6 +110,18 @@ def _kurz(firma: str) -> str:
     """„SUPERSCREENS GmbH“ → „SUPERSCREENS“ für knappe Knopfbeschriftungen."""
     return re.sub(r"\s+(GmbH|AG|SE|KG|mbH|e\.V\.|GmbH & Co\. KG)$", "", firma.strip())[:28]
 
+FORTSCHRITT = re.compile(r"FORTSCHRITT (\d+)/(\d+) (.*)")
+
+
+def _fortschritt(ausgabe: str) -> dict:
+    """Letzte Zeile „FORTSCHRITT i/n Text“ aus dem Protokoll einer Suche."""
+    treffer = FORTSCHRITT.findall(ausgabe or "")
+    if not treffer:
+        return {"schritt": 0, "gesamt": 0, "text": ""}
+    schritt, gesamt, text = treffer[-1]
+    return {"schritt": int(schritt), "gesamt": int(gesamt), "text": text.strip()}
+
+
 KI_AKTIONEN = ("ki_anbieter", "ki_modelle_laden", "ki_modelle", "ki_schluessel", "ki_entfernen")
 
 
@@ -226,6 +238,12 @@ class App(BewerbungenSeiten):
                                  daemon=True).start()
         except Exception:
             log.exception("Update-Prüfung nicht gestartet")
+        try:   # eingerichtet, aber noch nie erfolgreich gesucht (z. B. erste Suche abgebrochen): jetzt nachholen
+            if (self.echt is None and erststart.eingerichtet(self.root) and not zeitplan.laden(self.root).get("an")
+                    and not zeitplan.github_aktiv(self.root) and self._noch_nie_gesucht()):
+                log.info("Noch keine erfolgreiche Suche – %s", self.erste_suche())
+        except Exception:
+            log.exception("Erste Suche nicht nachgeholt")
         if zeitplan.laden(self.root).get("an"):
             zeitplan.pruefen_und_starten(self.root, self.aufgaben)
             self._zeitplan_stop = threading.Event()
@@ -434,21 +452,59 @@ class App(BewerbungenSeiten):
             return "Die erste Suche ließ sich nicht starten – unter Einstellungen → Zeitplan kannst du sie anstoßen."
         return "Die erste Suche läuft jetzt im Hintergrund – das dauert ein paar Minuten."
 
+    def _noch_nie_gesucht(self) -> bool:
+        datei = self.root / "state" / "seen.sqlite"
+        if not datei.exists():
+            return True
+        try:
+            state = State(datei, readonly=True)
+            try:
+                return state.last_success() is None
+            finally:
+                state.close()
+        except Exception:   # alte oder kaputte Datenbank: nicht raten
+            return False
+
     def suche_status(self) -> bytes:
-        """Für die Stellenliste: läuft die lokale Suche noch? (darf neben anderen Anfragen laufen)"""
+        """Für die Stellenliste (JSON): läuft die lokale Suche noch, und wie weit ist sie? (läuft neben anderen
+        Anfragen; der Fortschritt steht als „FORTSCHRITT i/n Text“ im Protokoll der Aufgabe, siehe runner.py)"""
         a = self.aufgaben.alle.get("zeitplan")
-        return b"laeuft" if a is not None and a.laeuft else b"fertig"
+        stand = {"laeuft": bool(a is not None and a.laeuft), "schritt": 0, "gesamt": 0, "text": ""}
+        if a is not None:
+            stand.update(_fortschritt(a.ausgabe(100000)))
+            if not stand["laeuft"]:
+                stand["fehler"] = a.proc.returncode not in (0, None)
+        return json.dumps(stand, ensure_ascii=False).encode()
 
     def _suche_karte(self) -> str:
         a = self.aufgaben.alle.get("zeitplan")
-        if a is None or not a.laeuft:
+        if a is None:
             return ""
-        return (f'<div class="card info suche-laeuft" role="status"><p style="margin:0"><b>{esc(a.titel)} läuft</b> '
-                f'<span class="muted">seit {a.start:%H:%M} Uhr. Job-Monitor fragt die Quellen nacheinander ab (mit '
-                f'Pausen, um sie nicht zu überlasten). Die Liste aktualisiert sich von selbst.</span></p></div>'
-                '<script>(() => { const pruefen = () => fetch("/suche/status").then(r => r.text()).then(t => {'
-                ' if (t === "fertig") location.reload(); else setTimeout(pruefen, 5000); })'
-                '.catch(() => setTimeout(pruefen, 10000)); setTimeout(pruefen, 5000); })();</script>')
+        if not a.laeuft:
+            if a.proc.returncode in (0, None):
+                return ""
+            zeilen = [z for z in a.ausgabe().splitlines() if z.strip() and "FORTSCHRITT" not in z][-12:]
+            return (f'<div class="card err" role="alert"><p><b>{esc(a.titel)} hat nicht geklappt</b> (Code '
+                    f'{a.proc.returncode}). Die letzten Zeilen:</p><pre class="out">{esc(chr(10).join(zeilen))}</pre>'
+                    f'<p class="muted">Unter Einstellungen → App → Probelauf kannst du die Suche noch einmal starten. '
+                    f'Das ganze Protokoll steht in .gui_aufgaben/zeitplan.log im Datenordner.</p></div>')
+        f = _fortschritt(a.ausgabe(100000))
+        anteil = round(100 * f["schritt"] / f["gesamt"]) if f["gesamt"] else 3
+        return (f'<div class="card info suche-laeuft" role="status"><p style="margin:0 0 8px"><b>{esc(a.titel)} '
+                f'läuft</b> <span class="muted">seit {a.start:%H:%M} Uhr · <span id="suche-text">'
+                f'{esc(f["text"] or "wird gestartet …")}</span></span></p>'
+                f'<div class="fortschritt" role="progressbar" aria-valuemin="0" aria-valuemax="100" '
+                f'aria-valuenow="{anteil}"><i id="suche-balken" style="width:{max(anteil, 3)}%"></i></div>'
+                f'<p class="muted" style="margin:8px 0 0">Job-Monitor fragt die Quellen nacheinander ab, mit Pausen, '
+                f'um sie nicht zu überlasten. Die Liste aktualisiert sich von selbst.</p></div>'
+                '<script>(() => { const balken = document.getElementById("suche-balken"),'
+                ' text = document.getElementById("suche-text");'
+                ' const pruefen = () => fetch("/suche/status").then(r => r.json()).then(s => {'
+                ' if (!s.laeuft) { location.reload(); return; }'
+                ' if (s.gesamt) { const p = Math.max(3, Math.round(100 * s.schritt / s.gesamt));'
+                ' balken.style.width = p + "%"; balken.parentElement.setAttribute("aria-valuenow", p); }'
+                ' if (s.text) text.textContent = s.text; setTimeout(pruefen, 3000); })'
+                '.catch(() => setTimeout(pruefen, 8000)); setTimeout(pruefen, 3000); })();</script>')
 
     def index(self, message: str = "", show_hidden: bool = False, nur_traum: bool = False, profil: str = "") -> bytes:
         """Stellen: oben der Befund, darunter die Liste nach Fit und rechts die Belege (häufigste Lücken,

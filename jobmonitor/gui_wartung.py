@@ -83,11 +83,18 @@ class Aufgaben:
         folder = self.root / TASK_DIR
         folder.mkdir(exist_ok=True)
         log = folder / f"{name}.log"
+        if log.exists():                  # das Protokoll des letzten Laufs aufheben (zur Fehlersuche)
+            log.replace(folder / f"{name}.vorher.log")
+        # Eigene Prozessgruppe: Signale an die App (z. B. Strg+C, Beenden aus dem Terminal) treffen die Suche nicht
+        # mit – sie läuft zu Ende, auch wenn die App vorher geschlossen wird.
+        extra = ({"creationflags": getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)} if sys.platform == "win32"
+                 else {"start_new_session": True})
         with open(log, "w", encoding="utf-8") as fh:
             fh.write(f"$ {' '.join(cmd)}\n")
             fh.flush()
             from .prozess import umgebung
-            proc = self.popen(cmd, cwd=self.root, stdout=fh, stderr=subprocess.STDOUT, text=True, env=umgebung())
+            proc = self.popen(cmd, cwd=self.root, stdout=fh, stderr=subprocess.STDOUT, text=True, env=umgebung(),
+                              **extra)
         self.alle[name] = Aufgabe(name, titel, proc, log, datetime.now())
         return self.alle[name]
 

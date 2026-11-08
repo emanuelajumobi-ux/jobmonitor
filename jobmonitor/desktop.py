@@ -213,6 +213,28 @@ def _fix_edit_menu() -> None:
     cocoa.BrowserView._add_edit_menu = _add_edit_menu
 
 
+SUCHE_LAEUFT = ("Die Suche läuft noch. Wenn du Job-Monitor jetzt schließt, kann sie abbrechen – beim nächsten "
+                "Start holt die App sie dann nach.")
+
+
+def suche_laeuft(app) -> bool:
+    a = getattr(app, "aufgaben", None) and app.aufgaben.alle.get("zeitplan")
+    return bool(a and a.laeuft)
+
+
+def _schliessen_erlaubt(app, frage=None) -> bool:
+    """Fenster schließen? Läuft gerade eine Suche, erst nachfragen (macOS-Dialog). False hält das Fenster offen."""
+    if not suche_laeuft(app):
+        return True
+    try:
+        if frage is None:
+            from webview.platforms.cocoa import BrowserView
+            frage = BrowserView.display_confirmation_dialog
+        return bool(frage("Trotzdem schließen", "Weiter suchen lassen", SUCHE_LAEUFT))
+    except Exception:   # kein Dialog möglich (z. B. Windows): wie bisher schließen
+        return True
+
+
 def _startbild_zu() -> None:
     try:
         from jobmonitor.app_start import startbild_schliessen
@@ -277,6 +299,7 @@ def run(root: Path, port: int = PORT) -> int:
     log.info("Fenster wird geöffnet (%s, pywebview %s)", sys.platform, getattr(webview, "__version__", "?"))
     app.window = webview.create_window(APP_NAME, url, width=1440, height=900, min_size=(900, 600), transparent=mac,
                                        vibrancy=mac, text_select=True)
+    app.window.events.closing += lambda: _schliessen_erlaubt(app)
     app.window.events.shown += lambda: _shadow(app.window)
     app.window.events.shown += lambda: log.info("Fenster angezeigt")
     app.window.events.shown += _startbild_zu

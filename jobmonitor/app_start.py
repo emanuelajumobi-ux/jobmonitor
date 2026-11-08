@@ -27,6 +27,8 @@ def _protokoll(home: Path) -> None:
 
 def startbild_schliessen() -> None:
     """Startbild unter Windows (PyInstaller --splash) schließen – sobald das Fenster da ist oder etwas schiefging."""
+    if "_PYI_SPLASH_IPC" not in os.environ:   # kein Startbild (macOS, Unterbefehle): Modul gar nicht laden – es
+        return                                # schreibt sonst eine Fehlermeldung, die nach Absturz aussieht
     try:
         import pyi_splash   # gibt es nur in der Windows-App mit Startbild
         pyi_splash.close()

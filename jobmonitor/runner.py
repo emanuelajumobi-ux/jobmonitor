@@ -254,9 +254,10 @@ def run(opts: Options) -> int:
                                                         src_cfg["bundesagentur"]["wo"], cfg["ort"].get("fahrzeiten"))))
 
     results: list[SourceResult] = []
-    for key, source in sources:
-        if opts.only and opts.only != key:
-            continue
+    gewaehlt = [(k, src) for k, src in sources if not opts.only or opts.only == k]
+    gesamt = len(gewaehlt) + 2      # Quellen, dann Auswerten (Fit, KI) und Bericht – für den Balken in der App
+    for nr, (key, source) in enumerate(gewaehlt, 1):
+        log.info("FORTSCHRITT %d/%d %s wird abgefragt", nr, gesamt, source.name)
         log.info("Quelle: %s", source.name)
         try:
             results.append(source.fetch())
@@ -265,6 +266,7 @@ def run(opts: Options) -> int:
             results.append(SourceResult(source.name, errors=[f"Ausfall: {exc}"]))
         log.info("  %d Rohtreffer, %d Fehler", len(results[-1].jobs), len(results[-1].errors))
 
+    log.info("FORTSCHRITT %d/%d Stellen werden ausgewertet (Fit, Anforderungen)", gesamt - 1, gesamt)
     quellen_verlauf.record(state, today.isoformat(), results, company_src.outcomes)
     hochschul_hinweise = [f"{h['name']}: {h.get('notizen') or 'nicht automatisch angebunden'} – {h['karriereseite_url']}"
                           for h in companies_doc.get("hochschulen") or [] if not h.get("aktiv")]
@@ -361,6 +363,7 @@ def run(opts: Options) -> int:
     reports_dir.mkdir(exist_ok=True)
     (reports_dir / f"{today.isoformat()}.md").write_text(text, encoding="utf-8")
     log.info("Bericht: reports/%s.md (%d neue Stellen)", today.isoformat(), len(new_jobs))
+    log.info("FORTSCHRITT %d/%d Fertig", gesamt, gesamt)
     tracking.save(apps_path, apps)
     antworten.speichern(opts.root, neue_antworten)
     save_companies(companies_doc, opts.root / "companies.yaml")

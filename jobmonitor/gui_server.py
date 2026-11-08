@@ -127,7 +127,7 @@ def handler_for(app: App, server_ref: list):
             if path == "/einstellungen/suchprofil":
                 return self._send(app.suchprofil((parse_qs(query).get("key") or [""])[0][:40]))
             if path == "/suche/status":
-                return self._send(app.suche_status(), "text/plain; charset=utf-8")
+                return self._send(app.suche_status(), "application/json; charset=utf-8")
             if path == "/einstellungen/laeufe":
                 return self._send(app.pipeline_laeufe())
             if path == "/hilfe":

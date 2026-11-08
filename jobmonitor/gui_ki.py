@@ -147,7 +147,10 @@ def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipel
     elif modelle.get("schnell"):
         modell_html = (f'<p class="muted" style="margin-top:8px">Modelle: schnell <code>{esc(modelle.get("schnell"))}'
                        f'</code> · gut <code>{esc(modelle.get("gut"))}</code></p>'
-                       + form("ki_modelle_laden", '<button class="ghost small">Andere Modelle wählen</button>'))
+                       + form("ki_modelle_laden", '<button class="ghost small" data-laden="Modelle werden geprüft …" '
+                                                    'data-laden-info="Die App probiert aus, welche Modelle mit deinem '
+                                                    'Schlüssel antworten. Das dauert bis zu einer Minute.">Andere '
+                                                    'Modelle wählen</button>'))
     elif herkunft or a.get("ohne_schluessel"):
         modell_html = (f'<p class="muted" style="margin-top:8px">Noch keine Modelle gewählt.</p>'
                        + form("ki_modelle_laden", '<button class="small" data-laden="Modelle werden geprüft …" data-laden-info="Die App probiert aus, welche Modelle mit deinem Schlüssel antworten. Das dauert bis zu einer Minute.">Modelle vom Anbieter '

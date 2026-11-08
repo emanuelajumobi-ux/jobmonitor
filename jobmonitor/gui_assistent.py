@@ -339,10 +339,18 @@ def ausfuehren(root: Path, form: dict, uploads: dict, ki_an: bool, ask=None) -> 
         return "Angaben gespeichert."
     if aktion == "wohnort":
         stadt = form.get("stadt", "")
-        tabelle = wohnort.ki_fahrzeiten(root, cfg, stadt, ask=ask) if ki_an else {stadt.strip().lower(): 0}
+        hinweis = ""
+        tabelle = {stadt.strip().lower(): 0}
+        if ki_an:
+            try:
+                tabelle = wohnort.ki_fahrzeiten(root, cfg, stadt, ask=ask)
+            except ki.KiError as exc:   # Wohnort trotzdem speichern – sonst fehlt er überall
+                hinweis = (f" Die Fahrzeiten in die Umgebung konnte die KI gerade nicht schätzen ({exc}). Bis dahin "
+                           f"zählen Stellen in {stadt.strip()} und remote; unter Einstellungen → Wohnort kannst du es "
+                           f"später noch einmal versuchen.")
         wohnort.speichern(root, stadt, tabelle)
         merken(root, wohnort=stadt.strip())
-        return f"Wohnort {stadt.strip()} übernommen ({len(tabelle)} Orte)."
+        return f"Wohnort {stadt.strip()} übernommen ({len(tabelle)} Orte).{hinweis}"
     if aktion == "suche":
         name = suchprofil_anlegen(root, cfg, form.get("wunsch", ""), form.get("stufe", ""), ki_an, ask=ask)
         return f"Suchprofil „{name}“ angelegt und eingeschaltet."

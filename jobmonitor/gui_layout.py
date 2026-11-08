@@ -405,6 +405,9 @@ td.fit { white-space:nowrap; font-weight:500; width:70px; font-variant-numeric:t
 .report h1 { font-size:20px; } .report h2 { font-size:16px; margin-top:22px; } .report h3 { font-size:14.5px; margin:14px 0 2px; }
 .splash { display:grid; place-items:center; min-height:70vh; text-align:center; }
 
+/* Fortschrittsbalken (Suche, Einrichtung) */
+.fortschritt { height:8px; border-radius:99px; background:var(--surface-2); overflow:hidden; }
+.fortschritt i { display:block; height:100%; background:var(--accent); border-radius:99px; transition:width .6s ease; }
 /* Rundgang: Ziel ausgeschnitten (riesiger Schatten dunkelt den Rest ab), Erklärung als Karte daneben */
 .rg-loch { position:fixed; z-index:70; border-radius:12px; box-shadow:0 0 0 9999px rgba(0,0,0,.55);
   outline:2px solid var(--accent); pointer-events:none; transition:all .25s ease; }
@@ -425,7 +428,9 @@ td.fit { white-space:nowrap; font-weight:500; width:70px; font-variant-numeric:t
                     border-top-color:var(--text); animation:spin .8s linear infinite; }
 #busy span { display:grid; gap:4px; } #busy small { display:none; font-weight:400; font-size:12.5px; color:var(--muted);
   font-variant-numeric:tabular-nums; }
-#busy.ki small { display:block; } #busy.ki div { max-width:min(440px, 90vw); padding:16px 20px; }
+#busy.ki small { display:block; }
+/* kurze Aktionen: nur ein kleines Kärtchen, Hintergrund bleibt hell und scharf */
+#busy.leicht { background:transparent; -webkit-backdrop-filter:none; backdrop-filter:none; } #busy.ki div { max-width:min(440px, 90vw); padding:16px 20px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 @keyframes fade { from { opacity:0; } }
 @keyframes materialize { from { opacity:0; transform:scale(.96); } }
@@ -598,37 +603,47 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'z' && jmRueckgaengig())
     e.preventDefault();
 });
-// Sofort: der gedrückte Knopf zeigt „arbeitet“ (und verhindert Doppelklicks). Das Overlay kommt erst, wenn es
-// länger als 400 ms dauert – kurze Aktionen wie Merken oder Ausblenden bleiben so ohne Flackern.
-// KI-Knöpfe (data-ki="Was gerade passiert"): Overlay sofort, mit Sekundenzähler – KI-Aufrufe dauern 10–60 s.
-let kiTakt;
+// Ladehinweis bei jedem Formular. Wichtig fürs App-Fenster: WebKit (macOS) zeichnet nach dem Absenden nichts mehr,
+// bis die neue Seite da ist – ein später eingeblendeter Hinweis bliebe unsichtbar. Darum: Absenden kurz anhalten,
+// Hinweis zeichnen, dann erst abschicken. KI-Knöpfe (data-ki) und lange Aktionen (data-laden) bekommen den großen
+// Hinweis mit Erklärung, alles andere ein kleines „Bitte warten …“ (verhindert auch Doppelklicks).
 document.querySelectorAll('form').forEach(f => f.addEventListener('submit', e => {
-  if (e.defaultPrevented) return;   // z. B. Rückfrage abgelehnt
+  if (e.defaultPrevented || f.target) return;   // z. B. Rückfrage abgelehnt oder eigenes Skript
+  e.preventDefault();
+  if (f._unterwegs) return;
+  f._unterwegs = true;
   const b = e.submitter || f.querySelector('button');
   if (b) b.setAttribute('aria-busy', 'true');
-  const busy = document.getElementById('busy');
-  if (b && b.dataset.ki) {
+  const busy = document.getElementById('busy'), titel = busy.querySelector('b'), info = busy.querySelector('small');
+  if (b && (b.dataset.ki || b.dataset.laden)) {
     busy.classList.add('ki');
-    busy.querySelector('b').textContent = b.dataset.ki;
-    const zeit = busy.querySelector('small'), start = Date.now();
-    const zeigen = () => { const s = Math.round((Date.now() - start) / 1000);
-      zeit.textContent = `${s} s · die KI arbeitet, meist 10 bis 40 Sekunden. Fenster bitte offen lassen.`; };
-    zeigen(); kiTakt = setInterval(zeigen, 1000);
-    busy.style.display = 'flex';
-    return;
+    titel.textContent = b.dataset.ki || b.dataset.laden;
+    info.textContent = b.dataset.ki ? 'Die KI arbeitet, meist 10 bis 60 Sekunden. Fenster bitte offen lassen.'
+                                    : (b.dataset.ladenInfo || 'Einen Moment, Fenster bitte offen lassen.');
+  } else {
+    busy.classList.add('leicht');
+    titel.textContent = 'Bitte warten …';
   }
-  if (b && b.dataset.laden) {   // lange Aktion ohne KI (z. B. Update laden): eigener Text, kein KI-Hinweis
-    busy.classList.add('ki');
-    busy.querySelector('b').textContent = b.dataset.laden;
-    busy.querySelector('small').textContent = b.dataset.ladenInfo || 'Einen Moment, Fenster bitte offen lassen.';
-    busy.style.display = 'flex';
-    return;
+  busy.style.display = 'flex';
+  if (b && b.name) {   // der gedrückte Knopf zählt mit (z. B. aktion=…), auch beim Absenden per Skript
+    const h = document.createElement('input');
+    h.type = 'hidden'; h.name = b.name; h.value = b.value; h.dataset.absender = '';
+    f.append(h);
   }
-  setTimeout(() => { busy.style.display = 'flex'; }, 400);
+  if (b && b.hasAttribute('formaction')) f.action = b.formAction;
+  // zwei Bilder abwarten: dann ist der Hinweis sicher gezeichnet
+  requestAnimationFrame(() => requestAnimationFrame(() => HTMLFormElement.prototype.submit.call(f)));
+  if (!busy.classList.contains('ki')) setTimeout(() => {   // keine neue Seite (z. B. Datei geladen): wieder frei
+    busy.style.display = 'none'; busy.classList.remove('leicht'); f._unterwegs = false;
+    if (b) b.removeAttribute('aria-busy');
+    f.querySelectorAll('[data-absender]').forEach(x => x.remove());
+  }, 15000);
 }));
 window.addEventListener('pageshow', () => {   // zurück-Navigation: Zustand zurücksetzen
   const busy = document.getElementById('busy');
-  busy.style.display = 'none'; busy.classList.remove('ki'); clearInterval(kiTakt);
+  busy.style.display = 'none'; busy.classList.remove('ki', 'leicht');
+  document.querySelectorAll('form').forEach(f => { f._unterwegs = false;
+    f.querySelectorAll('[data-absender]').forEach(x => x.remove()); });
   document.querySelectorAll('[aria-busy]').forEach(b => b.removeAttribute('aria-busy'));
 });
 // Stellen filtern: Suchfeld plus Eckdaten (bis 20 h, Remote, Abschlussarbeit); die Auswahl merkt sich der Browser

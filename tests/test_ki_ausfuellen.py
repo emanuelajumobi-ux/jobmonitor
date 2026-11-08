@@ -145,4 +145,4 @@ def test_profiltext_mit_ki(root, mit_ki, monkeypatch):  # noqa: F811
 
 
 def test_ladeanzeige():
-    assert "dataset.ki" in JS and "Sekunden" in JS and "clearInterval(kiTakt)" in JS
+    assert "dataset.ki" in JS and "Sekunden" in JS and "requestAnimationFrame(() => requestAnimationFrame" in JS

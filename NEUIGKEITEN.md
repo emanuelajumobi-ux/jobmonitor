@@ -3,6 +3,14 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.4.2
+
+- **Ladehinweise jetzt wirklich sichtbar:** Im App-Fenster auf dem Mac blieb der Hinweis „Bitte warten“ bzw. „KI arbeitet …“ oft unsichtbar, weil das Fenster nach einem Klick nichts mehr neu zeichnet. Jetzt erscheint der Hinweis zuerst, erst dann geht die Aktion los – bei KI-Aktionen mit Erklärung, sonst als kleines „Bitte warten …“.
+- **Fortschrittsbalken für die Suche:** Die Stellenliste zeigt, welche Quelle gerade abgefragt wird und wie weit die Suche ist. Ist sie fertig, lädt die Liste von selbst neu. Scheitert sie, steht dort, was schiefging.
+- **Erste Suche geht nicht mehr verloren:** Schließt du Job-Monitor, während eine Suche läuft, fragt die App vorher nach. Wurde die erste Suche abgebrochen, holt die App sie beim nächsten Start nach.
+- **Wohnort wird immer gespeichert:** Kann die KI die Fahrzeiten gerade nicht schätzen (z. B. weil das kostenlose Gemini-Kontingent aufgebraucht ist), speichert die App den Wohnort trotzdem und sagt, was fehlt.
+- **Kleinigkeiten:** Keine irreführende Fehlermeldung mehr am Ende eines Probelaufs (Mac). „Andere Modelle wählen“ zeigt einen Ladehinweis.
+
 ## 1.4.1
 
 - **Mac: leichter installieren:** Für den Mac gibt es jetzt eine DMG-Datei. Öffnen, Job-Monitor auf „Programme“ ziehen, fertig. Hat sich die App direkt aus „Downloads“ geöffnet, zeigt sie oben „In Programme verschieben“ an und startet nach einem Klick von dort neu.

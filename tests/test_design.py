@@ -23,7 +23,7 @@ def test_css_accessibility_and_feedback():
     for needle in ("prefers-reduced-motion", "prefers-reduced-transparency", "prefers-contrast",
                    "button:active", ":focus-visible", "backdrop-filter", "html.native .side"):
         assert needle in css, needle
-    assert "e.defaultPrevented" in layout.JS and "400" in layout.JS                 # verzögertes Overlay
+    assert "e.defaultPrevented" in layout.JS and "HTMLFormElement.prototype.submit" in layout.JS   # erst zeichnen, dann senden
 
 
 def test_undo_hide():

@@ -1,5 +1,6 @@
 """Rückmeldungen nach 1.3.7: KI im Assistenten, klare KI-Fehler, Update-Ladebild, Gmail-Hinweis."""
 import html
+import json
 
 import pytest
 
@@ -88,7 +89,7 @@ def test_fertig_startet_erste_suche_und_rundgang(tmp_path, monkeypatch):
     monkeypatch.setattr(app.aufgaben, "starten", lambda name, titel, cmd: gestartet.append((name, titel)))
     html = app.einrichten({"aktion": "fertig"}).decode()             # auch ohne Haken „täglich suchen“
     assert gestartet == [("zeitplan", "Erste Suche")] and 'id="rundgang-start"' in html
-    assert app.suche_status() == b"fertig"
+    assert json.loads(app.suche_status())["laeuft"] is False
 
 
 def test_firmenliste_im_assistenten(tmp_path, monkeypatch):
@@ -119,3 +120,46 @@ def test_einstellungen_in_gruppen(tmp_path):
     assert len(reihenfolge) >= 5 and reihenfolge == sorted(reihenfolge)
     assert 'id="einst-suche"' in seite and 'class="einst-nav"' in seite
     assert seite.index('id="sprache"') < seite.index('id="suche"') < seite.index('id="zuruecksetzen"')
+
+
+def test_wohnort_bleibt_auch_wenn_ki_scheitert(tmp_path, monkeypatch):
+    from jobmonitor import gui_assistent as gas, wohnort
+    from jobmonitor.config import load_config
+    erststart.vorbereiten(tmp_path)
+
+    def kaputt(*a, **k):
+        raise ki.KiError("Google Gemini: Kontingent erschöpft.")
+    monkeypatch.setattr(wohnort, "ki_fahrzeiten", kaputt)
+    msg = gas.ausfuehren(tmp_path, {"aktion": "wohnort", "stadt": "Leipzig"}, {}, ki_an=True)
+    assert "Wohnort Leipzig übernommen" in msg and "Kontingent" in msg
+    assert load_config(tmp_path / "config.yaml")["ort"]["zentrum"] == "Leipzig"
+
+
+def test_fortschritt_der_suche(tmp_path):
+    from types import SimpleNamespace
+    from jobmonitor.gui import _fortschritt
+    log = "Quelle: BA\nFORTSCHRITT 1/4 Bundesagentur wird abgefragt\nFORTSCHRITT 3/4 Stellen werden ausgewertet\n"
+    assert _fortschritt(log) == {"schritt": 3, "gesamt": 4, "text": "Stellen werden ausgewertet"}
+    erststart.vorbereiten(tmp_path)
+    app = App(tmp_path, compile_pdf=False)
+    laeuft = SimpleNamespace(laeuft=True, titel="Erste Suche", start=__import__("datetime").datetime(2026, 11, 8, 9, 0),
+                             ausgabe=lambda n=60: log, proc=SimpleNamespace(returncode=None))
+    app.aufgaben.alle["zeitplan"] = laeuft
+    karte = app._suche_karte()
+    assert 'id="suche-balken" style="width:75%"' in karte and "Stellen werden ausgewertet" in karte
+    assert json.loads(app.suche_status())["schritt"] == 3
+    app.aufgaben.alle["zeitplan"] = SimpleNamespace(laeuft=False, titel="Erste Suche", ausgabe=lambda n=60: "Traceback\nKaputt",
+                                                     proc=SimpleNamespace(returncode=1))
+    assert "hat nicht geklappt" in app._suche_karte() and "Kaputt" in app._suche_karte()
+
+
+def test_schliessen_fragt_waehrend_der_suche():
+    from types import SimpleNamespace
+    from jobmonitor import desktop
+    app = SimpleNamespace(aufgaben=SimpleNamespace(alle={}))
+    assert desktop._schliessen_erlaubt(app, frage=lambda *a: False)            # keine Suche: einfach schließen
+    app.aufgaben.alle["zeitplan"] = SimpleNamespace(laeuft=True)
+    gefragt = []
+    assert not desktop._schliessen_erlaubt(app, frage=lambda *a: gefragt.append(a) or False)
+    assert "Suche läuft noch" in gefragt[0][2]
+    assert desktop._schliessen_erlaubt(app, frage=lambda *a: True)
