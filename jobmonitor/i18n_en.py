@@ -2,6 +2,17 @@
 zusammengefasst). Fehlende Texte findet JOBMONITOR_I18N_SAMMELN=<datei> (siehe i18n.py)."""
 
 TEXTE: dict[str, str] = {
+    "Rundgang durch die App starten": "Start a tour of the app",
+    "Firmenliste mit KI füllen": "Fill company list with AI", "Weitere Firmen mit KI ergänzen": "Add more companies with AI",
+    "KI sucht passende Firmen …": "AI is looking for matching companies …",
+    "Fertig – erste Suche starten": "Done – start first search",
+    "Die erste Suche startet gleich nach dem Klick. Danach zeigt dir ein kurzer Rundgang die wichtigsten Stellen der App.":
+        "The first search starts right after the click. A short tour then shows you the most important parts of the app.",
+    "Technologien und Werkzeuge (optional, mit Komma getrennt)": "Technologies and tools (optional, comma-separated)",
+    "Die App probiert aus, welche Modelle mit deinem Schlüssel antworten. Das dauert bis zu einer Minute.":
+        "The app tries which models answer with your key. This takes up to a minute.",
+    "Schlüssel und Modelle werden geprüft …": "Checking key and models …",
+    "Modelle werden geprüft …": "Checking models …",
     "1. Bestätigung in zwei Schritten einschalten ↗": "1. Turn on 2-Step Verification ↗",
     "2. App-Passwort jetzt anlegen ↗": "2. Create app password now ↗",
     "App-Passwort jetzt anlegen ↗": "Create app password now ↗",
@@ -448,10 +459,14 @@ TEXTE: dict[str, str] = {
                                                                         "experienced – fills in role words and job type "
                                                                         "and chooses a matching design.",
     "Groß ansehen": "View large", "Größer": "Larger", "Ganze Seite": "Whole page", "Schließen": "Close", "Mit deinen Daten · Esc schließt": "With your data · Esc closes",
-    "Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen "
-    "Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.":
-        "Struck through = not covered. Entries with status “planned” do not count. Can you already do a struck-through "
-        "term? Click it, choose a level – it lands in the matching category under Skills.",
+    "Durchgestrichen = in deinen gefundenen Stellen gefragt, aber im Lebenslauf nicht belegt (häufigste zuerst). "
+    "Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen Begriff schon? Anklicken, Level "
+    "wählen – er landet in der passenden Kategorie unter Kenntnisse.":
+        "Struck through = asked for in your jobs but not covered by your CV (most frequent first). Entries with status "
+        "“planned” do not count. Can you already do a struck-through term? Click it, choose a level – it lands in the "
+        "matching category under Skills.",
+    "Noch keine Begriffe – sie erscheinen, sobald dein Lebenslauf Kenntnisse nennt oder die ersten Stellen gefunden sind.":
+        "No terms yet – they appear once your CV lists skills or the first jobs are found.",
     "Ausbildung": "Education", "Berufserfahrung": "Work experience", "Projekte": "Projects",
     "Zertifikate": "Certifications", "Interessen": "Interests", "Stationen": "Positions",
     "Grundkenntnisse": "Basic knowledge", "gut": "good", "sehr gut": "very good", "geplant": "planned",
@@ -807,7 +822,7 @@ TEXTE: dict[str, str] = {
     "Willkommen bei Job-Monitor": "Welcome to Job-Monitor", "Einrichtungs-Assistent": "Setup assistant",
     "Einrichten": "Set up", "Los geht’s": "Let's go", "1. Deine Angaben": "1. Your details",
     "2. KI (optional)": "2. AI (optional)", "3. Wohnort": "3. Home location", "4. Was suchst du?": "4. What are you looking for?",
-    "5. Lebenslauf": "5. CV", "6. Postfach (optional)": "6. Mailbox (optional)", "Angaben eintragen": "Enter details",
+    "5. Lebenslauf": "5. CV", "6. Postfach (optional)": "6. Mailbox (optional)", "7. Postfach (optional)": "7. Mailbox (optional)", "6. Firmen beobachten (optional)": "6. Watch companies (optional)", "Angaben eintragen": "Enter details",
     "KI-Schlüssel hinterlegen (empfohlen)": "Add AI key (recommended)",
     "KI ist eingerichtet: Suchprofil und Lebenslauf füllt sie für dich aus.":
         "AI is set up: it fills in the search profile and CV for you.",
@@ -1325,6 +1340,25 @@ MUSTER: list[tuple[str, str]] = [
 
 # Texte in den Skripten der Seite (wörtlich ersetzt)
 SKRIPT: dict[str, str] = {
+    "'Hier landen jeden Tag neue Stellen – sortiert nach Fit, also danach, wie gut sie zu deinem Lebenslauf passen.'": "'New jobs land here every day – sorted by fit, i.e. how well they match your CV.'",
+    "'Eine Stelle'": "'A job'",
+    "'Die Kästchen zeigen die Anforderungen der Anzeige, gefüllt heißt: kannst du. „Bewerbung“ baut Anschreiben und Lebenslauf für genau diese Stelle, × blendet sie aus.'": "'The boxes show the job’s requirements; filled means you have it. “Application” builds a cover letter and CV for exactly this job, × hides it.'",
+    "'Alles, worauf du dich bewirbst – mit Status, Fristen und einer Erinnerung, wann du nachfassen solltest.'": "'Everything you apply for – with status, deadlines and a reminder when to follow up.'",
+    "'Eine Anzeige gefunden, die Job-Monitor nicht kennt? Text einfügen, Fit prüfen, Lebenslauf bauen.'": "'Found an ad Job-Monitor doesn’t know? Paste the text, check the fit, build your CV.'",
+    "'Firmen, deren Karriereseiten mit abgefragt werden. Hier ergänzt du Wunsch-Arbeitgeber.'": "'Companies whose career pages are checked too. Add your dream employers here.'",
+    "'Dein Lebenslauf als Grundlage für alles. Je vollständiger er ist, desto genauer werden Fit und Anschreiben.'": "'Your CV as the basis for everything. The more complete it is, the more accurate fit and cover letters get.'",
+    "'KI, Postfach, tägliche Suche und Sicherung deiner Daten.'": "'AI, mailbox, daily search and backups of your data.'",
+    "'Auf jeder Seite unten rechts: die Anleitung genau zu dieser Seite. Den Rundgang findest du dort jederzeit wieder.'": "'Bottom right on every page: the guide for exactly this page. You can restart the tour there anytime.'",
+    "'Stellen', 'New": "'Jobs', 'New",
+    "'Bewerbungen', 'Every": "'Applications', 'Every",
+    "'Eigene Stelle', 'Found": "'Own job', 'Found",
+    "'Firmen', 'Compan": "'Companies', 'Compan",
+    "'Einstellungen', 'AI": "'Settings', 'AI",
+    "'Hilfe', 'Bottom": "'Help', 'Bottom",
+    '>Überspringen<': '>Skip<',
+    '>Zurück<': '>Back<',
+    "'Fertig' : 'Weiter'": "'Done' : 'Next'",
+    ' von ${schritte.length}': ' of ${schritte.length}',
     "'Kopiert'": "'Copied'",
     "die KI arbeitet, meist 10 bis 40 Sekunden. Fenster bitte offen lassen.":
         "the AI is working, usually 10 to 40 seconds. Please keep the window open.",

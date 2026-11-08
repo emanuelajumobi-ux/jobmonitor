@@ -286,7 +286,23 @@ def _aufgabe_html(a: Aufgabe | None) -> str:
         state = '<p class="ok">Fertig.</p>'
     else:
         state = f'<p class="err">Beendet mit Fehler (Code {a.proc.returncode}).</p>'
-    return f'{state}<pre class="out">{esc(a.ausgabe())}</pre>'
+    return (f'<div data-aufgabe="{esc(a.name)}"{" data-laeuft" if a.laeuft else ""}>{state}'
+            f'<pre class="out">{esc(a.ausgabe())}</pre></div>')
+
+
+# Laufende Aufgaben alle 3 s nachladen – nur ihre Ausgabe ersetzen, nicht die ganze Seite. Früher lud die Seite
+# komplett neu und sprang dabei immer wieder nach oben (und halb ausgefüllte Felder gingen verloren).
+AUFGABEN_JS = """<script>(() => {
+  const holen = () => fetch("/einstellungen").then(r => r.ok ? r.text() : Promise.reject(r.status)).then(html => {
+    const neu = new DOMParser().parseFromString(html, "text/html");
+    neu.querySelectorAll("[data-aufgabe]").forEach(n => {
+      const alt = document.querySelector(`[data-aufgabe="${n.dataset.aufgabe}"]`);
+      if (alt) { alt.innerHTML = n.innerHTML; alt.toggleAttribute("data-laeuft", n.hasAttribute("data-laeuft")); }
+    });
+    if (neu.querySelector("[data-laeuft]")) setTimeout(holen, 3000);
+  }).catch(() => setTimeout(holen, 6000));
+  if (document.querySelector("[data-laeuft]")) setTimeout(holen, 3000);   // nur, wenn hier eine Ausgabe mitläuft
+})();</script>"""
 
 
 def _form(token: str, aktion: str, label: str, extra: str = "", ghost: bool = False, confirm: str = "") -> str:
@@ -389,8 +405,7 @@ def render(token: str, profile_html: str, aufgaben: Aufgaben, fehlend: list[str]
     mac = sys.platform == "darwin" if mac is None else mac
     mitteilung = mitteilung or {}
     a = aufgaben.alle
-    refresh = ('<script>setTimeout(() => { location.href = "/einstellungen"; }, 3000);</script>'
-               if aufgaben.laeuft() else "")
+    refresh = (AUFGABEN_JS if aufgaben.laeuft() else "")
     pipeline = f"""<div class="card"><h2>Pipeline auf GitHub</h2>
 <p class="muted">Läuft jeden Morgen automatisch (gegen 6:20 bzw. 7:20 Uhr). Hier kannst du einen Lauf sofort starten;
 die Ergebnisse holt danach „Synchronisieren“ unten links.</p>

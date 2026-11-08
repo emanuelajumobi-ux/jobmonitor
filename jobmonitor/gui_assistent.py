@@ -58,7 +58,40 @@ def schritte(root: Path, cfg: dict, ki_an: bool) -> dict[str, bool]:
     return {"person": bool(gp.get(profil, "name")), "ki": ki_an,
             "wohnort": bool(laden(root).get("wohnort") or (cfg.get("ort") or {}).get("zentrum")),
             "suche": any(p.enabled for p in suchprofil.alle(cfg)),
-            "lebenslauf": bool(gm.load(root)), "mail": bool(mailzugang.laden(root).get("benutzer"))}
+            "lebenslauf": bool(gm.load(root)), "firmen": bool(_firmen(root)),
+            "mail": bool(mailzugang.laden(root).get("benutzer"))}
+
+
+def _firmen(root: Path) -> list:
+    from .gui_firmen import firmen
+    try:
+        return firmen(root)
+    except Exception:   # kaputte companies.yaml: Assistent trotzdem zeigen
+        return []
+
+
+def firmen_fuellen(root: Path, cfg: dict, ask=None) -> str:
+    """Firmenliste mit KI füllen: passende Arbeitgeber vorschlagen lassen und gleich übernehmen. Die Pipeline prüft
+    jede Karriereseite (robots.txt, ehrlicher User-Agent); was nicht passt, schaltest du unter „Firmen“ ab."""
+    from . import firmen_finder
+    from .gui_firmen import FirmaError, add
+    from .cv_data import load_cv_master
+    cv, _ = load_cv_master(root)
+    liste = firmen_finder.finden(root, cfg, cv or {}, "", 20, ask=ask)
+    neu = []
+    for f in liste:
+        try:
+            neu.append(add(root, {"name": f["name"], "kategorie": f["kategorie"], "branche": f["branche"],
+                                  "karriereseite_url": f["karriereseite_url"],
+                                  "standorte": ", ".join(f.get("standorte") or []),
+                                  "fokus": ", ".join(f.get("fokus") or []),
+                                  "notizen": f"Vorschlag der KI: {f.get('warum') or ''}".strip()}))
+        except FirmaError:
+            continue
+    if not neu:
+        raise AssistentError("Die KI hat keine neuen Firmen gefunden – du kannst sie später unter „Firmen“ ergänzen.")
+    return (f"{len(neu)} Firmen in deine Liste übernommen (z. B. {', '.join(neu[:3])}). Ihre Karriereseiten werden ab "
+            f"der nächsten Suche mit abgefragt; unter „Firmen“ kannst du einzelne prüfen oder abschalten.")
 
 
 # --- Lebenslauf-Import ---
@@ -243,10 +276,20 @@ def render(root: Path, token: str, ki_an: bool, message: str = "", ki_karte: str
           '<a class="btn small" href="/master">Master-CV ausfüllen</a>')
     fertig = (f'<form method="post" action="/einrichten">{hidden}<input type="hidden" name="aktion" value="fertig">'
               f'<label class="check"><input type="checkbox" name="zeitplan" value="1" checked> Täglich automatisch '
-              f'suchen (auf diesem Rechner)</label><div class="row" style="margin-top:10px"><button>Fertig – zur '
-              f'Stellenliste</button></div></form>')
-    offen = sum(1 for k, v in st.items() if not v and k not in ("ki", "mail"))
-    pflicht = [k for k in st if k not in ("ki", "mail")]
+              f'suchen (auf diesem Rechner)</label><p class="muted">Die erste Suche startet gleich nach dem Klick. '
+              f'Danach zeigt dir ein kurzer Rundgang die wichtigsten Stellen der App.</p><div class="row" '
+              f'style="margin-top:10px"><button>Fertig – erste Suche starten</button></div></form>')
+    anzahl = len(_firmen(root))
+    firmen_html = (f'<p>Neben Jobbörsen fragt Job-Monitor auch die Karriereseiten einzelner Firmen ab. '
+                   f'{f"In deiner Liste stehen {anzahl} Firmen. " if anzahl else ""}'
+                   + (f'Die KI schlägt passende Arbeitgeber in deiner Gegend vor – passend zu Suchprofil und '
+                      f'Lebenslauf – und trägt sie gleich ein.</p><form method="post" action="/einrichten">{hidden}'
+                      f'<input type="hidden" name="aktion" value="firmen"><button class="small" data-ki="KI sucht '
+                      f'passende Firmen …">{"Weitere Firmen mit KI ergänzen" if anzahl else "Firmenliste mit KI füllen"}'
+                      f'</button></form>' if ki_an else
+                      'Ohne KI trägst du sie später selbst unter „Firmen“ ein (Name und Karriereseite).</p>'))
+    offen = sum(1 for k, v in st.items() if not v and k not in ("ki", "mail", "firmen"))
+    pflicht = [k for k in st if k not in ("ki", "mail", "firmen")]
     erledigt = len(pflicht) - offen
     return (f'<div class="einrichtung-kopf"><div class="eyebrow">Einrichtung · {erledigt} von {len(pflicht)} '
             f'Pflichtschritten erledigt</div><h1>Willkommen bei Job-Monitor</h1><p class="sub">In vier Schritten zur '
@@ -258,7 +301,8 @@ def render(root: Path, token: str, ki_an: bool, message: str = "", ki_karte: str
             + karte(1, "person", "Deine Angaben", person) + karte(2, "ki", "KI (optional)", kschritt)
             + karte(3, "wohnort", "Wohnort", ort) + karte(4, "suche", "Was suchst du?", suche)
             + karte(5, "lebenslauf", "Lebenslauf", cv)
-            + karte(6, "mail", "Postfach (optional)", mailzugang.formular(root, token, esc))
+            + karte(6, "firmen", "Firmen beobachten (optional)", firmen_html)
+            + karte(7, "mail", "Postfach (optional)", mailzugang.formular(root, token, esc))
             + f'<div class="card"><h2>Los geht’s</h2>{fertig}</div>')
 
 
@@ -329,6 +373,10 @@ def ausfuehren(root: Path, form: dict, uploads: dict, ki_an: bool, ask=None) -> 
     if aktion == "mail_trennen":
         mailzugang.trennen(root)
         return "Postfach getrennt."
+    if aktion == "firmen":
+        if not ki_an:
+            raise AssistentError("Dafür braucht es die KI (Schritt 2). Ohne KI trägst du Firmen unter „Firmen“ ein.")
+        return firmen_fuellen(root, cfg, ask=ask)
     if aktion == "fertig":
         merken(root, fertig=date.today().isoformat())
         return "fertig"

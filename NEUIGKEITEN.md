@@ -3,6 +3,16 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.3.9
+
+- **Kurzer Rundgang:** Nach der Einrichtung zeigt dir ein Rundgang in acht Schritten die wichtigsten Bereiche der App. Neu starten kannst du ihn jederzeit unter Anleitung.
+- **Erste Suche startet sofort:** Mit „Fertig – erste Suche starten“ läuft die erste Suche gleich los, nicht erst am nächsten Morgen. Die Stellenliste zeigt, dass sie läuft, und lädt sich von selbst neu, sobald sie fertig ist.
+- **Firmenliste mit KI füllen:** Im Einrichtungs-Assistenten schlägt die KI mit einem Klick passende Arbeitgeber in deiner Gegend vor und trägt sie ein. Einzelne schaltest du später unter „Firmen“ wieder ab.
+- **Einstellungen springen nicht mehr nach oben:** Während im Hintergrund eine Suche läuft, aktualisiert sich nur noch deren Ausgabe, nicht mehr die ganze Seite.
+- **Passende Begriffe für jedes Fach:** Auf der Master-CV-Seite stehen nur noch Begriffe, die dein Lebenslauf belegt oder die deine gefundenen Stellen verlangen. Neue Nutzer bekommen außerdem Begriffe aus Wirtschaft und Verwaltung dazu, zum Beispiel SAP, Power BI, Controlling, Marketing und Vertrieb.
+- **Gemini schneller eingerichtet:** Die App probiert die Gemini-Modelle jetzt gleichzeitig statt nacheinander aus.
+- **Kleinigkeiten:** Bei Berufserfahrung und Projekten ist das Feld „Technologien und Werkzeuge“ als optional gekennzeichnet.
+
 ## 1.3.8
 
 - **Rückgängig mit ⌘Z / Strg+Z:** In Textfeldern nimmt ⌘Z die letzte Eingabe zurück (⇧⌘Z stellt sie wieder her). Außerhalb von Feldern nimmt es die letzte Aktion zurück, etwa eine gerade ausgeblendete Stelle.

@@ -49,7 +49,14 @@ def test_kenntnis_aus_der_lueckenauswertung(root):  # noqa: F811
 
 
 def test_kenntnis_im_master_cv(root):  # noqa: F811
+    from jobmonitor.models import Job
     app = App(root, compile_pdf=False)
+    assert 'data-term="AWS"' not in app.master().decode()     # von keiner Stelle verlangt: nicht durchgestrichen zeigen
+    state = State(root / "state" / "seen.sqlite")
+    job = Job("Cloud Engineer", "Beispiel AG", "https://x/aws", "test")
+    job.fit_anforderungen = {"AWS": 1.0}
+    state.save_job_detail(job, "2026-11-01")
+    state.close()
     html = app.master().decode()
     assert 'data-term="AWS"' in html and 'value="kenntnis:gut"' in html and 'id="kenntnis-term"' in html
     data = gm.load(root)

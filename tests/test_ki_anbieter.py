@@ -167,7 +167,9 @@ def test_gemini_pruefen_nimmt_was_antwortet(monkeypatch):
     monkeypatch.setattr(ki_anbieter, "GEPRUEFT", {})
     v = ki_anbieter.gemini_pruefen("k", ids, post=post)
     assert v == {"schnell": "gemini-3.5-flash-lite", "gut": "gemini-3.6-flash"}
-    assert gefragt == ["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite"] and "gemini-pro-latest" not in gefragt
+    # alle Flash-Kandidaten gleichzeitig geprüft (schneller als nacheinander), „Pro“ nie
+    assert sorted(gefragt) == sorted(["gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-2.5-flash",
+                                      "gemini-flash-latest", "gemini-3.5-flash-lite"])
     assert ki_anbieter.vorschlag(ids, "gemini") == v
 
 

@@ -132,7 +132,7 @@ def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipel
                                            f'(<a href="{a["schluessel_url"]}" target="_blank" rel="noopener">hier '
                                            f'anlegen</a>)</label><input id="ki_key" type="password" name="schluessel" '
                                            f'autocomplete="off" spellcheck="false" placeholder="{platzhalter}" '
-                                           f'required></div><button data-ki-immer data-ki="Schlüssel und Modelle werden geprüft …">Sicher speichern</button>')
+                                           f'required></div><button data-laden="Schlüssel und Modelle werden geprüft …" data-laden-info="Die App probiert aus, welche Modelle mit deinem Schlüssel antworten. Das dauert bis zu einer Minute.">Sicher speichern</button>')
     if anbieter == "claude":
         modell_html = ""
     elif liste:
@@ -150,7 +150,7 @@ def karte(token: str, cfg: dict, herkunft: str, nutzung: dict, limit: int, pipel
                        + form("ki_modelle_laden", '<button class="ghost small">Andere Modelle wählen</button>'))
     elif herkunft or a.get("ohne_schluessel"):
         modell_html = (f'<p class="muted" style="margin-top:8px">Noch keine Modelle gewählt.</p>'
-                       + form("ki_modelle_laden", '<button class="small" data-ki-immer data-ki="Modelle werden geprüft …">Modelle vom Anbieter '
+                       + form("ki_modelle_laden", '<button class="small" data-laden="Modelle werden geprüft …" data-laden-info="Die App probiert aus, welche Modelle mit deinem Schlüssel antworten. Das dauert bis zu einer Minute.">Modelle vom Anbieter '
                                                'laden</button>'))
     else:
         modell_html = ""

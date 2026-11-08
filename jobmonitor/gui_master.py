@@ -30,7 +30,7 @@ SCHEMA = [
         {"key": "von", "title": "von (MM/JJJJ)", "type": "text", "half": True},
         {"key": "bis", "title": "bis (leer = seit)", "type": "text", "half": True},
         {"key": "aufgaben", "title": "Aufgaben (eine je Zeile)", "type": "lines"},
-        {"key": "technologien", "title": "Technologien (mit Komma getrennt)", "type": "csv"}]},
+        {"key": "technologien", "title": "Technologien und Werkzeuge (optional, mit Komma getrennt)", "type": "csv"}]},
     {"key": "ausbildung", "title": "Ausbildung", "type": "list", "label": "abschluss", "fields": [
         {"key": "abschluss", "title": "Abschluss", "type": "text"},
         {"key": "institution", "title": "Institution", "type": "text"},
@@ -55,7 +55,7 @@ SCHEMA = [
         {"key": "zeitraum", "title": "Zeitraum", "type": "text", "half": True},
         {"key": "status", "title": "Status", "type": "select", "options": STATUS, "default": "erreicht", "half": True},
         {"key": "beschreibung", "title": "Beschreibung", "type": "area"},
-        {"key": "technologien", "title": "Technologien (mit Komma getrennt)", "type": "csv"},
+        {"key": "technologien", "title": "Technologien und Werkzeuge (optional, mit Komma getrennt)", "type": "csv"},
         {"key": "im_cv", "title": "im Lebenslauf zeigen", "type": "bool"}]},
     {"key": "sprachen", "title": "Sprachen", "type": "list", "label": "sprache", "compact": True, "fields": [
         {"key": "sprache", "title": "Sprache", "type": "text"},

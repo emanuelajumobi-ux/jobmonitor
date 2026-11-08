@@ -232,15 +232,20 @@ def gemini_pruefen(schluessel: str | None, ids: list[str], post=requests.post) -
 
     def antwortet(m: str) -> bool:
         try:
-            r = post(f"{ANBIETER['gemini']['basis']}/chat/completions", timeout=40,
+            r = post(f"{ANBIETER['gemini']['basis']}/chat/completions", timeout=25,
                      headers={"Authorization": f"Bearer {schluessel}"},
                      json={"model": m, "messages": [{"role": "user", "content": "Antworte nur mit: ok"}],
                            "max_tokens": 300})
             return r.status_code == 200
         except requests.RequestException:
             return False
-    gut = next((m for m in voll[:5] if antwortet(m)), "")
-    schnell = next((m for m in lite[:4] if antwortet(m)), "") or gut
+    # alle Proben gleichzeitig statt nacheinander: dauert so lange wie die langsamste, nicht wie alle zusammen
+    from concurrent.futures import ThreadPoolExecutor
+    kandidaten = voll[:5] + lite[:4]
+    with ThreadPoolExecutor(max_workers=max(1, len(kandidaten))) as pool:
+        ok = dict(zip(kandidaten, pool.map(antwortet, kandidaten)))
+    gut = next((m for m in voll[:5] if ok.get(m)), "")
+    schnell = next((m for m in lite[:4] if ok.get(m)), "") or gut
     out = {"schnell": schnell, "gut": gut or schnell} if (gut or schnell) else {}
     if out:
         GEPRUEFT["gemini"] = out

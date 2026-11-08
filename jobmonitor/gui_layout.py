@@ -405,6 +405,13 @@ td.fit { white-space:nowrap; font-weight:500; width:70px; font-variant-numeric:t
 .report h1 { font-size:20px; } .report h2 { font-size:16px; margin-top:22px; } .report h3 { font-size:14.5px; margin:14px 0 2px; }
 .splash { display:grid; place-items:center; min-height:70vh; text-align:center; }
 
+/* Rundgang: Ziel ausgeschnitten (riesiger Schatten dunkelt den Rest ab), Erklärung als Karte daneben */
+.rg-loch { position:fixed; z-index:70; border-radius:12px; box-shadow:0 0 0 9999px rgba(0,0,0,.55);
+  outline:2px solid var(--accent); pointer-events:none; transition:all .25s ease; }
+.rg-box { position:fixed; z-index:71; background:var(--surface); color:var(--text); border:1px solid var(--control);
+  border-radius:14px; padding:14px 16px; box-shadow:var(--shadow-lg); display:grid; gap:10px; }
+.rg-box p { margin:0; } .rg-kopf { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+@media (prefers-reduced-motion: reduce) { .rg-loch { transition:none; } }
 /* Nur bei längeren Aktionen (erscheint verzögert, siehe JS); kurze Klicks behalten nur das Feedback am Knopf */
 /* Abgedunkelt und unscharf dahinter, Kasten mit Rand: auch im dunklen Design klar vom Inhalt zu unterscheiden */
 #busy { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); align-items:center;
@@ -525,6 +532,58 @@ document.addEventListener('click', e => {
   if (u.pathname !== location.pathname || u.search !== location.search || u.hash.length < 2) return;
   if (sprung(u.hash.slice(1), true)) { e.preventDefault(); history.replaceState(null, '', u.hash); }
 });
+// Rundgang: hebt nacheinander die wichtigsten Bereiche hervor (Seitenleiste, erste Stelle, Hilfe-Knopf) und erklärt
+// sie in einem Satz. Startet nach der Einrichtung (#rundgang-start), über /?rundgang=1 (Anleitung) oder [data-rundgang].
+const RUNDGANG = [
+  ['.nav a[href="/"]', 'Stellen', 'Hier landen jeden Tag neue Stellen – sortiert nach Fit, also danach, wie gut sie zu deinem Lebenslauf passen.'],
+  ['article.job', 'Eine Stelle', 'Die Kästchen zeigen die Anforderungen der Anzeige, gefüllt heißt: kannst du. „Bewerbung“ baut Anschreiben und Lebenslauf für genau diese Stelle, × blendet sie aus.'],
+  ['.nav a[href="/bewerbungen"]', 'Bewerbungen', 'Alles, worauf du dich bewirbst – mit Status, Fristen und einer Erinnerung, wann du nachfassen solltest.'],
+  ['.nav a[href="/eigene"]', 'Eigene Stelle', 'Eine Anzeige gefunden, die Job-Monitor nicht kennt? Text einfügen, Fit prüfen, Lebenslauf bauen.'],
+  ['.nav a[href="/firmen"]', 'Firmen', 'Firmen, deren Karriereseiten mit abgefragt werden. Hier ergänzt du Wunsch-Arbeitgeber.'],
+  ['.nav a[href="/master"]', 'Master-CV', 'Dein Lebenslauf als Grundlage für alles. Je vollständiger er ist, desto genauer werden Fit und Anschreiben.'],
+  ['.nav a[href="/einstellungen"]', 'Einstellungen', 'KI, Postfach, tägliche Suche und Sicherung deiner Daten.'],
+  ['[data-seitenhilfe]', 'Hilfe', 'Auf jeder Seite unten rechts: die Anleitung genau zu dieser Seite. Den Rundgang findest du dort jederzeit wieder.'],
+];
+function rundgang() {
+  const schritte = RUNDGANG.filter(([sel]) => document.querySelector(sel));
+  if (!schritte.length) return;
+  let i = 0;
+  const loch = document.createElement('div'), box = document.createElement('div');
+  loch.className = 'rg-loch'; box.className = 'rg-box'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-live', 'polite');
+  document.body.append(loch, box);
+  const ende = () => { loch.remove(); box.remove(); document.removeEventListener('keydown', taste);
+                       try { localStorage.setItem('rundgang', '1'); } catch (e) {} };
+  const taste = e => { if (e.key === 'Escape') ende(); else if (e.key === 'ArrowRight') zeigen(i + 1);
+                       else if (e.key === 'ArrowLeft') zeigen(i - 1); };
+  function zeigen(n) {
+    if (n < 0) return; if (n >= schritte.length) return ende();
+    i = n;
+    const [sel, titel, text] = schritte[i], el = document.querySelector(sel);
+    el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect(), rand = 6;
+    Object.assign(loch.style, { left: r.left - rand + 'px', top: r.top - rand + 'px',
+                                width: r.width + 2 * rand + 'px', height: r.height + 2 * rand + 'px' });
+    box.innerHTML = `<div class="rg-kopf"><b></b><span class="muted">${i + 1} von ${schritte.length}</span></div><p></p>
+      <div class="row"><button class="ghost small" data-rg="aus">Überspringen</button><span style="flex:1"></span>
+      ${i ? '<button class="ghost small" data-rg="zurueck">Zurück</button>' : ''}
+      <button class="small" data-rg="weiter">${i === schritte.length - 1 ? 'Fertig' : 'Weiter'}</button></div>`;
+    box.querySelector('b').textContent = titel; box.querySelector('p').textContent = text;
+    const bw = Math.min(340, window.innerWidth - 32);
+    let x = r.right + 18, y = r.top;                                  // rechts neben dem Ziel …
+    if (x + bw > window.innerWidth - 16) { x = Math.max(16, r.left); y = r.bottom + 18; }   // … sonst darunter
+    box.style.left = Math.min(x, window.innerWidth - bw - 16) + 'px';
+    box.style.top = Math.max(16, Math.min(y, window.innerHeight - box.offsetHeight - 16)) + 'px';
+    box.style.width = bw + 'px';
+    box.querySelector('[data-rg="weiter"]').focus();
+  }
+  box.addEventListener('click', e => { const a = e.target.dataset.rg; if (!a) return;
+    a === 'aus' ? ende() : zeigen(i + (a === 'weiter' ? 1 : -1)); });
+  document.addEventListener('keydown', taste);
+  zeigen(0);
+}
+document.querySelectorAll('[data-rundgang]').forEach(b => b.addEventListener('click', e => { e.preventDefault(); rundgang(); }));
+if (document.getElementById('rundgang-start') || new URLSearchParams(location.search).has('rundgang'))
+  window.addEventListener('load', () => setTimeout(rundgang, 300), { once: true });
 // ⌘Z / Strg+Z außerhalb von Textfeldern: die letzte Aktion zurücknehmen, wenn die Seite dafür einen Knopf
 // anbietet (data-rueckgaengig, z. B. nach „Stelle ausgeblendet“). Im App-Fenster ruft das Bearbeiten-Menü das auf
 // (desktop.py), sonst der Tastendruck selbst. In Feldern bleibt es beim normalen Widerrufen.

@@ -287,7 +287,8 @@ placeholder="Hilfe durchsuchen, z. B. Design, Postfach, Fit" aria-label="Hilfe d
 <div class="help"><nav aria-label="Inhalt">{nav}</nav><div>
 <section id="schnellstart" class="card hilfe-gruppe"><h2>Schnellstart: in sechs Schritten zur ersten Bewerbung</h2>
 <p class="muted">Einmal von oben nach unten – danach kennst du die wichtigsten Seiten. Neu hier? Der
-<a href="/einrichten">Einrichtungs-Assistent</a> führt durch die ersten vier Schritte.</p><ol class="schritte">{start}</ol>
+<a href="/einrichten">Einrichtungs-Assistent</a> führt durch die ersten vier Schritte.
+<a class="btn ghost small" href="/?rundgang=1">Rundgang durch die App starten</a></p><ol class="schritte">{start}</ol>
 </section>
 <h2 id="so-gehts" class="hilfe-gruppe">So geht's</h2><div class="aufgaben">{aufgaben}</div>
 <h2 id="nachschlagen" class="hilfe-gruppe">Nachschlagen</h2>
@@ -313,7 +314,7 @@ def knopf(active: str) -> str:
     anker = HILFE_ZU_SEITE.get(active)
     if not anker:
         return ""
-    return (f'<a class="hilfe-knopf" href="/hilfe#{anker}" title="Hilfe zu dieser Seite" aria-label="Hilfe zu dieser '
+    return (f'<a class="hilfe-knopf" href="/hilfe#{anker}" data-seitenhilfe title="Hilfe zu dieser Seite" aria-label="Hilfe zu dieser '
             f'Seite">?</a>')
 
 

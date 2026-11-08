@@ -239,6 +239,6 @@ def test_postfach_verbinden(tmp_path, monkeypatch):
 def test_assistent_postfach_und_neutrale_vorlagen(tmp_path):
     erststart.vorbereiten(tmp_path)
     html = App(tmp_path, compile_pdf=False).einrichten().decode()
-    assert "6. Postfach (optional)" in html and "App-Passwort" in html and "Outlook/Hotmail geht" in html
+    assert "7. Postfach (optional)" in html and "6. Firmen beobachten (optional)" in html and "App-Passwort" in html and "Outlook/Hotmail geht" in html
     vorlage = (tmp_path / "cv" / "anschreiben_vorlage.txt").read_text(encoding="utf-8")
     assert "Ich studiere" not in vorlage and "{absicht}" in vorlage

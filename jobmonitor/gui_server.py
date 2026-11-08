@@ -25,7 +25,7 @@ from .gui_sync import sync
 log = logging.getLogger("jobmonitor.gui")
 
 SERIELL = threading.RLock()                       # normale Anfragen weiter nacheinander (App-Zustand, Dateien)
-NEBENHER = {"/einstellungen/laeufe", "/ping", "/fokus"}   # dürfen parallel laufen
+NEBENHER = {"/einstellungen/laeufe", "/ping", "/fokus", "/suche/status"}   # dürfen parallel laufen
 MAX_BODY = 25 * 1024 * 1024   # Uploads (Zeugnisse, Foto) bis 20 MB plus Formular
 
 def parse_body(content_type: str, raw: bytes) -> tuple[dict, dict[str, list[tuple[str, bytes]]]]:
@@ -126,6 +126,8 @@ def handler_for(app: App, server_ref: list):
                 return self._send(app.einstellungen())
             if path == "/einstellungen/suchprofil":
                 return self._send(app.suchprofil((parse_qs(query).get("key") or [""])[0][:40]))
+            if path == "/suche/status":
+                return self._send(app.suche_status(), "text/plain; charset=utf-8")
             if path == "/einstellungen/laeufe":
                 return self._send(app.pipeline_laeufe())
             if path == "/hilfe":

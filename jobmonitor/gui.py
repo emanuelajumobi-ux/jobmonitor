@@ -370,14 +370,16 @@ class App(BewerbungenSeiten):
             try:
                 ergebnis = gas.ausfuehren(self.root, form, uploads or {}, ki_an)
                 if ergebnis == "fertig":
-                    if form.get("zeitplan") and not zeitplan.github_aktiv(self.root):
-                        try:
-                            zeitplan.einschalten(self.root)
-                            zeitplan.pruefen_und_starten(self.root, self.aufgaben)
-                        except zeitplan.ZeitplanError as exc:
-                            log.warning("Zeitplan nicht eingerichtet: %s", exc)
-                    return self.index('<div class="card"><p class="ok">Eingerichtet. Die erste Suche läuft im '
-                                      'Hintergrund; Ergebnisse erscheinen hier und unter „Letzter Bericht“.</p></div>')
+                    erste = ""
+                    if not zeitplan.github_aktiv(self.root):
+                        if form.get("zeitplan"):
+                            try:
+                                zeitplan.einschalten(self.root)
+                            except zeitplan.ZeitplanError as exc:
+                                log.warning("Zeitplan nicht eingerichtet: %s", exc)
+                        erste = self.erste_suche()        # immer: die erste Suche gleich jetzt, nicht erst morgen
+                    return self.index('<div class="card"><p class="ok">Eingerichtet. ' + esc(erste)
+                                      + '</p></div><div id="rundgang-start" hidden></div>')
                 message = f'<div class="card"><p class="ok">{esc(ergebnis)}</p></div>'
             except (gas.AssistentError, ki.KiError, wohnort.WohnortError, gw.WartungError, CvDataError) as exc:
                 message = f'<div class="card err">{esc(exc)}</div>'
@@ -391,6 +393,34 @@ class App(BewerbungenSeiten):
         return self.page("Einrichten", gas.render(self.root, self.token, ki_an, message, ki_karte) + sprache_html,
                          "einrichten", gas.CSS)
 
+    def erste_suche(self) -> str:
+        """Erste Suche direkt nach der Einrichtung starten (lokal, im Hintergrund)."""
+        laufend = self.aufgaben.alle.get("zeitplan")
+        if laufend is not None and laufend.laeuft:
+            return "Die Suche läuft schon."
+        try:
+            self.aufgaben.starten("zeitplan", "Erste Suche", zeitplan.befehl(self.root))
+        except Exception:
+            log.exception("Erste Suche nicht gestartet")
+            return "Die erste Suche ließ sich nicht starten – unter Einstellungen → Zeitplan kannst du sie anstoßen."
+        return "Die erste Suche läuft jetzt im Hintergrund – das dauert ein paar Minuten."
+
+    def suche_status(self) -> bytes:
+        """Für die Stellenliste: läuft die lokale Suche noch? (darf neben anderen Anfragen laufen)"""
+        a = self.aufgaben.alle.get("zeitplan")
+        return b"laeuft" if a is not None and a.laeuft else b"fertig"
+
+    def _suche_karte(self) -> str:
+        a = self.aufgaben.alle.get("zeitplan")
+        if a is None or not a.laeuft:
+            return ""
+        return (f'<div class="card info suche-laeuft" role="status"><p style="margin:0"><b>{esc(a.titel)} läuft</b> '
+                f'<span class="muted">seit {a.start:%H:%M} Uhr. Job-Monitor fragt die Quellen nacheinander ab (mit '
+                f'Pausen, um sie nicht zu überlasten). Die Liste aktualisiert sich von selbst.</span></p></div>'
+                '<script>(() => { const pruefen = () => fetch("/suche/status").then(r => r.text()).then(t => {'
+                ' if (t === "fertig") location.reload(); else setTimeout(pruefen, 5000); })'
+                '.catch(() => setTimeout(pruefen, 10000)); setTimeout(pruefen, 5000); })();</script>')
+
     def index(self, message: str = "", show_hidden: bool = False, nur_traum: bool = False, profil: str = "") -> bytes:
         """Stellen: oben der Befund, darunter die Liste nach Fit und rechts die Belege (häufigste Lücken,
         Cloud Security). Aufbau nach tasteskill (App-Bildschirm) und apple-design, siehe gui_layout.CSS."""
@@ -399,6 +429,7 @@ class App(BewerbungenSeiten):
             return self.einrichten()
         message = updates.hinweis(getattr(self, "update_neu", None), self.token,
                                   self.window is not None and selbstupdate.moeglich()) + message
+        message = self._suche_karte() + message
         if self.notice:
             message, self.notice = self.notice + message, ""
         cfg = load_config(self.root / "config.yaml")
@@ -1754,6 +1785,14 @@ class App(BewerbungenSeiten):
             cov = gm.coverage(data, cfg["fit"]["begriffe"])
         except Exception:   # halbfertige Eingaben sollen die Seite nicht verhindern
             cov = []
+        # Nicht belegte Begriffe nur, wenn deine gefundenen Stellen sie verlangen – die Begriffsliste ist allgemein
+        # (z. B. viele IT-Begriffe) und für ein BWL-Profil sonst eine lange Reihe Durchgestrichenes ohne Bezug
+        try:
+            gefragt = Counter(t for d in self.jobs() for t in d.get("anforderungen") or [])
+        except Exception:   # noch keine Datenbank
+            gefragt = Counter()
+        cov = [(t, w) for t, w in cov if w] + sorted(((t, w) for t, w in cov if not w and gefragt[t]),
+                                                      key=lambda tw: -gefragt[tw[0]])
         chips = "".join(f'<span class="{"" if w else "no"}" title="{"Gewicht " + format(w, ".2f") if w else "nicht belegt – anklicken zum Eintragen"}"'
                         f'{"" if w else f" data-term=\"{esc(t)}\""}>{esc(t)}</span>' for t, w in cov)
         offen = [t for t, w in cov if not w]
@@ -1783,8 +1822,10 @@ class App(BewerbungenSeiten):
 {message}
 {veraltet_html}
 <div class="card cov"><h2>Fit-Begriffe, die dein Lebenslauf belegt</h2>{chips}
-<p class="muted">Durchgestrichen = nicht belegt. Einträge mit Status „geplant“ zählen nicht. Kannst du einen
-durchgestrichenen Begriff schon? Anklicken, Level wählen – er landet in der passenden Kategorie unter Kenntnisse.</p>
+{'<p class="muted">Noch keine Begriffe – sie erscheinen, sobald dein Lebenslauf Kenntnisse nennt oder die ersten Stellen gefunden sind.</p>' if not cov else ''}
+<p class="muted">Durchgestrichen = in deinen gefundenen Stellen gefragt, aber im Lebenslauf nicht belegt (häufigste
+zuerst). Einträge mit Status „geplant“ zählen nicht. Kannst du einen durchgestrichenen Begriff schon? Anklicken, Level
+wählen – er landet in der passenden Kategorie unter Kenntnisse.</p>
 {eintragen}</div>
 <form method="post" action="/master" id="masterform">
 <input type="hidden" name="token" value="{self.token}"><input type="hidden" name="data" id="payload">

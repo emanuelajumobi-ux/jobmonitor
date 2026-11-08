@@ -268,6 +268,21 @@ fit:
     Audit: [audits, auditierung, auditvorbereitung]
     Security Awareness: [awareness-schulungen, awareness-kampagnen, sensibilisierung der mitarbeitenden]
     MS Office: [excel, powerpoint, office-anwendungen, ms-office]
+    # Allgemein (Wirtschaft, Verwaltung, Vertrieb) – damit auch ohne KI nicht nur IT-Anforderungen erkannt werden
+    SAP: [sap s/4hana, s/4hana, sap fi, sap co, sap mm, sap sd]
+    Power BI: [powerbi, tableau, dashboards]
+    Controlling: [kostenrechnung, budgetplanung, soll-ist-vergleich, reporting, forecast]
+    Buchhaltung: [finanzbuchhaltung, rechnungswesen, debitoren, kreditoren, datev, jahresabschluss]
+    Marketing: [online-marketing, onlinemarketing, performance marketing, kampagnen, content marketing]
+    Social Media: [instagram, linkedin, tiktok, facebook, community management]
+    SEO: [suchmaschinenoptimierung, sea, google ads]
+    Webanalyse: [google analytics, matomo, web analytics]
+    Vertrieb: [sales, akquise, kundengewinnung, crm, salesforce, hubspot]
+    Projektmanagement: [projektplanung, scrum, agile methoden, jira]
+    Kundenservice: [kundenbetreuung, kundensupport, customer service]
+    Personalwesen: [hr, recruiting, personalplanung, lohnabrechnung]
+    Einkauf: [beschaffung, procurement, lieferantenmanagement]
+    Logistik: [supply chain, lagerverwaltung, disposition]
 
 entwuerfe:
   enabled: true               # Anschreiben-Entwürfe für Initiativ-Vorschläge (drafts/, gitignored)
