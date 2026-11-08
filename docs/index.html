@@ -343,7 +343,7 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0-5-5m5 5 5-5M4 19h16"/></svg>
         <span id="knopftext">Kostenlos herunterladen</span>
       </a>
-      <p class="neben" id="andere">Für <a href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest/download/Job-Monitor-Mac.zip">Mac</a> und <a href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest/download/Job-Monitor-Windows.zip">Windows</a> · Open Source</p>
+      <p class="neben" id="andere">Für <a href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest/download/Job-Monitor-Mac.dmg">Mac</a> und <a href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest/download/Job-Monitor-Windows-Setup.exe">Windows</a> · Open Source</p>
       <div class="teilen" data-teilen>
         <button type="button" class="knopf zweit" data-teilen-knopf aria-expanded="false" aria-controls="teilen-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
@@ -449,8 +449,8 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
     <p class="auf"><a class="knopf dl" href="https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest">Jetzt herunterladen</a></p>
   </div>
   <ol class="schritte">
-    <li class="auf"><b>Herunterladen</b>Die ZIP-Datei für dein System laden und entpacken.</li>
-    <li class="auf"><b>Ablegen</b>Mac: <code>Job-Monitor.app</code> in den Programme-Ordner ziehen. Windows: den Ordner an einen festen Ort legen und <code>Job-Monitor.exe</code> starten.</li>
+    <li class="auf"><b>Herunterladen</b>Mac: die DMG-Datei laden. Windows: die Setup-Datei laden.</li>
+    <li class="auf"><b>Installieren</b>Mac: die DMG öffnen und Job-Monitor auf „Programme“ ziehen, dann von dort starten. Windows: die Setup-Datei starten und „Weiter“ klicken – ohne Admin-Rechte, mit Eintrag im Startmenü.</li>
     <li class="auf"><b>Einrichten</b>Der Assistent fragt nach Wohnort, Suchwunsch und Lebenslauf. Oder du schaust dir erst die Demo an.</li>
   </ol>
   <div class="hinweis auf">
@@ -512,10 +512,10 @@ footer.schluss{padding-top:clamp(120px,12vw,200px);padding-bottom:40px}
   var t=document.getElementById("knopftext"), a=document.getElementById("andere");
   var ziel=null;
   if(mobil){ a.textContent="Job-Monitor läuft auf Mac und Windows. Öffne diese Seite am Computer."; }
-  else if(mac){ ziel=basis+"Job-Monitor-Mac.zip"; t.textContent="Für Mac herunterladen";
-    a.innerHTML='Kostenlos · Auch für <a href="'+basis+'Job-Monitor-Windows.zip">Windows</a>'; }
-  else if(win){ ziel=basis+"Job-Monitor-Windows.zip"; t.textContent="Für Windows herunterladen";
-    a.innerHTML='Kostenlos · Auch für <a href="'+basis+'Job-Monitor-Mac.zip">Mac</a>'; }
+  else if(mac){ ziel=basis+"Job-Monitor-Mac.dmg"; t.textContent="Für Mac herunterladen";
+    a.innerHTML='Kostenlos · Auch für <a href="'+basis+'Job-Monitor-Windows-Setup.exe">Windows</a>'; }
+  else if(win){ ziel=basis+"Job-Monitor-Windows-Setup.exe"; t.textContent="Für Windows herunterladen";
+    a.innerHTML='Kostenlos · Auch für <a href="'+basis+'Job-Monitor-Mac.dmg">Mac</a>'; }
   if(ziel){ document.querySelectorAll("a.dl").forEach(function(x){ x.href=ziel; }); }
 
   /* Teilen: auf dem Handy das Teilen-Menü des Systems, sonst die Wege aufklappen */

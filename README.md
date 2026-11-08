@@ -88,9 +88,11 @@ Lebensläufe auf die Stelle zu, schreibt Anschreiben-Entwürfe und bereitet Gesp
 
 ## Installieren
 
-1. Unter **[Releases](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest)** `Job-Monitor-Mac.zip` oder
-   `Job-Monitor-Windows.zip` laden und entpacken. Mac: `Job-Monitor.app` in den Programme-Ordner ziehen. Windows: Ordner
-   an einen festen Ort legen und `Job-Monitor.exe` starten.
+1. Unter **[Releases](https://github.com/emanuelajumobi-ux/jobmonitor/releases/latest)** laden. **Mac:**
+   `Job-Monitor-Mac.dmg` öffnen und Job-Monitor auf „Programme“ ziehen, dann von dort starten (hat sich die App schon aus
+   „Downloads“ geöffnet, bietet sie selbst „In Programme verschieben“ an). **Windows:** `Job-Monitor-Windows-Setup.exe`
+   starten und durchklicken – ohne Admin-Rechte, mit Eintrag im Startmenü und deinstallierbar unter Einstellungen →
+   Apps. (Die ZIP-Dateien im Release nutzt das Update mit einem Klick.)
 2. Beim ersten Start fragt das System nach, weil die App nicht signiert ist – **Mac:** Öffnen versuchen, dann
    Systemeinstellungen → Datenschutz & Sicherheit → „Trotzdem öffnen“. **Windows:** „Weitere Informationen“ →
    „Trotzdem ausführen“.
@@ -107,8 +109,8 @@ herunterlädt, findet darum seine Daten wieder.
   alten Daten als Sicherung aufgehoben (Ordner „Job-Monitor (alt …)“) und die KI-Schlüssel entfernt; die tägliche Suche
   wird ausgeschaltet. Die App beendet sich, beim nächsten Start beginnt der Einrichtungs-Assistent.
 - **Vollständig entfernen:** zuerst wie oben „Neu einrichten“ **ohne** Sicherung, die App startet danach nicht neu.
-  Dann die App selbst löschen: Mac `Job-Monitor.app` aus dem Programme-Ordner, Windows den entpackten Ordner (den
-  Startmenü-Eintrag entfernt das Zurücksetzen schon).
+  Dann die App selbst löschen: Mac `Job-Monitor.app` aus dem Programme-Ordner, Windows über Einstellungen → Apps →
+  Job-Monitor → Deinstallieren (bei der älteren ZIP-Fassung den entpackten Ordner löschen).
 - **Von Hand**, falls die App nicht mehr startet: den Ordner Dokumente/Job-Monitor löschen; KI-Schlüssel im
   Schlüsselbund (Mac, Einträge „job-monitor-…“) bzw. in der Windows-Anmeldeinformationsverwaltung entfernen; die
   tägliche Suche unter Mac in `~/Library/LaunchAgents/de.jobmonitor.suche.plist`, unter Windows in der
