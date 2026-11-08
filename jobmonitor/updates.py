@@ -1,18 +1,19 @@
 """Neue Versionen der installierten App anzeigen; installieren mit einem Klick (selbstupdate.py) oder per Download.
 
-Höchstens einmal am Tag, im Hintergrund beim Start: GET https://api.github.com/repos/{repo}/releases/latest auf das
+Bei jedem Start und, solange die App offen ist, höchstens alle drei Stunden (früher einmal am Tag – ein Release am
+selben Tag blieb dann bis morgen unsichtbar); dazu „Jetzt nach Updates suchen“ unter Einstellungen. Im Hintergrund: GET https://api.github.com/repos/{repo}/releases/latest auf das
 öffentliche Download-Repo (config.yaml → updates.repo). Dabei sieht GitHub die IP-Adresse, sonst wird nichts gesendet.
 Ist die Version dort neuer, zeigt die Startseite einen Hinweis mit „Was ist neu“ und Download-Link; installiert wird
 durch Ersetzen der App – die Daten im Datenordner bleiben. Abschaltbar unter Einstellungen → App (oder
 updates.enabled: false). Im Entwicklungsordner (git) aus: dort kommen neue Stände per Synchronisieren.
-Stand lokal in .gui_update.json: {geprueft, neueste: {version, url, notizen}, aus}.
+Stand lokal in .gui_update.json: {geprueft_um, neueste: {version, url, notizen}, aus}.
 """
 from __future__ import annotations
 
 import json
 import re
 import sys
-from datetime import date
+from datetime import datetime, timedelta
 from html import escape
 from pathlib import Path
 
@@ -45,23 +46,36 @@ def aktiv(root: Path, cfg: dict) -> bool:
                 and not laden(root).get("aus"))
 
 
-def pruefen(root: Path, cfg: dict, get=None, heute: date | None = None) -> dict | None:
-    """Neueste Version holen (höchstens einmal am Tag); gibt sie zurück, wenn sie neuer ist als diese App."""
+ABSTAND = timedelta(hours=3)       # solange die App offen ist: so oft höchstens nachsehen
+
+
+def faellig(root: Path, jetzt: datetime | None = None) -> bool:
+    try:
+        zuletzt = datetime.fromisoformat(str(laden(root).get("geprueft_um") or ""))
+    except ValueError:
+        return True
+    return (jetzt or datetime.now()) - zuletzt >= ABSTAND
+
+
+def pruefen(root: Path, cfg: dict, get=None, jetzt: datetime | None = None, erzwingen: bool = False) -> dict | None:
+    """Neueste Version holen (beim Start bzw. erzwingen immer, sonst höchstens alle ABSTAND); gibt sie zurück, wenn sie
+    neuer ist als diese App."""
     data = laden(root)
-    tag = (heute or date.today()).isoformat()
-    if data.get("geprueft") != tag:
+    jetzt = jetzt or datetime.now()
+    if erzwingen or faellig(root, jetzt):
         import requests
         try:
             resp = (get or requests.get)(API.format(repo=(cfg.get("updates") or {})["repo"]), timeout=6,
                                          headers={"Accept": "application/vnd.github+json",
                                                   "User-Agent": f"job-monitor/{__version__}"})
-            if resp.status_code == 200:
+            if resp.status_code == 200:      # sonst (z. B. GitHub-Limit) beim nächsten Mal erneut
                 r = resp.json()
                 data["neueste"] = {"version": str(r.get("tag_name") or "").lstrip("v"),
                                    "url": str(r.get("html_url") or ""), "notizen": str(r.get("body") or "")[:2000]}
-            data["geprueft"] = tag
-            _speichern(root, data)
-        except Exception:       # offline: morgen erneut
+                data["geprueft_um"] = jetzt.isoformat(timespec="seconds")
+                data.pop("geprueft", None)
+                _speichern(root, data)
+        except Exception:       # offline: beim nächsten Mal erneut
             pass
     neueste = data.get("neueste") or {}
     if neueste.get("version") and version_tupel(neueste["version"]) > version_tupel(__version__):
@@ -115,6 +129,10 @@ def karte(root: Path, cfg: dict, token: str) -> str:
     knopf = (f'<form method="post" action="/einstellungen" style="display:inline"><input type="hidden" name="token" '
              f'value="{token}"><button name="aktion" value="{"updates_an" if aus else "updates_aus"}" class="ghost small">'
              f'{"Wieder nach Updates suchen" if aus else "Nicht nach Updates suchen"}</button></form>')
-    return (f'<p>Version {escape(__version__)} · {"keine Update-Suche" if aus else "sucht einmal am Tag nach neuen Versionen"} '
-            f'{knopf}</p><p class="muted">Dabei fragt die App nur die öffentliche Versionsliste bei GitHub ab '
+    jetzt_knopf = ("" if aus else
+                   f'<form method="post" action="/einstellungen" style="display:inline"><input type="hidden" '
+                   f'name="token" value="{token}"><button name="aktion" value="updates_jetzt" class="small">Jetzt nach '
+                   f'Updates suchen</button></form> ')
+    return (f'<p>Version {escape(__version__)} · {"keine Update-Suche" if aus else "sucht bei jedem Start nach neuen Versionen"} '
+            f'{jetzt_knopf}{knopf}</p><p class="muted">Dabei fragt die App nur die öffentliche Versionsliste bei GitHub ab '
             f'(GitHub sieht deine IP-Adresse).</p>')

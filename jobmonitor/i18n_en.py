@@ -2,6 +2,23 @@
 zusammengefasst). Fehlende Texte findet JOBMONITOR_I18N_SAMMELN=<datei> (siehe i18n.py)."""
 
 TEXTE: dict[str, str] = {
+    'Allgemein': 'General',
+    'Sprache, Aussehen und dein Wohnort.': 'Language, appearance and your home town.',
+    'Was gesucht wird, wann und wie du von neuen Stellen erfährst.': 'What is searched, when, and how you hear about new jobs.',
+    'KI und Postfach': 'AI and mailbox',
+    'Dein KI-Zugang und das Postfach für Job-Alerts und Antworten.': 'Your AI access and the mailbox for job alerts and replies.',
+    'Deine Daten': 'Your data',
+    'Sichern und für Fortgeschrittene die Dateien direkt bearbeiten.': 'Back up, and for advanced users edit the files directly.',
+    'App': 'App',
+    'Version, Updates, Probelauf, Protokoll – und wie du Job-Monitor unterstützt.': 'Version, updates, test run, log – and how you can support Job-Monitor.',
+    'Zurücksetzen': 'Reset',
+    'Vorsicht: Hier geht es um alle deine Daten.': 'Careful: this concerns all your data.',
+    'Änderungen gelten sofort. Oben springst du zu einer Gruppe oder suchst eine Einstellung.': 'Changes apply immediately. Jump to a group above or search for a setting.',
+    'Einstellung suchen, z. B. Postfach, Sprache, Sicherung': 'Search settings, e.g. mailbox, language, backup',
+    'Einstellungen durchsuchen': 'Search settings',
+    'Keine Einstellung gefunden.': 'No setting found.',
+    'Protokoll': 'Log',
+    "Jetzt nach Updates suchen": "Check for updates now",
     "Rundgang durch die App starten": "Start a tour of the app",
     "Firmenliste mit KI füllen": "Fill company list with AI", "Weitere Firmen mit KI ergänzen": "Add more companies with AI",
     "KI sucht passende Firmen …": "AI is looking for matching companies …",
@@ -1335,7 +1352,9 @@ MUSTER: list[tuple[str, str]] = [
      "jobs match over 75 %, {} are {}. Most often you are missing"),
     ("Stellen passen zu über 75 %, eine ist {}.", "jobs match over 75 %, one is {}."),
     ("Stellen passen zu über 75 %, {n} sind {}.", "jobs match over 75 %, {} are {}."), ("Design „{}“ gewählt. {}", "Design “{}” chosen. {}"),
-    ("Gespeichert: {}", "Saved: {}"), ("Einrichtung · {} von {} Pflichtschritten erledigt", "Setup · {} of {} required steps done"), ("Gespeichert und erstellt: {}", "Saved and created: {}"),
+    ("Gespeichert: {}", "Saved: {}"), ("Du hast die neueste Version ({}).", "You have the latest version ({})."),
+    ("Version {} · sucht bei jedem Start nach neuen Versionen", "Version {} · checks for new versions at every start"),
+    ("Version {} · keine Update-Suche", "Version {} · no update check"), ("Einrichtung · {} von {} Pflichtschritten erledigt", "Setup · {} of {} required steps done"), ("Gespeichert und erstellt: {}", "Saved and created: {}"),
 ]
 
 # Texte in den Skripten der Seite (wörtlich ersetzt)

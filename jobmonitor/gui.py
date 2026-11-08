@@ -19,6 +19,7 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import parse_qs, quote
 
+from . import __version__
 from . import ablehnung, abschicken, demo, ki_extra, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, teilen, zuruecksetzen, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
@@ -215,7 +216,8 @@ class App(BewerbungenSeiten):
         try:
             cfg = load_config(self.root / "config.yaml")
             if updates.aktiv(self.root, cfg):          # neue Version? (Netz, darum im Hintergrund)
-                threading.Thread(target=lambda: setattr(self, "update_neu", updates.pruefen(self.root, cfg)),
+                threading.Thread(target=lambda: setattr(self, "update_neu", updates.pruefen(self.root, cfg,
+                                                                                            erzwingen=True)),
                                  daemon=True).start()
         except Exception:
             log.exception("Update-Prüfung nicht gestartet")
@@ -427,6 +429,19 @@ class App(BewerbungenSeiten):
         self._offline_cache = None
         if not erststart.eingerichtet(self.root):       # neuer Nutzer: erst der Assistent
             return self.einrichten()
+        try:      # App lange offen: alle paar Stunden im Hintergrund nachsehen (der Hinweis kommt beim nächsten Laden)
+            cfg_u = load_config(self.root / "config.yaml")
+            if updates.aktiv(self.root, cfg_u) and updates.faellig(self.root) and not getattr(self, "_update_laeuft", 0):
+                self._update_laeuft = 1
+
+                def nachsehen():
+                    try:
+                        self.update_neu = updates.pruefen(self.root, cfg_u) or getattr(self, "update_neu", None)
+                    finally:
+                        self._update_laeuft = 0
+                threading.Thread(target=nachsehen, daemon=True).start()
+        except Exception:
+            log.debug("Update-Prüfung übersprungen", exc_info=True)
         message = updates.hinweis(getattr(self, "update_neu", None), self.token,
                                   self.window is not None and selbstupdate.moeglich()) + message
         message = self._suche_karte() + message
@@ -1418,10 +1433,11 @@ class App(BewerbungenSeiten):
     # --- Einstellungen (statt Terminal) ---
     def einstellungen(self, message: str = "") -> bytes:
         cfg = load_config(self.root / "config.yaml")
-        profile_html = (i18n.karte(self.token, i18n.sprache(cfg)) + i18n.darstellung_karte(self.token, i18n.darstellung(cfg))
-                        + zeitplan.karte(self.root, self.token, esc, zeitplan.github_aktiv(self.root))
-                        + wohnort.karte(self.token, cfg.get("ort") or {}, bool(ki.schluessel()), esc)
-                        + gsp.render_liste(self.token, cfg, self._portale()))
+        teile = {"sprache": i18n.karte(self.token, i18n.sprache(cfg)),
+                 "darstellung": i18n.darstellung_karte(self.token, i18n.darstellung(cfg)),
+                 "zeitplan": zeitplan.karte(self.root, self.token, esc, zeitplan.github_aktiv(self.root)),
+                 "wohnort": wohnort.karte(self.token, cfg.get("ort") or {}, bool(ki.schluessel()), esc),
+                 "suchprofile": gsp.render_liste(self.token, cfg, self._portale())}
         try:
             state = State(self.root / "state" / "seen.sqlite", readonly=True)
             pipe = json.loads(state.get_meta("ki_nutzung") or "{}")
@@ -1433,18 +1449,20 @@ class App(BewerbungenSeiten):
                             int(ki.settings(cfg)["max_aufrufe_monat"]),
                             gw.pipeline_ki(pipe, date.today().strftime("%Y-%m"), ki.settings(cfg)),
                             getattr(self, "_ki_modelle", None))
-        sich = (teilen.karte(i18n.sprache(cfg)) + spenden.karte(cfg) + feedback.karte()
-                + gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel), len(sicherung.inhalt(self.root)))
-                + zuruecksetzen.karte(self.token, self.root, esc))
         github = zeitplan.github_aktiv(self.root)
-        postfach = (f'<div class="card" id="postfach"><h2>Postfach</h2>'
-                    f'{mailzugang.formular(self.root, self.token, esc, "/einstellungen")}</div>' if not github else "")
-        body = gw.render(self.token, profile_html + postfach, self.aufgaben, gw.fehlende_pakete(), gw.protokoll(),
-                         message, bn.status(), modus(cfg), ki_html, sich, github,
+        teile.update({
+            "teilen": teilen.karte(i18n.sprache(cfg)), "spenden": spenden.karte(cfg), "feedback": feedback.karte(),
+            "sicherung": gw.sicherung_karte(self.token, sicherung.vorhandene(self.sicherung_ziel),
+                                            len(sicherung.inhalt(self.root))),
+            "zuruecksetzen": zuruecksetzen.karte(self.token, self.root, esc),
+            "postfach": (f'<div class="card" id="postfach"><h2>Postfach</h2>'
+                         f'{mailzugang.formular(self.root, self.token, esc, "/einstellungen")}</div>' if not github else "")})
+        body = gw.render(self.token, "", self.aufgaben, gw.fehlende_pakete(), gw.protokoll(),
+                         message, bn.status(), modus(cfg), ki_html, "", github,
                          version_html=updates.karte(self.root, cfg, self.token),
                          aus=frozenset(k for k, v in (cfg.get("sources") or {}).items()
-                                       if isinstance(v, dict) and v.get("enabled") is False))
-        return self.page("Einstellungen", body, "einstellungen", gdt.CSS + gki.WAHL_CSS)
+                                       if isinstance(v, dict) and v.get("enabled") is False), teile=teile)
+        return self.page("Einstellungen", body, "einstellungen", gdt.CSS + gki.WAHL_CSS + gw.GRUPPEN_CSS)
 
     def _portale(self) -> int:
         """Aktive Stellenwerk-Portale (für die Schätzung der Abrufe je Lauf)."""
@@ -1592,6 +1610,10 @@ class App(BewerbungenSeiten):
                                               form.get("passwort", ""), form.get("host", "")))
             elif aktion in ("updates_an", "updates_aus"):
                 msg = ok(updates.schalten(self.root, aktion == "updates_an"))
+            elif aktion == "updates_jetzt":
+                self.update_neu = updates.pruefen(self.root, load_config(self.root / "config.yaml"), erzwingen=True)
+                msg = (updates.hinweis(self.update_neu, self.token, self.window is not None and selbstupdate.moeglich())
+                       if self.update_neu else ok(f"Du hast die neueste Version ({__version__})."))
             elif aktion in ("mail_bericht_an", "mail_bericht_aus"):
                 msg = ok(mailzugang.bericht_schalten(self.root, aktion == "mail_bericht_an"))
             elif aktion == "mail_trennen":

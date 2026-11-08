@@ -109,3 +109,13 @@ def test_rundgang_und_technologien_optional():
     assert "function rundgang()" in gui_layout.JS and ".rg-loch" in gui_layout.CSS
     assert all("optional" in f["title"] for s in gui_master.SCHEMA for f in s.get("fields") or []
                if f["key"] == "technologien")
+
+
+def test_einstellungen_in_gruppen(tmp_path):
+    erststart.vorbereiten(tmp_path)
+    seite = App(tmp_path, compile_pdf=False).einstellungen().decode()
+    reihenfolge = [seite.index(f'id="{g}"') for g in ("allgemein", "suche", "ki", "daten", "app", "zuruecksetzen-gruppe")
+                   if f'id="{g}"' in seite]
+    assert len(reihenfolge) >= 5 and reihenfolge == sorted(reihenfolge)
+    assert 'id="einst-suche"' in seite and 'class="einst-nav"' in seite
+    assert seite.index('id="sprache"') < seite.index('id="suche"') < seite.index('id="zuruecksetzen"')

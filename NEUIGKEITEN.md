@@ -3,6 +3,11 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.4.0
+
+- **Einstellungen neu geordnet:** Statt einer langen Liste gibt es sechs Gruppen: Allgemein, Suche, KI und Postfach, Deine Daten, App und ganz unten abgesetzt Zurücksetzen. Oben springst du mit einer festen Leiste zu jeder Gruppe, und ein Suchfeld findet einzelne Einstellungen, zum Beispiel „Sicherung“ oder „Postfach“.
+- **Updates schneller sichtbar:** Die App sucht jetzt bei jedem Start nach einer neuen Version, nicht mehr nur einmal am Tag. Bleibt sie länger offen, schaut sie alle drei Stunden nach. Unter Einstellungen → App gibt es außerdem „Jetzt nach Updates suchen“.
+
 ## 1.3.9
 
 - **Kurzer Rundgang:** Nach der Einrichtung zeigt dir ein Rundgang in acht Schritten die wichtigsten Bereiche der App. Neu starten kannst du ihn jederzeit unter Anleitung.

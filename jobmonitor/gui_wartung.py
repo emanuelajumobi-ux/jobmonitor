@@ -399,9 +399,12 @@ Ausgabe-Tokens.</p>{pipeline}<p class="muted">Die Kosten in Euro siehst du in de
 
 def render(token: str, profile_html: str, aufgaben: Aufgaben, fehlend: list[str], log_text: str, message: str = "",
            mitteilung: dict | None = None, suchmodus: str = "aktiv", ki_html: str = "", sicherung_html: str = "",
-           github: bool = True, mac: bool | None = None, version_html: str = "", aus: frozenset = frozenset()) -> str:
+           github: bool = True, mac: bool | None = None, version_html: str = "", aus: frozenset = frozenset(),
+           teile: dict | None = None) -> str:
     """`github`: Suche läuft über GitHub Actions (sonst lokaler Zeitplan); `mac`: die tägliche Mitteilung zur
-    GitHub-Pipeline gibt es nur dort (ohne Angabe: dieses System)."""
+    GitHub-Pipeline gibt es nur dort (ohne Angabe: dieses System). `teile`: einzelne Karten (sprache, darstellung,
+    wohnort, suchprofile, zeitplan, postfach, teilen, spenden, feedback, sicherung, zuruecksetzen) – dann ordnet die
+    Seite sie in Gruppen (siehe GRUPPEN); sonst wie früher alles aus profile_html und sicherung_html."""
     mac = sys.platform == "darwin" if mac is None else mac
     mitteilung = mitteilung or {}
     a = aufgaben.alle
@@ -470,6 +473,90 @@ Alle Quellen dauern einige Minuten.</p>
 
     log_html = (f'<details><summary>Protokoll der App (letzte Zeilen)</summary><pre class="out">{esc(log_text)}</pre>'
                 f'</details>' if log_text else "")
-    return (f'<h1>Einstellungen</h1><p class="sub">Alles, was du sonst im Terminal machen würdest.</p>{message}'
-            f'{suche}{pipeline}{note}{ki_html}{probe}{einst}{sicherung_html}{app}<div class="card">{log_html or "<p class=muted>Noch kein Protokoll.</p>"}'
-            f'</div>{refresh}')
+    protokoll = (f'<div class="card" id="protokoll"><h2>Protokoll</h2>'
+                 f'{log_html or "<p class=muted>Noch kein Protokoll.</p>"}</div>')
+    if teile is None:
+        return (f'<h1>Einstellungen</h1><p class="sub">Alles, was du sonst im Terminal machen würdest.</p>{message}'
+                f'{suche}{pipeline}{note}{ki_html}{probe}{einst}{sicherung_html}{app}{protokoll}{refresh}')
+    t = {**teile, "suchmodus": suche, "pipeline": pipeline, "mitteilung": note, "ki": ki_html, "probelauf": probe,
+         "dateien": uebersicht_html(), "app": app, "protokoll": protokoll}
+    return gruppiert(t, message) + refresh
+
+
+# Aufbau nach gängigen Empfehlungen für Einstellungsseiten (Apple HIG „Settings“, ui-patterns.com, UXcel): verwandte
+# Einstellungen gruppieren, Häufiges zuerst, kurze Gruppen, klare Namen, Gefährliches getrennt ganz unten; bei langen
+# Seiten zusätzlich eine Suche. Änderungen gelten sofort (kein gemeinsamer Speichern-Knopf).
+GRUPPEN = [
+    ("allgemein", "Allgemein", "Sprache, Aussehen und dein Wohnort.", ["sprache", "darstellung", "wohnort"]),
+    ("suche", "Suche", "Was gesucht wird, wann und wie du von neuen Stellen erfährst.",
+     ["suchmodus", "suchprofile", "zeitplan", "pipeline", "mitteilung"]),
+    ("ki", "KI und Postfach", "Dein KI-Zugang und das Postfach für Job-Alerts und Antworten.", ["ki", "postfach"]),
+    ("daten", "Deine Daten", "Sichern und für Fortgeschrittene die Dateien direkt bearbeiten.",
+     ["sicherung", "dateien"]),
+    ("app", "App", "Version, Updates, Probelauf, Protokoll – und wie du Job-Monitor unterstützt.",
+     ["app", "probelauf", "protokoll", "feedback", "teilen", "spenden"]),
+    ("zuruecksetzen-gruppe", "Zurücksetzen", "Vorsicht: Hier geht es um alle deine Daten.", ["zuruecksetzen"]),
+]
+
+GRUPPEN_JS = """<script>(() => {
+  const feld = document.getElementById('einst-suche'), leer = document.getElementById('einst-leer');
+  if (!feld) return;
+  feld.addEventListener('input', () => {
+    const q = feld.value.trim().toLowerCase();
+    let treffer = 0;
+    document.querySelectorAll('.einst-gruppe').forEach(g => {
+      let sichtbar = 0;
+      g.querySelectorAll(':scope > .card').forEach(c => {
+        const ja = !q || c.textContent.toLowerCase().includes(q);
+        c.hidden = !ja; sichtbar += ja;
+      });
+      g.hidden = !sichtbar; treffer += sichtbar;
+    });
+    leer.hidden = treffer > 0;
+  });
+  // Leiste: die Gruppe, in der man gerade ist, hervorheben
+  const links = [...document.querySelectorAll('.einst-nav a')];
+  const beobachter = new IntersectionObserver(eintraege => eintraege.forEach(e => {
+    if (!e.isIntersecting) return;
+    links.forEach(a => a.classList.toggle('an', a.getAttribute('href') === '#' + e.target.id));
+  }), { rootMargin: '-30% 0px -60% 0px' });
+  document.querySelectorAll('.einst-gruppe').forEach(g => beobachter.observe(g));
+})();</script>"""
+
+GRUPPEN_CSS = """
+.einst-nav { position:sticky; top:0; z-index:3; display:flex; flex-wrap:wrap; gap:6px 8px; align-items:center;
+  padding:10px 0; margin:0 0 6px; background:var(--bg); }
+.einst-nav a { padding:5px 12px; border-radius:999px; font-size:13.5px; text-decoration:none; color:var(--muted);
+  background:var(--surface); border:1px solid var(--line); }
+.einst-nav a:hover, .einst-nav a.an { color:var(--text); border-color:var(--control); }
+.einst-nav a.an { background:var(--surface-2); font-weight:500; }
+.einst-nav .search { margin-left:auto; min-width:min(260px, 100%); }
+.einst-gruppe { scroll-margin-top:64px; margin-top:22px; }
+.einst-gruppe > .gruppe-kopf { margin:0 0 10px; }
+.einst-gruppe > .gruppe-kopf b { display:block; font-size:19px; font-weight:600; }
+.einst-gruppe > .gruppe-kopf span { color:var(--muted); font-size:13.5px; }
+#zuruecksetzen-gruppe > .card { border-color:var(--err); }
+.einst-gruppe:last-of-type { margin-bottom:45vh; }   /* auch die letzte Gruppe lässt sich nach oben holen */
+#zuruecksetzen-gruppe > .gruppe-kopf b { color:var(--err); }
+"""
+
+
+def gruppiert(teile: dict, message: str = "") -> str:
+    """Einstellungen in Gruppen mit Sprungleiste und Suche (leere Karten fallen weg)."""
+    abschnitte, nav = [], []
+    for gid, titel, text, keys in GRUPPEN:
+        inhalt = "".join(teile.get(k) or "" for k in keys)
+        if not inhalt.strip():
+            continue
+        nav.append(f'<a href="#{gid}">{esc(titel)}</a>')
+        abschnitte.append(f'<section class="einst-gruppe" id="{gid}" aria-labelledby="{gid}-titel">'
+                          f'<div class="gruppe-kopf" id="{gid}-titel" role="heading" aria-level="2"><b>{esc(titel)}</b>'
+                          f'<span>{esc(text)}</span></div>{inhalt}</section>')
+    suche = ('<label class="search"><svg class="ic" width="16" height="16" viewBox="0 0 24 24" fill="none" '
+             'stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/>'
+             '<path d="m20 20-3.5-3.5"/></svg><input id="einst-suche" type="search" placeholder="Einstellung suchen, '
+             'z. B. Postfach, Sprache, Sicherung" aria-label="Einstellungen durchsuchen"></label>')
+    return (f'<h1>Einstellungen</h1><p class="sub">Änderungen gelten sofort. Oben springst du zu einer Gruppe oder '
+            f'suchst eine Einstellung.</p>{message}<nav class="einst-nav" aria-label="Gruppen">{"".join(nav)}{suche}'
+            f'</nav><p id="einst-leer" class="muted" hidden>Keine Einstellung gefunden.</p>{"".join(abschnitte)}'
+            f'{GRUPPEN_JS}')
