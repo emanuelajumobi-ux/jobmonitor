@@ -2,6 +2,8 @@
 zusammengefasst). Fehlende Texte findet JOBMONITOR_I18N_SAMMELN=<datei> (siehe i18n.py)."""
 
 TEXTE: dict[str, str] = {
+    'Für Updates mit einem Klick: Job-Monitor beenden, die App aus „Downloads“ in den Ordner „Programme“ ziehen und von dort starten. macOS führt Apps aus „Downloads“ schreibgeschützt aus.': 'For one-click updates: quit Job-Monitor, drag the app from “Downloads” into the “Applications” folder and start it from there. macOS runs apps from “Downloads” read-only.',
+    'Für Updates mit einem Klick den Job-Monitor-Ordner an einen Ort legen, den du ändern darfst, z. B. in deinen Benutzerordner.': 'For one-click updates, put the Job-Monitor folder somewhere you can change, e.g. your user folder.',
     'Allgemein': 'General',
     'Sprache, Aussehen und dein Wohnort.': 'Language, appearance and your home town.',
     'Was gesucht wird, wann und wie du von neuen Stellen erfährst.': 'What is searched, when, and how you hear about new jobs.',

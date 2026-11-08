@@ -242,6 +242,8 @@ def handler_for(app: App, server_ref: list):
                 return self._send(app.vorbereitung(form))
             if self.path == "/bewerbungen/termin":
                 return self._send(app.termin(form))
+            if self.path == "/verschieben":
+                return self._send(app.verschieben())
             if self.path == "/markieren":
                 return self._send(app.markieren(form))
             if self.path == "/profil":

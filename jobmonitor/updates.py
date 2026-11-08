@@ -90,8 +90,10 @@ def schalten(root: Path, an: bool) -> str:
     return "Die App sucht wieder nach neuen Versionen." if an else "Keine Suche nach neuen Versionen mehr."
 
 
-def hinweis(neu: dict | None, token: str = "", automatisch: bool = False) -> str:
-    """`automatisch`: Knopf „Jetzt aktualisieren“ (installierte App mit Schreibrechten, selbstupdate.moeglich)."""
+def hinweis(neu: dict | None, token: str = "", automatisch: bool = False, grund: str = "",
+            passwort: bool = False) -> str:
+    """`automatisch`: Knopf „Jetzt aktualisieren“ (selbstupdate.moeglich). `grund`: warum es nicht automatisch geht
+    (selbstupdate.grund). `passwort`: macOS fragt beim Tausch nach dem Administrator-Passwort."""
     if not neu:
         return ""
     url = neu["url"] if neu.get("url", "").startswith("https://github.com/") else ""
@@ -102,12 +104,16 @@ def hinweis(neu: dict | None, token: str = "", automatisch: bool = False) -> str
              f'aktualisieren</button></form>' if automatisch and token else "")
     text = ("Ein Klick lädt sie und startet die App neu – deine Daten bleiben." if knopf else
             "Neue App laden und die alte ersetzen – deine Daten bleiben.")
+    if knopf and passwort:
+        text += (" macOS fragt dabei nach dem Passwort eines Administrators, weil dein Benutzer den Ordner Programme "
+                 "nicht ändern darf.")
     return (f'<div class="card info"><div class="row" style="justify-content:space-between;gap:12px"><p style="margin:0">'
             f'<b>Version {escape(neu["version"])} ist da</b> (du hast {escape(__version__)}). {text}</p>'
             f'<div class="row" style="gap:8px">{knopf}'
             + (f'<a class="btn {"ghost " if knopf else ""}small" href="{escape(url)}" target="_blank" '
                f'rel="noopener">Herunterladen</a>' if url else "") + '</div>'
-            + '</div>' + (f'<details><summary>Was ist neu</summary>{notizen}</details>' if notizen else "") + '</div>')
+            + '</div>' + (f'<p class="muted" style="margin-top:8px">{escape(grund)}</p>' if grund and not knopf else "")
+            + (f'<details><summary>Was ist neu</summary>{notizen}</details>' if notizen else "") + '</div>')
 
 
 def notizen_html(text: str) -> str:
@@ -135,4 +141,12 @@ def karte(root: Path, cfg: dict, token: str) -> str:
                    f'Updates suchen</button></form> ')
     return (f'<p>Version {escape(__version__)} · {"keine Update-Suche" if aus else "sucht bei jedem Start nach neuen Versionen"} '
             f'{jetzt_knopf}{knopf}</p><p class="muted">Dabei fragt die App nur die öffentliche Versionsliste bei GitHub ab '
-            f'(GitHub sieht deine IP-Adresse).</p>')
+            f'(GitHub sieht deine IP-Adresse).</p>' + (f'<p class="warn">{escape(grund)}</p>' if (grund := _grund()) else ""))
+
+
+def _grund() -> str:
+    try:
+        from .selbstupdate import grund
+        return grund()
+    except Exception:   # nur ein Hinweis
+        return ""

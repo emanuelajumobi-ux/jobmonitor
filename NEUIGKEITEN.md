@@ -3,6 +3,12 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.4.1
+
+- **Mac: leichter installieren:** Für den Mac gibt es jetzt eine DMG-Datei. Öffnen, Job-Monitor auf „Programme“ ziehen, fertig. Hat sich die App direkt aus „Downloads“ geöffnet, zeigt sie oben „In Programme verschieben“ an und startet nach einem Klick von dort neu.
+- **Windows: richtiger Installer:** Statt ZIP-Datei gibt es jetzt `Job-Monitor-Windows-Setup.exe`. Doppelklick, „Weiter“, fertig – ohne Admin-Rechte, mit Eintrag im Startmenü, optional auf dem Desktop, und deinstallierbar wie jedes Programm unter Einstellungen → Apps. Deine Daten bleiben dabei immer erhalten.
+- **Mac: Update mit einem Klick auch ohne Schreibrechte:** Darf dein Benutzer den Ordner „Programme“ nicht ändern, fragt macOS beim Update nach dem Passwort eines Administrators, statt nur die Download-Seite zu öffnen. Geht ein Update gar nicht mit einem Klick, sagt die App, warum und was zu tun ist.
+
 ## 1.4.0
 
 - **Einstellungen neu geordnet:** Statt einer langen Liste gibt es sechs Gruppen: Allgemein, Suche, KI und Postfach, Deine Daten, App und ganz unten abgesetzt Zurücksetzen. Oben springst du mit einer festen Leiste zu jeder Gruppe, und ein Suchfeld findet einzelne Einstellungen, zum Beispiel „Sicherung“ oder „Postfach“.

@@ -3,6 +3,7 @@ import hashlib
 import io
 import sys
 import zipfile
+from pathlib import Path
 
 import pytest
 
@@ -90,3 +91,24 @@ def test_knopf_im_hinweis():
     assert "Jetzt aktualisieren" in updates.hinweis(neu, "tok", True)
     assert "Jetzt aktualisieren" not in updates.hinweis(neu, "tok", False)
     assert not selbstupdate.moeglich()                                   # Tests laufen nicht als installierte App
+
+
+def test_mac_sonderfaelle(tmp_path, monkeypatch):
+    import sys as _sys
+    from jobmonitor import updates
+    monkeypatch.setattr(_sys, "frozen", True, raising=False)
+    monkeypatch.setattr(_sys, "platform", "darwin")
+    verschoben = Path("/private/var/folders/x/AppTranslocation/ABC/d/Job-Monitor.app")
+    monkeypatch.setattr(selbstupdate, "programm", lambda *a, **k: verschoben)
+    assert selbstupdate.verschoben() and not selbstupdate.moeglich() and "Programme" in selbstupdate.grund()
+    h = updates.hinweis({"version": "9.9.9", "url": "https://github.com/a/b"}, "t", False, selbstupdate.grund())
+    assert "Programme" in h and "Jetzt aktualisieren" not in h          # sagt, was zu tun ist
+    nur_lesen = tmp_path / "Programme" / "Job-Monitor.app"                # Standardbenutzer: Ordner nicht beschreibbar
+    monkeypatch.setattr(selbstupdate, "programm", lambda *a, **k: nur_lesen)
+    monkeypatch.setattr(selbstupdate, "beschreibbar", lambda *a: False)
+    assert selbstupdate.moeglich() and selbstupdate.braucht_admin() and selbstupdate.grund() == ""
+    assert "Caches" in str(selbstupdate._arbeit())
+    h = updates.hinweis({"version": "9.9.9", "url": "https://github.com/a/b"}, "t", True, "", passwort=True)
+    assert "Jetzt aktualisieren" in h and "Passwort eines Administrators" in h
+    name, text = selbstupdate.skript(nur_lesen, tmp_path / "u" / "neu" / "Job-Monitor.app", 1, "darwin", admin=True)
+    assert "with administrator privileges" in text and selbstupdate.ADMIN_SKRIPT in text and "mv " not in text

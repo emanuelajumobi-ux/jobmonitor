@@ -8,6 +8,11 @@ Hilfsskript starten und die App beenden. Das Skript wartet, bis die App zu ist, 
 
 Geht etwas schief (keine Schreibrechte, kein Netz, Prüfsumme falsch), bleibt alles, wie es war – dann hilft der
 Download-Link wie bisher.
+
+macOS-Sonderfälle: Startet man die App direkt aus „Downloads“, führt macOS sie aus einem schreibgeschützten Ort aus
+(App Translocation) – dann geht kein Update, die App sagt, was zu tun ist (in „Programme“ ziehen). Darf der Benutzer
+den Programme-Ordner nicht ändern (Standardbenutzer), lädt die App in seinen eigenen Cache-Ordner und tauscht mit der
+Passwortabfrage von macOS (Administrator) – das Passwort tippt man in den Dialog des Systems, die App sieht es nicht.
 """
 from __future__ import annotations
 
@@ -39,11 +44,48 @@ def programm(executable: str | None = None, plattform: str | None = None) -> Pat
     return exe.parents[2] if (plattform or sys.platform) == "darwin" else exe.parent
 
 
+def verschoben(pfad: Path | None = None) -> bool:
+    """macOS führt eine heruntergeladene App, die nicht in „Programme“ liegt, aus einem schreibgeschützten Ort aus."""
+    return "/AppTranslocation/" in str(pfad or programm())
+
+
+def beschreibbar(ziel: Path | None = None) -> bool:
+    ziel = ziel or programm()
+    return os.access(ziel.parent, os.W_OK) and os.access(ziel, os.W_OK)
+
+
+def braucht_admin(plattform: str | None = None) -> bool:
+    """macOS, App in einem Ordner, den dieser Benutzer nicht ändern darf: Tausch mit Passwortabfrage des Systems."""
+    return (plattform or sys.platform) == "darwin" and not verschoben() and not beschreibbar()
+
+
 def moeglich() -> bool:
     if not getattr(sys, "frozen", False) or sys.platform not in ("darwin", "win32"):
         return False
-    ziel = programm()
-    return os.access(ziel.parent, os.W_OK) and os.access(ziel, os.W_OK)
+    if sys.platform == "darwin":
+        return not verschoben()          # ohne Schreibrechte: mit Passwortabfrage (braucht_admin)
+    return beschreibbar()
+
+
+def grund() -> str:
+    """Warum es kein Update mit einem Klick gibt (für den Hinweis) – leer, wenn es geht oder egal ist."""
+    if not getattr(sys, "frozen", False):
+        return ""
+    if sys.platform == "darwin" and verschoben():
+        return ("Für Updates mit einem Klick: Job-Monitor beenden, die App aus „Downloads“ in den Ordner „Programme“ "
+                "ziehen und von dort starten. macOS führt Apps aus „Downloads“ schreibgeschützt aus.")
+    if sys.platform == "win32" and not beschreibbar():
+        return ("Für Updates mit einem Klick den Job-Monitor-Ordner an einen Ort legen, den du ändern darfst, z. B. "
+                "in deinen Benutzerordner.")
+    return ""
+
+
+def _arbeit() -> Path:
+    """Wohin das Paket geladen wird: neben die App, sonst (ohne Schreibrechte) in den eigenen Cache-Ordner."""
+    alt = programm()
+    if beschreibbar(alt):
+        return alt.parent / ORDNER
+    return Path.home() / "Library" / "Caches" / "Job-Monitor" / "update"
 
 
 def _paket(repo: str, version: str, get) -> tuple[str, str]:
@@ -70,7 +112,7 @@ def herunterladen(repo: str, version: str, get=None) -> Path:
     import requests
     get = get or requests.get
     url, sha = _paket(repo, version, get)
-    arbeit = programm().parent / ORDNER
+    arbeit = _arbeit()
     shutil.rmtree(arbeit, ignore_errors=True)
     arbeit.mkdir(parents=True)
     zip_pfad = arbeit / paketname()
@@ -110,19 +152,27 @@ def entpacken(zip_pfad: Path, ziel: Path, plattform: str | None = None) -> Path:
     return neu
 
 
-def skript(alt: Path, neu: Path, pid: int, plattform: str | None = None) -> tuple[str, str]:
-    """(Dateiname, Inhalt) des Hilfsskripts, das nach dem Beenden der App tauscht und neu startet."""
+ADMIN_SKRIPT = "tauschen_admin.sh"
+
+
+def skript(alt: Path, neu: Path, pid: int, plattform: str | None = None, admin: bool = False) -> tuple[str, str]:
+    """(Dateiname, Inhalt) des Hilfsskripts, das nach dem Beenden der App tauscht und neu startet. `admin` (macOS):
+    der Tausch selbst steht in ADMIN_SKRIPT (tausch_befehle) und läuft mit der Passwortabfrage des Systems."""
     arbeit = neu.parent.parent
-    sicherung = alt.with_name(alt.name + ".alt")
     if (plattform or sys.platform) == "darwin":
+        if admin:
+            tausch = ('JM_SKRIPT="$(dirname "$0")/' + ADMIN_SKRIPT + '" /usr/bin/osascript -e \'do shell script '
+                      '"/bin/bash " & quoted form of (system attribute "JM_SKRIPT") with prompt "Job-Monitor möchte '
+                      'die neue Version im Ordner Programme installieren." with administrator privileges\'\n')
+        else:
+            tausch = tausch_befehle(alt, neu)
         return "tauschen.sh", (
             "#!/bin/bash\n"
             f"while kill -0 {pid} 2>/dev/null; do sleep 0.5; done\n"
-            f'rm -rf "{sicherung}"\n'
-            f'if mv "{alt}" "{sicherung}"; then\n'
-            f'  if mv "{neu}" "{alt}"; then rm -rf "{sicherung}" "{arbeit}"; else mv "{sicherung}" "{alt}"; fi\n'
-            "fi\n"
+            + tausch +
+            f'rm -rf "{arbeit}"\n'
             f'open "{alt}"\n')
+    sicherung = alt.with_name(alt.name + ".alt")
     return "tauschen.cmd", (
         "@echo off\r\n"
         ":warten\r\n"
@@ -135,11 +185,23 @@ def skript(alt: Path, neu: Path, pid: int, plattform: str | None = None) -> tupl
         f'rmdir /s /q "{arbeit}"\r\n')   # zuletzt: das Skript liegt selbst in diesem Ordner
 
 
+def tausch_befehle(alt: Path, neu: Path) -> str:
+    """macOS: alte App zur Seite, neue an ihre Stelle; klappt das nicht, die alte zurück."""
+    sicherung = alt.with_name(alt.name + ".alt")
+    return (f'rm -rf "{sicherung}"\n'
+            f'if mv "{alt}" "{sicherung}"; then\n'
+            f'  if mv "{neu}" "{alt}"; then rm -rf "{sicherung}"; else mv "{sicherung}" "{alt}"; fi\n'
+            "fi\n")
+
+
 def tauschen_starten(neu: Path) -> None:
     """Hilfsskript starten (läuft weiter, wenn die App sich beendet)."""
     alt = programm()
-    name, inhalt = skript(alt, neu, os.getpid())
+    admin = braucht_admin()
+    name, inhalt = skript(alt, neu, os.getpid(), admin=admin)
     pfad = neu.parent.parent / name
+    if admin:
+        (pfad.parent / ADMIN_SKRIPT).write_text("#!/bin/bash\n" + tausch_befehle(alt, neu), encoding="utf-8")
     pfad.write_text(inhalt, encoding="utf-8", newline="")
     if sys.platform == "darwin":
         pfad.chmod(0o755)

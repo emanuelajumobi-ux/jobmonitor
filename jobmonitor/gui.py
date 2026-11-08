@@ -20,6 +20,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, quote
 
 from . import __version__
+from . import verschieben as vs
 from . import ablehnung, abschicken, demo, ki_extra, selbstupdate, designs, feedback, firmen_finder, i18n, portal, spenden, sprache, teilen, zuruecksetzen, erststart, mailzugang, updates, wohnort, zeitplan, antworten, anzeigen_check
 from . import benachrichtigung as bn
 from . import bewerbung as bw
@@ -151,6 +152,10 @@ class App(BewerbungenSeiten):
         except Exception:
             cfg, traum = {}, {}
         traum_name = (traum.get("name") or "Traumprofil") if traum and traum.get("enabled", True) is not False else None
+        try:
+            body = vs.karte(self.token) + body        # macOS: App läuft noch aus Downloads
+        except Exception:
+            log.debug("Ort der App nicht geprüft", exc_info=True)
         if self.echt is not None:
             body = demo.banner(self.token) + body
         elif title != "Einrichten" and erststart.unfertig(self.root):
@@ -270,6 +275,28 @@ class App(BewerbungenSeiten):
             back = self.rueckblick if aktion == "absagen" else self.master
             return back(message=f'<div class="card err">{esc(exc)}</div>')
         return self.master(message=f'<div class="card"><p class="ok">{esc(msg)}</p></div>')
+
+    def verschieben(self) -> bytes:
+        """macOS: App aus Downloads nach Programme verschieben und von dort neu starten (verschieben.py)."""
+        if self.window is None or not vs.noetig():
+            return self.index('<div class="card err">Verschieben ist hier nicht nötig oder nicht möglich.</div>')
+        try:
+            ziel = vs.verschieben(vs.original(), vs.zielordner())
+            vs.neu_starten(ziel)
+        except (vs.VerschiebenError, OSError, subprocess.SubprocessError) as exc:
+            log.exception("Verschieben fehlgeschlagen")
+            return self.index(f'<div class="card err">{esc(exc)} Alternativ: Job-Monitor beenden und die App im '
+                              f'Finder aus „Downloads“ in „Programme“ ziehen.</div>')
+        threading.Timer(1.5, self.window.destroy).start()
+        return self.page("Verschieben", f'<h1>Job-Monitor liegt jetzt in {esc(ziel.parent)}</h1><p class="sub">Die '
+                                        f'App startet gleich von dort neu. Deine Daten bleiben.</p>')
+
+    def update_hinweis(self, neu: dict | None) -> str:
+        if not neu:
+            return ""
+        automatisch = self.window is not None and selbstupdate.moeglich()
+        return updates.hinweis(neu, self.token, automatisch, selbstupdate.grund(),
+                               passwort=automatisch and selbstupdate.braucht_admin())
 
     def aktualisieren(self) -> bytes:
         """„Jetzt aktualisieren“: neue Version laden, Hilfsskript starten, App beenden (selbstupdate.py)."""
@@ -442,8 +469,7 @@ class App(BewerbungenSeiten):
                 threading.Thread(target=nachsehen, daemon=True).start()
         except Exception:
             log.debug("Update-Prüfung übersprungen", exc_info=True)
-        message = updates.hinweis(getattr(self, "update_neu", None), self.token,
-                                  self.window is not None and selbstupdate.moeglich()) + message
+        message = self.update_hinweis(getattr(self, "update_neu", None)) + message
         message = self._suche_karte() + message
         if self.notice:
             message, self.notice = self.notice + message, ""
@@ -1612,7 +1638,7 @@ class App(BewerbungenSeiten):
                 msg = ok(updates.schalten(self.root, aktion == "updates_an"))
             elif aktion == "updates_jetzt":
                 self.update_neu = updates.pruefen(self.root, load_config(self.root / "config.yaml"), erzwingen=True)
-                msg = (updates.hinweis(self.update_neu, self.token, self.window is not None and selbstupdate.moeglich())
+                msg = (self.update_hinweis(self.update_neu)
                        if self.update_neu else ok(f"Du hast die neueste Version ({__version__})."))
             elif aktion in ("mail_bericht_an", "mail_bericht_aus"):
                 msg = ok(mailzugang.bericht_schalten(self.root, aktion == "mail_bericht_an"))
