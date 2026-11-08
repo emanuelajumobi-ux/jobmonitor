@@ -180,6 +180,21 @@ def ki_nachholen(state: State, cv: dict | None, cfg: dict, fetcher: Fetcher, ki_
 
 
 def run(opts: Options) -> int:
+    """Eine Suche – höchstens eine gleichzeitig (sperre.py); der Probelauf arbeitet auf einer Kopie und darf immer."""
+    if opts.dry_run:
+        return _run(opts)
+    from .sperre import Sperre
+    sperre = Sperre(opts.root)
+    if not sperre.holen():
+        log.info("Es läuft schon eine Suche – diese hier wird übersprungen.")
+        return 0
+    try:
+        return _run(opts)
+    finally:
+        sperre.freigeben()
+
+
+def _run(opts: Options) -> int:
     cfg = load_config(opts.root / "config.yaml")
     llm.einstellen(cfg)                 # KI-Anbieter und Modelle (ki_anbieter.py)
     companies_doc = load_companies(opts.root / "companies.yaml")

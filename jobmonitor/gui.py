@@ -469,7 +469,9 @@ class App(BewerbungenSeiten):
         """Für die Stellenliste (JSON): läuft die lokale Suche noch, und wie weit ist sie? (läuft neben anderen
         Anfragen; der Fortschritt steht als „FORTSCHRITT i/n Text“ im Protokoll der Aufgabe, siehe runner.py)"""
         a = self.aufgaben.alle.get("zeitplan")
-        stand = {"laeuft": bool(a is not None and a.laeuft), "schritt": 0, "gesamt": 0, "text": ""}
+        from . import sperre
+        stand = {"laeuft": bool(a is not None and a.laeuft) or sperre.laeuft(self.root), "schritt": 0, "gesamt": 0,
+                 "text": ""}
         if a is not None:
             stand.update(_fortschritt(a.ausgabe(100000)))
             if not stand["laeuft"]:
@@ -478,6 +480,13 @@ class App(BewerbungenSeiten):
 
     def _suche_karte(self) -> str:
         a = self.aufgaben.alle.get("zeitplan")
+        from . import sperre
+        if (a is None or not a.laeuft) and sperre.laeuft(self.root):   # z. B. noch aus der vorigen App-Sitzung
+            return ('<div class="card info suche-laeuft" role="status"><p style="margin:0"><b>Eine Suche läuft im '
+                    'Hintergrund</b> <span class="muted">Die Liste aktualisiert sich von selbst, sobald sie fertig '
+                    'ist.</span></p></div><script>(() => { const pruefen = () => fetch("/suche/status")'
+                    '.then(r => r.json()).then(s => { if (!s.laeuft) location.reload(); else setTimeout(pruefen, 5000); })'
+                    '.catch(() => setTimeout(pruefen, 10000)); setTimeout(pruefen, 5000); })();</script>')
         if a is None:
             return ""
         if not a.laeuft:

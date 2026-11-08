@@ -3,6 +3,11 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.4.3
+
+- **Suche bricht nicht mehr ab, wenn zwei gleichzeitig starten:** Nach einem Update konnte die Suche der alten Version noch im Hintergrund laufen, während die neue Version schon die nächste startete. Beide schrieben in dieselbe Datenbank, und eine scheiterte mit „database is locked“. Jetzt läuft immer nur eine Suche, eine zweite wird übersprungen.
+- **Laufende Suche sichtbar:** Läuft noch eine Suche aus der vorigen Sitzung, zeigt die Stellenliste das an und lädt neu, sobald sie fertig ist.
+
 ## 1.4.2
 
 - **Ladehinweise jetzt wirklich sichtbar:** Im App-Fenster auf dem Mac blieb der Hinweis „Bitte warten“ bzw. „KI arbeitet …“ oft unsichtbar, weil das Fenster nach einem Klick nichts mehr neu zeichnet. Jetzt erscheint der Hinweis zuerst, erst dann geht die Aktion los – bei KI-Aktionen mit Erklärung, sonst als kleines „Bitte warten …“.
