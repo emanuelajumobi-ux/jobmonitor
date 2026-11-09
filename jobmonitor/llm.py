@@ -119,6 +119,15 @@ def _zaehlen(u) -> None:
         NUTZUNG[feld] += int(getattr(u, attr, 0) or 0)
 
 
+# Kostenloses Gemini: wenige Anfragen pro Minute und Tag – je Suche darum weniger Stellen mit KI (die übrigen holt
+# die Nachbewertung in späteren Läufen nach). Gilt nur für Gemini, die anderen Anbieter haben großzügige Grenzen.
+SPARSAM = {"fit": 15, "einschaetzung": 10, "nachholen": 5}
+
+
+def grenze(art: str, sonst: int) -> int:
+    return min(sonst, SPARSAM[art]) if ANBIETER == "gemini" else sonst
+
+
 def _ask(model: str, prompt: str, effort: str = "low", max_tokens: int = 4000, api_key: str | None = None,
          usage: list | None = None, system: str | None = None) -> str | None:
     """Eine Frage, eine Antwort. api_key: sonst ANTHROPIC_API_KEY. usage: bekommt (Eingabe-, Ausgabe-Tokens).

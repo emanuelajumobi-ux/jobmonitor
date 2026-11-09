@@ -135,6 +135,11 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
     body["max_completion_tokens" if anbieter == "openai" else "max_tokens"] = max_tokens
     headers = {"Authorization": f"Bearer {schluessel}"} if schluessel else {}
     LETZTER_FEHLER.clear()
+    if ERSCHOEPFT.get(modell):
+        LETZTER_FEHLER.update(status=429, tag=True)
+        return None
+    if anbieter == "gemini":
+        drosseln(warten=warten)
     resp = None
     for i, pause in enumerate(WARTEN):
         if pause:
@@ -146,11 +151,15 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
                         " – neuer Versuch" if i < len(WARTEN) - 1 else "")
             LETZTER_FEHLER["status"] = "netz"
             continue
-        if resp.status_code == 429 and anbieter == "gemini" and i == 0:
-            # kostenloses Gemini-Kontingent zählt pro Minute: einmal kurz warten (beim Einrichten kommen mehrere
-            # Anfragen direkt hintereinander), danach erst aufgeben
-            log.info("%s: Minutenkontingent erreicht – neuer Versuch in 15 s", a["name"])
-            (warten or time.sleep)(15)
+        versuche = 0
+        while resp.status_code == 429 and anbieter == "gemini" and versuche < 2:
+            if tageslimit(resp.text):        # Tageskontingent: heute nichts mehr versuchen, nicht warten
+                ERSCHOEPFT[modell] = True
+                break
+            versuche += 1
+            pause_s = wartezeit(resp.text)    # Google nennt, wann es wieder geht (retryDelay)
+            log.info("%s: Minutenkontingent erreicht – neuer Versuch in %d s", a["name"], pause_s)
+            (warten or time.sleep)(pause_s)
             try:
                 resp = post(f"{a['basis']}/chat/completions", json=body, headers=headers, timeout=120)
             except requests.RequestException:
@@ -167,9 +176,10 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
     if resp is None:
         return None
     if resp.status_code == 429:
-        log.warning("%s: Kontingent erschöpft (zu viele Anfragen pro Minute oder Tag) – später erneut versuchen",
-                    a["name"])
-        LETZTER_FEHLER["status"] = 429
+        tag = tageslimit(resp.text) or ERSCHOEPFT.get(modell, False)
+        log.warning("%s: %s – %s", a["name"], "Tageskontingent für " + modell + " aufgebraucht" if tag
+                    else "Minutenkontingent erreicht", "ab 9 Uhr morgens wieder frei" if tag else "später erneut versuchen")
+        LETZTER_FEHLER.update(status=429, tag=tag)
         return None
     if resp.status_code != 200:
         log.warning("%s-Fehler %s: %s", a["name"], resp.status_code, resp.text[:200])
@@ -187,6 +197,36 @@ def fragen(anbieter: str, schluessel: str | None, modell: str, prompt: str, syst
     return str((wahl.get("message") or {}).get("content") or "").strip() or None
 
 
+# Kostenloses Gemini-Kontingent: wenige Anfragen pro Minute (je nach Modell etwa 10 bis 15) und eine Tagesgrenze.
+# Die App fragt darum höchstens alle ABSTAND_S Sekunden – das ist langsamer, aber die Bewertungen kommen an, statt
+# nach ein paar Stellen alle zu scheitern. Ein erschöpftes Tageskontingent merkt sie sich bis zum Ende des Prozesses.
+ABSTAND_S = 6.5
+_LETZTE_ANFRAGE = [0.0]
+_TAKT = __import__("threading").Lock()
+ERSCHOEPFT: dict[str, bool] = {}
+
+
+def drosseln(abstand: float = ABSTAND_S, warten=None, uhr=None) -> None:
+    import time
+    uhr = uhr or time.monotonic
+    with _TAKT:
+        noch = _LETZTE_ANFRAGE[0] + abstand - uhr()
+        if noch > 0:
+            (warten or time.sleep)(noch)
+        _LETZTE_ANFRAGE[0] = uhr()
+
+
+def tageslimit(text: str) -> bool:
+    """Gemini-Fehler 429: Tagesgrenze (statt Minutengrenze)?"""
+    return bool(re.search(r"PerDay|per day|daily", text or "", re.IGNORECASE))
+
+
+def wartezeit(text: str, standard: int = 20, hoechstens: int = 60) -> int:
+    """Wartezeit aus der Gemini-Antwort („retryDelay“: „34s“), sonst standard – höchstens eine Minute."""
+    m = re.search(r'"retryDelay"\s*:\s*"(\d+)(?:\.\d+)?s"', text or "")
+    return min(hoechstens, int(m.group(1)) + 1) if m else standard
+
+
 def grund(anbieter: str) -> str:
     """Verständlicher Grund für den letzten Fehlschlag von fragen() – statt nur „hat nicht geantwortet“."""
     name = ANBIETER[gueltig(anbieter)]["name"]
@@ -199,6 +239,9 @@ def grund(anbieter: str) -> str:
         if anbieter == "ollama":
             return "Ollama ist nicht erreichbar – läuft es auf diesem Rechner? (ollama.com)"
         return f"{name} ist nicht erreichbar. Bitte die Internetverbindung prüfen und es noch einmal versuchen."
+    if status == 429 and LETZTER_FEHLER.get("tag"):
+        return (f"{name}: Das kostenlose Tageskontingent ist aufgebraucht. Es erneuert sich um 9 Uhr morgens "
+                "(Mitternacht in Kalifornien). Bis dahin geht alles ohne KI weiter.")
     if status == 429:
         return (f"{name}: Kontingent erschöpft. Der kostenlose Zugang erlaubt nur wenige Anfragen pro Minute und pro "
                 "Tag – eine Minute warten und noch einmal versuchen.")

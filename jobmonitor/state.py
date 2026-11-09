@@ -38,7 +38,10 @@ class State:
                 self.db = sqlite3.connect(f"file:{Path(path).resolve()}?mode=ro", uri=True)
         else:
             Path(path).parent.mkdir(parents=True, exist_ok=True)
-            self.db = sqlite3.connect(path, timeout=30)   # liest die App gerade, kurz warten statt abbrechen
+            # Jeder Schreibvorgang wird sofort abgeschlossen (autocommit): Früher hielt die Suche während der ganzen
+            # Abfrage der Quellen (Minuten) eine Schreibsperre – eine zweite Suche, etwa noch aus der App vor einem
+            # Update, scheiterte dann mit „database is locked“. Liest gerade die App, kurz warten statt abbrechen.
+            self.db = sqlite3.connect(path, timeout=30, isolation_level=None)
             self.db.executescript(SCHEMA)
         columns = {row[1] for row in self.db.execute("PRAGMA table_info(job_detail)")}
         if "frist" not in columns and not readonly:   # ältere Datenbanken ohne Frist-Spalte

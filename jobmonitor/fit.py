@@ -199,7 +199,7 @@ def mit_ki(jobs: list[Job], cv: dict, cfg: dict, ask=None, gelesen: set | None =
     covered = covered_terms(cv, cfg["begriffe"])
     geprueft = 0
     for job in jobs:
-        if geprueft >= k["max_stellen"] or len(job.description) < k["min_text"]:
+        if geprueft >= llm.grenze("fit", int(k["max_stellen"])) or len(job.description) < k["min_text"]:
             continue
         geprueft += 1
         ergebnis = ki_anforderungen(job, cfg["begriffe"], k["model"], ask)

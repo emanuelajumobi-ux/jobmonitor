@@ -26,12 +26,37 @@ def test_gruende_statt_hat_nicht_geantwortet():
     assert ki_anbieter.grund("gemini") == ""
 
 
-def test_gemini_429_wird_einmal_wiederholt():
-    antworten = [Antwort(429), Antwort(200, {"choices": [{"message": {"content": "ok"}}]})]
+def test_gemini_429_wartet_wie_von_google_genannt(monkeypatch):
+    monkeypatch.setattr(ki_anbieter, "ERSCHOEPFT", {})
+    ki_anbieter._LETZTE_ANFRAGE[0] = 0.0
+    minute = '{"error": {"code": 429, "details": [{"retryDelay": "34s"}]}}'
+    antworten = [Antwort(429, text=minute), Antwort(200, {"choices": [{"message": {"content": "ok"}}]})]
     pausen = []
     text = ki_anbieter.fragen("gemini", "k", "gemini-2.5-flash", "hi", post=lambda *a, **k: antworten.pop(0),
                               warten=pausen.append)
-    assert text == "ok" and pausen == [15]
+    assert text == "ok" and pausen[-1] == 35
+
+
+def test_gemini_tageskontingent_nicht_weiter_versuchen(monkeypatch):
+    monkeypatch.setattr(ki_anbieter, "ERSCHOEPFT", {})
+    tag = '{"error": {"code": 429, "message": "Quota exceeded: GenerateRequestsPerDayPerProjectPerModel-FreeTier"}}'
+    aufrufe = []
+
+    def post(*a, **k):
+        aufrufe.append(1)
+        return Antwort(429, text=tag)
+    assert ki_anbieter.fragen("gemini", "k", "gemini-x", "hi", post=post, warten=lambda s: None) is None
+    assert "9 Uhr" in ki_anbieter.grund("gemini") and len(aufrufe) == 1         # nicht gewartet, nicht wiederholt
+    assert ki_anbieter.fragen("gemini", "k", "gemini-x", "hi", post=post, warten=lambda s: None) is None
+    assert len(aufrufe) == 1                                                       # heute gar nicht mehr gefragt
+
+
+def test_gemini_drosseln():
+    zeit, pausen = [100.0], []
+    ki_anbieter._LETZTE_ANFRAGE[0] = 98.0
+    ki_anbieter.drosseln(6.5, warten=lambda s: (pausen.append(round(s, 1)), zeit.__setitem__(0, zeit[0] + s)),
+                         uhr=lambda: zeit[0])
+    assert pausen == [4.5]
 
 
 def test_ki_im_assistenten_eintragen_und_austragen(tmp_path, monkeypatch):
@@ -163,3 +188,11 @@ def test_schliessen_fragt_waehrend_der_suche():
     assert not desktop._schliessen_erlaubt(app, frage=lambda *a: gefragt.append(a) or False)
     assert "Suche läuft noch" in gefragt[0][2]
     assert desktop._schliessen_erlaubt(app, frage=lambda *a: True)
+
+
+def test_gemini_weniger_ki_pro_lauf(monkeypatch):
+    from jobmonitor import llm
+    monkeypatch.setattr(llm, "ANBIETER", "gemini")
+    assert llm.grenze("fit", 30) == 15 and llm.grenze("einschaetzung", 25) == 10 and llm.grenze("nachholen", 10) == 5
+    monkeypatch.setattr(llm, "ANBIETER", "claude")
+    assert llm.grenze("fit", 30) == 30

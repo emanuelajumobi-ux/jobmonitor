@@ -34,3 +34,30 @@ def test_runner_ueberspringt_wenn_schon_eine_laeuft(tmp_path, monkeypatch, caplo
         assert runner.run(opts) == 0 and "läuft schon eine Suche" in caplog.text
     andere.freigeben()
     assert runner.run(opts) == 99
+
+
+def test_zwei_schreiber_sperren_sich_nicht_gegenseitig(tmp_path):
+    """Früher hielt die Suche eine offene Schreib-Transaktion – eine zweite Verbindung bekam „database is locked“."""
+    from jobmonitor.state import State
+    pfad = tmp_path / "seen.sqlite"
+    a, b = State(pfad), State(pfad)
+    a.set_meta("x", "1")                        # erste Suche schreibt (z. B. während der Quellenabfrage)
+    b.db.execute("PRAGMA busy_timeout = 200")
+    b.set_meta("y", "2")                        # zweite schreibt gleich danach – ohne zu warten oder zu scheitern
+    a.close(), b.close()
+    c = State(pfad, readonly=True)
+    assert c.get_meta("x") == "1" and c.get_meta("y") == "2"
+    c.close()
+
+
+def test_entwurf_mit_adresse_als_abschnitt(tmp_path):
+    """Lena: Adresse im Einrichtungs-Assistenten eingetragen (strasse/plz/ort) – der Entwurf brach die Suche ab."""
+    from datetime import date
+    from jobmonitor import drafts
+    (tmp_path / "cv").mkdir()
+    (tmp_path / "cv" / "profile.yaml").write_text(
+        "name: Lena Brandt\nadresse:\n  strasse: Karl-Liebknecht-Straße 112\n  plz: '04275'\n  ort: Leipzig\n",
+        encoding="utf-8")
+    profil = drafts.load_profile(tmp_path)
+    text = drafts.render({"name": "Muster GmbH"}, profil, {}, date(2026, 11, 9))
+    assert "Leipzig, 09.11.2026" in text and "Karl-Liebknecht-Straße 112, 04275 Leipzig" in text

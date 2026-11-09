@@ -168,7 +168,7 @@ def ki_nachholen(state: State, cv: dict | None, cfg: dict, fetcher: Fetcher, ki_
     state.set_meta("fit_begriffe_stand", stand)
     nachbewertung.vermerken(state, ki_ids)
     try:
-        out = nachbewertung.nachbewerten(state, cv, cfg, fetcher, limit=int(k["nachholen_je_lauf"]),
+        out = nachbewertung.nachbewerten(state, cv, cfg, fetcher, limit=llm.grenze("nachholen", int(k["nachholen_je_lauf"])),
                                          stapel=llm.ANBIETER == "claude" and k.get("stapel", True))
     except Exception:
         log.exception("KI-Bewertung älterer Stellen nicht nachgeholt")
@@ -327,7 +327,7 @@ def _run(opts: Options) -> int:
             log.error("Fit-Rating aus: %s", exc)
     llm_cfg = cfg["filter"]["llm"]
     if llm_cfg["enabled"] and llm.verfuegbar():
-        apply_llm_scores(new_jobs, llm_cfg)
+        apply_llm_scores(new_jobs, llm_cfg, limit=llm.grenze("einschaetzung", 25))
     for job in new_jobs:
         frist = fristen.find(f"{job.title}\n{job.description}", today)
         job.frist = frist.isoformat() if frist else None
@@ -362,9 +362,13 @@ def _run(opts: Options) -> int:
     if cfg["entwuerfe"]["enabled"] and tips and not opts.dry_run:
         by_name = {e["name"]: e for e in companies_doc.get("firmen") or []}
         ziel = suchprofil.get(cfg, cfg["entwuerfe"].get("profil"))
-        written = drafts.write_drafts([by_name[t.firma] for t in tips if t.firma in by_name], opts.root,
-                                      {**cfg["entwuerfe"], "model": llm_cfg["model"], "zielrolle": ziel.zielrolle,
-                                       "absicht": ziel.absicht, "ausblick": ziel.ausblick}, today)
+        try:   # Zugabe am Ende – scheitert sie, darf das nicht die ganze Suche kosten
+            written = drafts.write_drafts([by_name[t.firma] for t in tips if t.firma in by_name], opts.root,
+                                          {**cfg["entwuerfe"], "model": llm_cfg["model"], "zielrolle": ziel.zielrolle,
+                                           "absicht": ziel.absicht, "ausblick": ziel.ausblick}, today)
+        except Exception:
+            log.exception("Anschreiben-Entwürfe nicht angelegt – die Suche läuft trotzdem weiter")
+            written = []
         if written:
             log.info("%d Anschreiben-Entwürfe in drafts/ angelegt", len(written))
 

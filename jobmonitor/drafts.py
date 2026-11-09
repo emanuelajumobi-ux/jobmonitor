@@ -53,6 +53,7 @@ def load_profile(root: Path) -> dict:
     if isinstance(adresse, dict):   # Schema aus cv/profile.example.yaml
         strasse, ort = adresse.get("strasse") or "", " ".join(filter(None, [adresse.get("plz"), adresse.get("ort")]))
         profile["adresse"] = ", ".join(filter(None, [strasse, ort])) or None
+        profile["ort"] = adresse.get("ort") or None     # für „Ort, Datum“ im Anschreiben
     return {key: value for key, value in profile.items() if value not in (None, "")}
 
 
@@ -77,7 +78,7 @@ def render(entry: dict, profile: dict, cfg: dict, today: date) -> str:
         "telefon": profile.get("telefon", "[Telefon]"),
         "firma": entry["name"],
         "ansprechperson": ap or "[Ansprechperson laut Karriereseite]",
-        "ort_datum": f"{ort}, {today:%d.%m.%Y}" if (ort := (profile.get("adresse") or {}).get("ort")) else f"{today:%d.%m.%Y}",
+        "ort_datum": f"{ort}, {today:%d.%m.%Y}" if (ort := profile.get("ort")) else f"{today:%d.%m.%Y}",
         # Zielrolle, Absicht und Ausblick kommen aus dem Suchprofil (config.yaml → profile, entwuerfe.profil)
         "zielrolle": cfg.get("zielrolle") or "[Zielrolle]",
         "absicht": cfg.get("absicht") or "[welche Stelle du suchst]",

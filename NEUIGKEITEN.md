@@ -3,6 +3,12 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## 1.4.4
+
+- **Suche bricht nicht mehr am Ende ab:** Hattest du im Einrichtungs-Assistenten deine Adresse eingetragen, stürzte die Suche beim Anlegen der Anschreiben-Entwürfe ab – und alle gefundenen Stellen gingen verloren. Das ist behoben. Außerdem kann ein Fehler bei den Entwürfen die Suche nicht mehr abbrechen.
+- **„database is locked“ endgültig behoben:** Die Suche hielt die Datenbank während der ganzen Abfrage gesperrt. Lief zur selben Zeit noch eine zweite Suche (etwa aus der App vor einem Update), scheiterte sie. Jetzt wird jeder Schreibvorgang sofort abgeschlossen.
+- **Gemini sparsamer:** Mit dem kostenlosen Gemini fragt die App höchstens etwa alle 6,5 Sekunden, wartet bei der Minutengrenze so lange, wie Google angibt, und hört bei aufgebrauchtem Tageskontingent sofort auf (es ist ab 9 Uhr morgens wieder frei). Pro Suche bewertet sie weniger Stellen ausführlich, die übrigen folgen in den nächsten Suchen.
+
 ## 1.4.3
 
 - **Suche bricht nicht mehr ab, wenn zwei gleichzeitig starten:** Nach einem Update konnte die Suche der alten Version noch im Hintergrund laufen, während die neue Version schon die nächste startete. Beide schrieben in dieselbe Datenbank, und eine scheiterte mit „database is locked“. Jetzt läuft immer nur eine Suche, eine zweite wird übersprungen.
