@@ -62,7 +62,11 @@ def app(tmp_path, monkeypatch):
     (tmp_path / "cv").mkdir()
     shutil.copy(FIXTURES / "cv_master_example.yaml", tmp_path / "cv" / "cv_master.yaml")
     shutil.copy(ROOT / "config.yaml", tmp_path / "config.yaml")
-    tracking.save(tmp_path / "applications.csv", [dict(r) for r in ROWS])
+    # B: vor wenigen Tagen beworben (relativ zu heute – ein festes Datum würde irgendwann „nachfassen“ auslösen)
+    from datetime import timedelta
+    zeilen = [dict(r) for r in ROWS]
+    zeilen[1]["datum"] = (date.today() - timedelta(days=3)).isoformat()
+    tracking.save(tmp_path / "applications.csv", zeilen)
     state = State(tmp_path / "state" / "seen.sqlite")
     for title, url in (("Werkstudent Cloud", "https://x/1"), ("Werkstudent IT", "https://x/2")):
         job = Job(title, "Beispiel AG", url, "test")
@@ -82,8 +86,8 @@ def test_index_hide_and_show(app):
 
 def test_bewerbungen_page_and_save(app):
     html = app.bewerbungen().decode()
-    assert "Nachfassen" not in html                              # B erst seit 2026-10-20 beworben
-    html = app.bewerbungen_save(form_for(ROWS, notizen_0="Telefonat")).decode()
+    assert "Nachfassen" not in html                              # B erst seit drei Tagen beworben
+    html = app.bewerbungen_save(form_for(tracking.load(app.root / "applications.csv"), notizen_0="Telefonat")).decode()
     assert "1 Änderung(en)" in html
     assert tracking.load(app.root / "applications.csv")[0]["notizen"] == "Telefonat"
 
