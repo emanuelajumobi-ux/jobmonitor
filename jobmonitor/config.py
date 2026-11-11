@@ -53,8 +53,17 @@ def _load_config(path: Path) -> dict:
 
 
 def load_companies(path: Path | None = None):
+    """companies.yaml; eine leere oder unbrauchbare Datei zählt als leere Firmenliste (statt Seiten abstürzen zu lassen)."""
     with open(path or ROOT / "companies.yaml", encoding="utf-8") as fh:
-        return _yaml().load(fh)
+        doc = _yaml().load(fh)
+    if not isinstance(doc, dict):
+        from ruamel.yaml.comments import CommentedMap, CommentedSeq
+        doc = CommentedMap()
+        doc["firmen"] = CommentedSeq()
+    if not isinstance(doc.get("firmen"), list):
+        from ruamel.yaml.comments import CommentedSeq
+        doc["firmen"] = CommentedSeq()
+    return doc
 
 
 def save_companies(data, path: Path | None = None) -> None:

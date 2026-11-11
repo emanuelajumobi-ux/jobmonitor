@@ -14,6 +14,12 @@ from jobmonitor.gui import App
 from jobmonitor.http import Fetcher
 from tests.test_bewerbung import root  # noqa: F401  (Fixture)
 
+# Gesprächstermin in zwei Tagen (relativ zu heute – ein festes Datum läge irgendwann in der Vergangenheit)
+from datetime import date as _date, timedelta as _timedelta
+TERMIN_TAG = _date.today() + _timedelta(days=2)
+TERMIN = f"{TERMIN_TAG.isoformat()}T14:00"
+
+
 ROWS = [
     {"firma": "A", "typ": "Stelle", "status": "neu", "datum": "2026-10-01", "link": "https://a.de/job/1", "notizen": ""},
     {"firma": "B", "typ": "Stelle", "status": "beworben", "datum": "2026-10-20", "link": "https://b.de/job/2",
@@ -48,10 +54,10 @@ def test_gespraeche_und_kalender(root, monkeypatch):  # noqa: F811
     rows = [{**r} for r in ROWS[1:3]]
     tracking.save(root / "applications.csv", rows)
     app = App(root, compile_pdf=False)
-    html = app.termin({"link": "https://b.de/job/2", "aktion": "setzen", "termin": "2026-11-12T14:00"}).decode()
-    assert "Gespräch am 12.11.2026 um 14:00 Uhr eingetragen" in html
+    html = app.termin({"link": "https://b.de/job/2", "aktion": "setzen", "termin": TERMIN}).decode()
+    assert f"Gespräch am {TERMIN_TAG:%d.%m.%Y} um 14:00 Uhr eingetragen" in html
     row = tracking.load(root / "applications.csv")[0]
-    assert row["termin"] == "2026-11-12T14:00" and row["status"] == "Antwort"
+    assert row["termin"] == TERMIN and row["status"] == "Antwort"
     assert "Gespräche</h2>" in html and "Darauf vorbereiten" in html and "In Kalender eintragen" in html
     assert "Bitte Datum" in app.termin({"link": "https://b.de/job/2", "aktion": "setzen", "termin": ""}).decode()
 
@@ -62,11 +68,11 @@ def test_gespraeche_und_kalender(root, monkeypatch):  # noqa: F811
     def run(cmd, **kw):
         aufrufe.append(cmd)
         return subprocess.CompletedProcess(cmd, 0, "ok", "")
-    ergebnis = kalender.anlegen(root, {}, "https://b.de/job/2", "Vorstellungsgespräch B", datetime(2026, 11, 12, 14),
-                                "Notiz", run=run)
-    assert ergebnis == "neu" and aufrufe[0][-9:] == ["Job-Monitor", "Vorstellungsgespräch B", "Notiz", "2026", "11",
-                                                      "12", "14", "0", "60"]
-    assert kalender.anlegen(root, {}, "https://b.de/job/2", "x", datetime(2026, 11, 12, 14), "", run=run) == "vorhanden"
+    wann = datetime(TERMIN_TAG.year, TERMIN_TAG.month, TERMIN_TAG.day, 14)
+    ergebnis = kalender.anlegen(root, {}, "https://b.de/job/2", "Vorstellungsgespräch B", wann, "Notiz", run=run)
+    assert ergebnis == "neu" and aufrufe[0][-9:] == ["Job-Monitor", "Vorstellungsgespräch B", "Notiz",
+                                                      str(wann.year), str(wann.month), str(wann.day), "14", "0", "60"]
+    assert kalender.anlegen(root, {}, "https://b.de/job/2", "x", wann, "", run=run) == "vorhanden"
     html = app.bewerbungen().decode()
     assert "im Kalender" in html
     assert "Termin entfernt" in app.termin({"link": "https://b.de/job/2", "aktion": "entfernen"}).decode()

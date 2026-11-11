@@ -320,5 +320,8 @@ def compile_tex(tex_path: Path, engine: str = "pdflatex", log_sink: list | None 
     if log_sink is not None and log_file.exists():
         log_sink.append(log_file.read_text(encoding="utf-8", errors="replace"))
     subprocess.run(["latexmk", "-c", tex_path.name], cwd=tex_path.parent, capture_output=True)
-    return tex_path.with_suffix(".pdf")
+    pdf = tex_path.with_suffix(".pdf")
+    if not pdf.is_file():
+        raise CvBuildError("LaTeX hat kein PDF erzeugt (latexmk meldete keinen Fehler). Bitte noch einmal versuchen.")
+    return pdf
 

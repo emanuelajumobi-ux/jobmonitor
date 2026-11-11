@@ -426,7 +426,7 @@ Master-CV. Die Begriffe gelten für alle Stellen, sie machen den Fit nur genauer
     if (!v) return;
     const rollen = document.getElementById('rollen');
     if (rollen.value.trim() && !confirm('Rollen-Wörter durch die Vorlage ersetzen?')) return;
-    rollen.value = Object.entries(v.rollen).map(([w, p]) => `${{w}}: ${{p}}`).join('\n');
+    rollen.value = Object.entries(v.rollen).map(([w, p]) => `${{w}}: ${{p}}`).join('\\n');
     document.getElementById('art').value = v.art;
   }});
   form.addEventListener('input', update); form.addEventListener('change', update); update();

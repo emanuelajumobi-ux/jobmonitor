@@ -447,7 +447,8 @@ onchange="this.form.requestSubmit()"><span class="track"></span><span>Täglich b
 <label style="margin:0;display:flex;align-items:center;gap:8px">um <input type="time" name="zeit" value="{esc(zeit)}"
 style="width:auto" onchange="if (this.form.an.checked) this.form.requestSubmit()"> Uhr</label></form>
 <p class="muted" style="margin-top:8px">Status: {hinweis}</p>
-<div class="row">{_form(token, "mitteilung_test", "Probe-Mitteilung senden", ghost=True)}</div></div>""" if mac else ""
+<div class="row">{_form(token, "mitteilung_test", "Probe-Mitteilung senden", ghost=True)}</div></div>""" if mac and github else ""
+    # ohne GitHub: die lokale Suche (Zeitplan) meldet neue Stellen selbst – eine zweite, eigene Uhrzeit wäre doppelt
 
     optionen = "".join(f'<option value="{k}">{esc(v)}</option>' for k, v in QUELLEN.items() if k not in aus)
     probe = f"""<div class="card"><h2>Probelauf auf diesem Rechner</h2>

@@ -10,6 +10,12 @@ from jobmonitor.report import Report
 from jobmonitor.state import State
 from tests.test_bewerbung import root  # noqa: F401  (Fixture)
 
+# Gesprächstermin in zwei Tagen (relativ zu heute – ein festes Datum läge irgendwann in der Vergangenheit)
+from datetime import date as _date, timedelta as _timedelta
+TERMIN_TAG = _date.today() + _timedelta(days=2)
+TERMIN = f"{TERMIN_TAG.isoformat()}T14:00"
+
+
 
 def test_eckdaten(tmp_path):
     roh = {"stunden": "20 h/Woche", "verguetung": "16 €/h", "remote": None, "start": "null", "abschlussarbeit": "ja",
@@ -194,7 +200,7 @@ def test_firmenprofil(root, monkeypatch):  # noqa: F811
     monkeypatch.setattr(ki, "firmen_text", lambda urls, f: "Wir sind ein Cloud-Dienstleister.")
     tracking.save(root / "applications.csv", [{"firma": "Firma", "typ": "Stelle", "status": "Antwort",
                                                 "datum": "2026-10-20", "link": "https://firma.de/job/1",
-                                                "notizen": "Werkstudent", "termin": "2026-11-12T14:00"}])
+                                                "notizen": "Werkstudent", "termin": TERMIN}])
     app = App(root, compile_pdf=False)
     assert "Firmenprofil mit KI erstellen" in app.bewerbungen().decode()
     html = app.firmenprofil({"link": "https://firma.de/job/1"}).decode()

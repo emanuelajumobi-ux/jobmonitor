@@ -58,8 +58,15 @@ def schritte(root: Path, cfg: dict, ki_an: bool) -> dict[str, bool]:
     return {"person": bool(gp.get(profil, "name")), "ki": ki_an,
             "wohnort": bool(laden(root).get("wohnort") or (cfg.get("ort") or {}).get("zentrum")),
             "suche": any(p.enabled for p in suchprofil.alle(cfg)),
-            "lebenslauf": bool(gm.load(root)), "firmen": bool(_firmen(root)),
+            "lebenslauf": _cv_da(root), "firmen": bool(_firmen(root)),
             "mail": bool(mailzugang.laden(root).get("benutzer"))}
+
+
+def _cv_da(root: Path) -> bool:
+    try:
+        return bool(gm.load(root))
+    except Exception:   # Datei da, aber von Hand beschädigt: als vorhanden zählen, der Master-CV erklärt den Fehler
+        return True
 
 
 def _firmen(root: Path) -> list:

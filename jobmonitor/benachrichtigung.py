@@ -37,7 +37,10 @@ class BenachrichtigungError(Exception):
 
 # --- Ein/aus über launchd ---
 def plist(root: Path, stunde: int, minute: int, python: str = sys.executable) -> dict:
-    return {"Label": LABEL, "ProgramArguments": [python, "-m", "jobmonitor", "benachrichtigen"],
+    # installierte App: die App selbst mit dem Unterbefehl (dort gibt es kein „python -m jobmonitor“)
+    befehl = ([python, "benachrichtigen"] if getattr(sys, "frozen", False)
+              else [python, "-m", "jobmonitor", "benachrichtigen"])
+    return {"Label": LABEL, "ProgramArguments": befehl,
             "WorkingDirectory": str(root), "StartCalendarInterval": {"Hour": stunde, "Minute": minute},
             "EnvironmentVariables": {"PATH": "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"},
             "StandardOutPath": str(LOGFILE), "StandardErrorPath": str(LOGFILE)}

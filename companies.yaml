@@ -30,7 +30,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://www.inovex.de/de/karriere/stellenangebote/initiativbewerbung/
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Remote bundesweit möglich
   - name: usd
     kategorie: beratung
@@ -43,7 +43,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: adesso
     kategorie: beratung
@@ -56,7 +56,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: SuccessFactors, Stellen über Sitemap; Remote bundesweit
   - name: q.beyond
     kategorie: msp
@@ -69,7 +69,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Hauptsitz Köln, rexx
   - name: CANCOM
     kategorie: systemhaus
@@ -82,7 +82,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: rexx
   - name: Sopra Steria
     kategorie: beratung
@@ -95,7 +95,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: mehrere Standorte, Homeoffice nach Absprache
   - name: NetCologne IT Services
     kategorie: msp
@@ -108,7 +108,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: Seven Principles
     kategorie: beratung
@@ -121,7 +121,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: DOM I.T. SERVICE
     kategorie: msp
@@ -134,7 +134,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://join.com/companies/dom-it/spontaneous-application
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: kleine Firma (1–10 MA), Stellen auf join.com
   - name: BLUE Consult
     kategorie: systemhaus
@@ -147,7 +147,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: dualutions
     kategorie: beratung
@@ -160,7 +160,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: Ifaktor
     kategorie: beratung
@@ -173,7 +173,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
 
   # --- Köln: Konzerne / Energie / Finanzen ---
@@ -188,7 +188,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: REWE Group
     kategorie: konzern
@@ -201,7 +201,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: REWE digital
     kategorie: konzern
@@ -214,7 +214,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: RheinEnergie
     kategorie: energie
@@ -227,7 +227,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://www.rheinenergie.com/karriere/jobs/initiativbewerbung/
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Stellenliste wird per JavaScript (rexx) geladen
   - name: rhenag
     kategorie: energie
@@ -253,7 +253,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://www.stadtwerkekoeln.de/stellenangebote/initiativbewerbung
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: Sparkasse KölnBonn
     kategorie: bank
@@ -266,7 +266,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://karriere.sparkasse-koelnbonn.de/jobs/cb81119f-a136-3d51-8443-0000000000b3/initiativbewerbung-fuer-den-vertrieb-m-w-d-bei-der-sparkasse-koelnbonn/
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: Generali
     kategorie: versicherung
@@ -279,7 +279,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: Gothaer
     kategorie: versicherung
@@ -292,7 +292,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Gothaer Systems ist in BarmeniaGothaer aufgegangen
   - name: DEVK
     kategorie: versicherung
@@ -306,7 +306,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: keine Karriereseite gefunden – Stellen kommen über die Bundesagentur
   - name: AXA
     kategorie: versicherung
@@ -319,7 +319,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: TÜV Rheinland
     kategorie: pruefung
@@ -332,7 +332,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://www.tuv.com/jobs-und-karriere/de/nav/talentpools/talentpool-registrierung/
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: SuccessFactors
   - name: Lanxess
     kategorie: konzern
@@ -345,7 +345,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://career.lanxess.com/de/de/jointalentcommunity
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Phenom
   - name: Ford
     kategorie: konzern
@@ -358,7 +358,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: Zurich
     kategorie: versicherung
@@ -371,7 +371,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: Flughafen Köln/Bonn
     kategorie: konzern
@@ -384,7 +384,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
 
   # --- Umgebung ---
@@ -399,7 +399,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Startseite und /careers laut robots.txt erlaubt (Allow ist länger als Disallow /, Stand 03.11.2026)
   - name: DHL Group
     kategorie: konzern
@@ -412,7 +412,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://careers.dhl.com/eu/de/jointalentcommunity
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Phenom
   - name: Bayer
     kategorie: konzern
@@ -425,7 +425,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: SuccessFactors, Stellen über Sitemap-Feed
   - name: Covestro
     kategorie: konzern
@@ -438,7 +438,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Workday, Stellen über die offizielle Workday-Sitemap
   - name: Henkel
     kategorie: konzern
@@ -451,7 +451,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen:
   - name: TÜV NORD
     kategorie: pruefung
@@ -464,7 +464,7 @@ firmen:
     initiativ:
       moeglich: ja
       url: https://www.tuev-nord-group.com/de/karriere/einstieg/initiativbewerbung/
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     notizen: Hauptsitz Hannover/Essen, Standort im Raum Köln prüfen
   - name: Deutsche Telekom
     kategorie: konzern
@@ -494,7 +494,7 @@ firmen:
     initiativ:
       moeglich: unbekannt
       url:
-      zuletzt_geprueft: '2026-11-10'
+      zuletzt_geprueft: '2026-11-11'
     match_namen: [T-Systems, T Systems]
     warnhinweis:
     notizen:

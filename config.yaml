@@ -371,6 +371,8 @@ entwuerfe:
   enabled: true               # Anschreiben-Entwürfe für Initiativ-Vorschläge (drafts/, gitignored)
   llm: false                  # true = Entwurf mit KI-Modell statt Textbausteinen (ANTHROPIC_API_KEY nötig)
   profil: werkstudent          # Zielrolle der Initiativ-Entwürfe aus diesem Profil (profile.<name>.zielrolle)
+  # Satz zu deinen Schwerpunkten im Entwurf (leer = aus den Kenntnissen im Master-CV)
+  schwerpunkt: "Mein Schwerpunkt liegt auf Cloud (Azure), Identity & Access Management mit Entra ID sowie DevSecOps und Infrastructure as Code."
 
 # KI-Hilfen in der Oberfläche (nur auf Knopfdruck): Anschreiben-Entwurf je Stelle, Gesprächsvorbereitung.
 # Schlüssel in Einstellungen → KI (macOS-Schlüsselbund). Gesendet werden Anzeige und cv_master.yaml, nie profile.yaml.

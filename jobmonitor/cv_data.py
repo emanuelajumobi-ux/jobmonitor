@@ -54,7 +54,45 @@ def load_cv_master(root: Path) -> tuple[dict | None, str]:
     if not isinstance(data, dict):
         raise CvDataError(f"{origin} muss eine YAML-Zuordnung sein")
     check_no_personal_data(data, origin)
+    check_struktur(data, origin)
     return data, origin
+
+
+LISTEN = ("stationen", "ausbildung", "kenntnisse", "zertifikate", "projekte", "sprachen")
+UNTERLISTEN = {"stationen": ("aufgaben", "technologien"), "ausbildung": ("punkte",), "projekte": ("technologien",),
+               "kenntnisse": ("eintraege",)}
+
+
+def check_struktur(data: dict, origin: str = "cv_master.yaml") -> None:
+    """Grobe Formprüfung nach Bearbeiten von Hand: Abschnitte sind Listen von Einträgen. Sonst scheiterten später
+    fast alle Seiten mit einer unverständlichen Meldung. Leere Abschnitte (nichts hinter dem Doppelpunkt) sind in
+    Ordnung und werden zu leeren Listen."""
+    for key in LISTEN:
+        wert = data.get(key)
+        if wert is None:
+            if key in data:
+                data[key] = []
+            continue
+        if not isinstance(wert, list):
+            raise CvDataError(f"{origin}: „{key}“ muss eine Liste sein (Einträge mit „- “ untereinander)")
+        for i, eintrag in enumerate(wert, 1):
+            if isinstance(eintrag, str) and key in ("kenntnisse", "sprachen"):
+                continue                       # Kurzform: einfache Liste von Begriffen
+            if not isinstance(eintrag, dict):
+                raise CvDataError(f"{origin}: „{key}“, Eintrag {i} muss Felder haben (z. B. „name: …“)")
+            for unter in UNTERLISTEN.get(key, ()):
+                u = eintrag.get(unter)
+                if u is None:
+                    continue
+                if not isinstance(u, list):
+                    raise CvDataError(f"{origin}: „{key}“, Eintrag {i}: „{unter}“ muss eine Liste sein")
+                if unter == "eintraege" and not all(isinstance(e, (dict, str)) for e in u):
+                    raise CvDataError(f"{origin}: „{key}“, Eintrag {i}: jeder Eintrag braucht „name: …“")
+    if "profil" in data and data["profil"] is not None and not isinstance(data["profil"], str):
+        raise CvDataError(f"{origin}: „profil“ muss ein Text sein")
+    interessen = data.get("interessen")
+    if interessen is not None and not isinstance(interessen, list):
+        raise CvDataError(f"{origin}: „interessen“ muss eine Liste sein")
 
 
 def check_no_personal_data(data, origin: str = "cv_master.yaml") -> None:

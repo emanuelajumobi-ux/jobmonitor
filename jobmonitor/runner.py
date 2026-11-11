@@ -361,7 +361,9 @@ def _run(opts: Options) -> int:
 
     if cfg["entwuerfe"]["enabled"] and tips and not opts.dry_run:
         by_name = {e["name"]: e for e in companies_doc.get("firmen") or []}
-        ziel = suchprofil.get(cfg, cfg["entwuerfe"].get("profil"))
+        # Zielrolle aus dem eingestellten Profil – gibt es das nicht (mehr) oder ist es aus, aus dem ersten aktiven
+        wunsch = cfg["entwuerfe"].get("profil")
+        ziel = next((p for p in profile if p.key == wunsch), profile[0])
         try:   # Zugabe am Ende – scheitert sie, darf das nicht die ganze Suche kosten
             written = drafts.write_drafts([by_name[t.firma] for t in tips if t.firma in by_name], opts.root,
                                           {**cfg["entwuerfe"], "model": llm_cfg["model"], "zielrolle": ziel.zielrolle,

@@ -288,6 +288,7 @@ entwuerfe:
   enabled: true               # Anschreiben-Entwürfe für Initiativ-Vorschläge (drafts/, gitignored)
   llm: false                  # true = Entwurf mit KI-Modell statt Textbausteinen (ANTHROPIC_API_KEY nötig)
   profil: beispiel          # Zielrolle der Initiativ-Entwürfe aus diesem Profil (profile.<name>.zielrolle)
+  schwerpunkt: ""             # eigener Satz zu deinen Schwerpunkten im Entwurf (leer = aus den Kenntnissen im Master-CV)
 
 # KI-Hilfen in der Oberfläche (nur auf Knopfdruck): Anschreiben-Entwurf je Stelle, Gesprächsvorbereitung.
 # Schlüssel in Einstellungen → KI (macOS-Schlüsselbund). Gesendet werden Anzeige und cv_master.yaml, nie profile.yaml.

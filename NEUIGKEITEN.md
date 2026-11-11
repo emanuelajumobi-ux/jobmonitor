@@ -3,6 +3,16 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
+## Unveröffentlicht
+
+- **Suchprofil-Seite repariert:** Ein Fehler im Skript der Seite legte den Zähler der Suchbegriffe, die Schätzung der Abrufe und die Vorlagen der Karrierestufe lahm. Wählst du jetzt eine Karrierestufe, werden die Rollen-Wörter wieder vorbelegt.
+- **Tägliche Suche überlebt das Verschieben der App:** Der Zeitplan merkte sich den Ort der App. Nach dem Verschieben (von „Downloads“ nach „Programme“, vom ZIP-Ordner zum Installer) lief die tägliche Suche still nie mehr. Jetzt erneuert die App den Zeitplan beim Start von selbst.
+- **Anschreiben-Entwürfe für jedes Fach:** Die Entwürfe für Initiativbewerbungen nannten fest IT-Schwerpunkte (Cloud, Azure, Entra ID). Jetzt stehen dort deine eigenen Kenntnisse aus dem Master-CV, und die Zielrolle kommt aus deinem aktiven Suchprofil.
+- **Fehlerseite statt leerer Seite:** Passiert ein unerwarteter Fehler, zeigt die App eine verständliche Seite mit dem Grund und dem Weg zurück.
+- **Robuster bei beschädigten Dateien:** Eine beschädigte Datenbank, eine leere Firmenliste oder ein von Hand falsch bearbeiteter Lebenslauf legen nicht mehr alle Seiten lahm. Die App sagt, was nicht stimmt.
+- **Tote Firmenseiten kosten keine Zeit mehr:** Antwortet eine Karriereseite nicht, versucht die Suche es einmal und überspringt sie dann, statt mehrfach je 25 Sekunden zu warten. Im Bericht steht ein kurzer Grund.
+- **Mitteilungen (Mac):** Die Karte „Mitteilung bei neuen Stellen“ erscheint nur noch mit GitHub-Suche. Ohne GitHub meldet die tägliche Suche neue Stellen selbst. Der Befehl dahinter funktioniert jetzt auch in der installierten App.
+
 ## 1.4.4
 
 - **Suche bricht nicht mehr am Ende ab:** Hattest du im Einrichtungs-Assistenten deine Adresse eingetragen, stürzte die Suche beim Anlegen der Anschreiben-Entwürfe ab – und alle gefundenen Stellen gingen verloren. Das ist behoben. Außerdem kann ein Fehler bei den Entwürfen die Suche nicht mehr abbrechen.

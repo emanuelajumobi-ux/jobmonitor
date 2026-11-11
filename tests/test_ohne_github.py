@@ -72,7 +72,7 @@ def test_zeitplan_mac_und_windows(tmp_path, monkeypatch):
         aufrufe.append(cmd)
         return subprocess.CompletedProcess(cmd, 1 if cmd[:3] == ["git", "rev-parse", "--abbrev-ref"] else 0, "", "")
     text = zeitplan.einschalten(tmp_path, "06:45", run=run, plattform="darwin")
-    assert "täglich um 06:45" in text and zeitplan.laden(tmp_path) == {"an": True, "uhrzeit": "06:45"}
+    assert "täglich um 06:45" in text and {k: v for k, v in zeitplan.laden(tmp_path).items() if k != "befehl"} == {"an": True, "uhrzeit": "06:45"}
     plist = plistlib.loads((tmp_path / "LaunchAgents" / "de.jobmonitor.suche.plist").read_bytes())
     assert plist["StartCalendarInterval"] == {"Hour": 6, "Minute": 45} and plist["ProgramArguments"][-2:] == ["run", "--mitteilung"]
     assert any(c[:2] == ["launchctl", "bootstrap"] for c in aufrufe)

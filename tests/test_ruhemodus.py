@@ -85,6 +85,7 @@ def test_schalter_in_der_app(root, monkeypatch):  # noqa: F811
     monkeypatch.setattr(gw, "pipeline_laeufe", lambda r: ([], ""))
     monkeypatch.setattr("sys.platform", "darwin")                 # Mitteilungs-Karte gibt es nur auf dem Mac
     monkeypatch.setattr(bn, "status", lambda: {"an": True, "zeit": "08:30"})
+    monkeypatch.setattr("jobmonitor.zeitplan.github_aktiv", lambda *a, **k: True)   # Karte nur mit GitHub-Suche
     gesynct = []
     monkeypatch.setattr("jobmonitor.gui.sync", lambda r: gesynct.append(r) or SyncResult(True, "Synchronisiert: config.yaml hochgeladen."))
     app = App(root, compile_pdf=False)

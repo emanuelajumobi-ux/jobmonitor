@@ -57,6 +57,36 @@ def befehl(root: Path) -> list[str]:
     return prozess_befehl("run", "--mitteilung")
 
 
+def befehl_dauerhaft(root: Path) -> list[str]:
+    """Befehl für den Zeitplan des Systems. macOS führt eine App aus „Downloads“ von einem zufälligen, flüchtigen Ort
+    aus (App Translocation) – im Zeitplan muss der echte Ort der App stehen, sonst läuft die Suche nie."""
+    cmd = befehl(root)
+    if sys.platform == "darwin" and "/AppTranslocation/" in cmd[0]:
+        try:
+            from . import verschieben
+            echt = verschieben.original()
+            cmd = [str(echt / "Contents" / "MacOS" / Path(cmd[0]).name), *cmd[1:]]
+        except Exception:      # dann wie bisher – auffrischen() korrigiert es nach dem Verschieben
+            pass
+    return cmd
+
+
+def auffrischen(root: Path, run=subprocess.run, plattform: str = sys.platform) -> bool:
+    """Beim Start der App: Zeigt der Zeitplan des Systems noch auf diese App? Wurde sie verschoben (von „Downloads“
+    nach „Programme“, vom ZIP-Ordner zum Installer), lief die tägliche Suche sonst still ins Leere. True = erneuert."""
+    data = laden(root)
+    if not data.get("an") or not (plattform == "darwin" or plattform.startswith("win")):
+        return False
+    aktuell = befehl_dauerhaft(root)
+    if data.get("befehl") == aktuell or "/AppTranslocation/" in aktuell[0]:
+        return False
+    try:
+        einschalten(root, data.get("uhrzeit", "07:00"), run, plattform)
+    except ZeitplanError:
+        return False
+    return True
+
+
 # --- macOS: LaunchAgent ---
 def plist_pfad() -> Path:
     return Path.home() / "Library" / "LaunchAgents" / f"{LABEL}.plist"
@@ -67,7 +97,7 @@ def plist_daten(root: Path, uhrzeit: str) -> dict:
     log = str(root / ".gui_aufgaben" / "zeitplan.log")
     from .prozess import umgebung
     env = {k: v for k, v in umgebung().items() if k in ("PYTHONPATH", "JOBMONITOR_HOME")}
-    return {"Label": LABEL, "ProgramArguments": befehl(root), "WorkingDirectory": str(root), "EnvironmentVariables": env,
+    return {"Label": LABEL, "ProgramArguments": befehl_dauerhaft(root), "WorkingDirectory": str(root), "EnvironmentVariables": env,
             "StartCalendarInterval": {"Hour": stunde, "Minute": minute}, "StandardOutPath": log,
             "StandardErrorPath": log, "ProcessType": "Background"}
 
@@ -92,7 +122,7 @@ def _mac_entfernen(run) -> None:
 
 # --- Windows: Aufgabenplanung ---
 def _win_einrichten(root: Path, uhrzeit: str, run) -> None:
-    befehl_text = f'cmd /c cd /d "{root}" && ' + " ".join(f'"{t}"' for t in befehl(root))
+    befehl_text = f'cmd /c cd /d "{root}" && ' + " ".join(f'"{t}"' for t in befehl_dauerhaft(root))
     proc = run(["schtasks", "/Create", "/F", "/SC", "DAILY", "/TN", AUFGABE_WIN, "/ST", uhrzeit, "/TR", befehl_text],
                capture_output=True, text=True)
     if proc.returncode != 0:
@@ -116,7 +146,8 @@ def einschalten(root: Path, uhrzeit: str = "07:00", run=subprocess.run, plattfor
         wo = "auch bei geschlossener App (Windows-Aufgabenplanung)"
     else:
         wo = "solange die App offen ist"
-    (root / DATEI).write_text(json.dumps({"an": True, "uhrzeit": uhrzeit}), encoding="utf-8")
+    (root / DATEI).write_text(json.dumps({"an": True, "uhrzeit": uhrzeit, "befehl": befehl_dauerhaft(root)}),
+                              encoding="utf-8")
     return f"Die Suche läuft jetzt täglich um {uhrzeit} Uhr auf diesem Rechner, {wo}."
 
 

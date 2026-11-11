@@ -98,6 +98,13 @@ class CompaniesSource:
                     outcome.status = "fehler"
                     result.teilfehler.append(f"{entry['name']}: {exc}")
                     result.manual_check.append(f"{entry['name']}: Fehler beim Abruf, bitte manuell prüfen")
+            except requests.RequestException as exc:   # Seite antwortet nicht: erwartbar, ohne langen Fehlerbericht
+                outcome.status = "fehler"
+                grund = ("antwortet nicht (Zeitüberschreitung)" if isinstance(exc, requests.Timeout)
+                         else "nicht erreichbar (keine Verbindung oder Adresse falsch)")
+                log.warning("Firma %s: %s", entry["name"], grund)
+                result.teilfehler.append(f"{entry['name']}: {grund}")
+                result.manual_check.append(f"{entry['name']}: {grund} – {entry['karriereseite_url']}")
             except Exception as exc:
                 outcome.status = "fehler"
                 log.exception("Firma %s", entry["name"])

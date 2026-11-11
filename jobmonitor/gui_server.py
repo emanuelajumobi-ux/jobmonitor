@@ -73,13 +73,31 @@ def handler_for(app: App, server_ref: list):
             # Anfragen nacheinander wie bisher; nur Nachgeladenes, das auf GitHub wartet, läuft nebenher, damit es
             # den nächsten Klick nicht aufhält
             if self.path.partition("?")[0] in NEBENHER:
-                return self._do_GET()
+                return self._sicher(self._do_GET)
             with SERIELL:
-                return self._do_GET()
+                return self._sicher(self._do_GET)
 
         def do_POST(self):
             with SERIELL:
-                return self._do_POST()
+                return self._sicher(self._do_POST)
+
+        def _sicher(self, aufruf):
+            """Unerwarteter Fehler in einer Seite: verständliche Fehlerseite statt abgebrochener Verbindung (im
+            App-Fenster sähe man sonst nur eine leere Seite). Der Fehler steht im Protokoll."""
+            try:
+                return aufruf()
+            except (BrokenPipeError, ConnectionResetError):
+                return None                       # Fenster hat die Anfrage abgebrochen (z. B. weitergeklickt)
+            except Exception as exc:
+                log.exception("Fehler bei %s %s", self.command, self.path.partition("?")[0])
+                try:
+                    return self._send(app.fehlerseite(exc), status=500)
+                except Exception:                 # selbst die Fehlerseite scheitert: wenigstens Text
+                    try:
+                        return self._send("Unerwarteter Fehler – Details im Protokoll.".encode(),
+                                          "text/plain; charset=utf-8", 500)
+                    except Exception:
+                        return None
 
         def _do_GET(self):
             path, _, query = self.path.partition("?")

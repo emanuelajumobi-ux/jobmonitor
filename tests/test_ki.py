@@ -16,6 +16,12 @@ from jobmonitor.gui import App
 from jobmonitor.http import Fetcher
 from tests.test_bewerbung import STELLE, root  # noqa: F401  (Fixture)
 
+# Gesprächstermin in zwei Tagen (relativ zu heute – ein festes Datum läge irgendwann in der Vergangenheit)
+from datetime import date as _date, timedelta as _timedelta
+TERMIN_TAG = _date.today() + _timedelta(days=2)
+TERMIN = f"{TERMIN_TAG.isoformat()}T14:00"
+
+
 ECHT = (ki.schluessel, ki.herkunft)       # vor dem Abschirmen in conftest.ohne_echte_ki gemerkt
 
 ENTWURF = """Sehr geehrte Damen und Herren,
@@ -142,7 +148,7 @@ def test_gespraech_vorbereiten(root, mit_schluessel, monkeypatch):  # noqa: F811
     monkeypatch.setattr(ki, "anzeige", lambda root, link, fetcher, cache=None: "")
     tracking.save(root / "applications.csv", [{"firma": "Beispiel AG", "typ": "Stelle", "status": "Antwort",
                                                 "datum": "2026-10-20", "link": "https://x/1",
-                                                "notizen": "Werkstudent Cloud", "termin": "2026-11-12T14:00"}])
+                                                "notizen": "Werkstudent Cloud", "termin": TERMIN}])
     app = App(root, compile_pdf=False)
     html = app.bewerbungen().decode()
     assert "Mit KI vorbereiten" in html

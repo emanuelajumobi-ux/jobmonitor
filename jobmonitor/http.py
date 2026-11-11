@@ -99,6 +99,9 @@ class Fetcher:
         self._sleep = sleep or (lambda seconds: time.sleep(seconds))
         self._last_request: dict[str, float] = {}
         self._robots: dict[str, Robots] = {}
+        # Hosts, die in diesem Lauf nicht zu erreichen waren (Zeitüberschreitung, keine Verbindung): nicht noch
+        # mehrmals je 25 Sekunden warten – eine tote Karriereseite kostete sonst anderthalb Minuten je Suche
+        self._tot: set[str] = set()
 
     def _throttle(self, host: str) -> None:
         last = self._last_request.get(host)
@@ -125,7 +128,12 @@ class Fetcher:
                 else:
                     parser.parse(resp.text.splitlines())
             except requests.RequestException as exc:
-                log.warning("robots.txt für %s nicht lesbar (%s), behandle als erlaubt", base, exc)
+                if isinstance(exc, requests.Timeout):     # Server antwortet gar nicht (nicht bloß: keine robots.txt)
+                    self._tot.add(parts.netloc)
+                    log.warning("%s ist nicht erreichbar (%s) – in diesem Lauf übersprungen", base,
+                                exc.__class__.__name__)
+                else:
+                    log.warning("robots.txt für %s nicht lesbar (%s), behandle als erlaubt", base, exc)
                 parser.allow_all = True
             self._robots[base] = parser
         return parser.can_fetch(self.user_agent, url)
@@ -148,6 +156,8 @@ class Fetcher:
         if check_robots and not self.allowed(url):
             raise RobotsDisallowed(f"robots.txt verbietet {url}")
         host = urlsplit(url).netloc
+        if host in self._tot:
+            raise requests.ConnectionError(f"{host} war in diesem Lauf schon nicht erreichbar")
         last_exc: Exception | None = None
         for attempt in range(self.retries + 1):
             self._throttle(host)
@@ -168,4 +178,6 @@ class Fetcher:
                 last_exc = exc
                 if attempt < self.retries:
                     self._sleep(self.min_delay * (attempt + 2))
+        if isinstance(last_exc, requests.Timeout):
+            self._tot.add(host)
         raise last_exc  # type: ignore[misc]

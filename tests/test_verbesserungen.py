@@ -16,6 +16,12 @@ from jobmonitor.gui import App
 from jobmonitor.state import State
 from tests.test_bewerbung import root  # noqa: F401  (Fixture)
 
+# Gesprächstermin in zwei Tagen (relativ zu heute – ein festes Datum läge irgendwann in der Vergangenheit)
+from datetime import date as _date, timedelta as _timedelta
+TERMIN_TAG = _date.today() + _timedelta(days=2)
+TERMIN = f"{TERMIN_TAG.isoformat()}T14:00"
+
+
 VORBEREITUNG = """## Wahrscheinliche Fragen
 - Wie würden Sie Benutzerkonten in Entra ID absichern? – Beispiel: MFA-Projekt in der Praxisphase
 - **Was ist der Unterschied zwischen RBAC und ABAC?** Kurz erklären, dann Bezug zu Azure
@@ -68,7 +74,7 @@ def test_anki_karten_und_senden():
 def test_anki_in_der_app(root, monkeypatch):  # noqa: F811
     tracking.save(root / "applications.csv", [{"firma": "Zurich", "typ": "Stelle", "status": "Antwort",
                                                 "datum": "2026-10-20", "link": "https://x/1", "notizen": "Werkstudent",
-                                                "termin": "2026-11-12T14:00"}])
+                                                "termin": TERMIN}])
     app = App(root, compile_pdf=False)
     assert "noch keine KI-Vorbereitung" in app.anki({"link": "https://x/1"}).decode()
     (root / ki.DATEI).write_text(json.dumps({"vorbereitung": {"https://x/1": VORBEREITUNG}}), encoding="utf-8")

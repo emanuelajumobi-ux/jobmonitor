@@ -115,7 +115,17 @@ def test_ein_und_ausschalten(tmp_path):
 def test_einstellungen_zeigen_schalter(root, monkeypatch):  # noqa: F811
     monkeypatch.setattr("sys.platform", "darwin")                 # die Karte gibt es nur auf dem Mac
     monkeypatch.setattr(bn, "status", lambda: {"an": True, "zeit": "09:15"})
+    monkeypatch.setattr("jobmonitor.zeitplan.github_aktiv", lambda *a, **k: True)   # Karte nur mit GitHub-Suche
     monkeypatch.setattr("jobmonitor.gui_wartung.pipeline_laeufe", lambda r: ([], ""))
     html = App(root, compile_pdf=False).einstellungen().decode()
     assert "Mitteilung bei neuen Stellen" in html and 'value="09:15"' in html and 'name="an" value="1" checked' in html
     assert "mit Mail" not in html
+
+
+def test_ohne_github_keine_mitteilungskarte_und_app_befehl(root, monkeypatch):  # noqa: F811
+    monkeypatch.setattr("sys.platform", "darwin")
+    monkeypatch.setattr("jobmonitor.zeitplan.github_aktiv", lambda *a, **k: False)
+    assert "Mitteilung bei neuen Stellen" not in App(root, compile_pdf=False).einstellungen().decode()
+    monkeypatch.setattr("sys.frozen", True, raising=False)       # installierte App: kein „python -m jobmonitor“
+    assert bn.plist(root, 8, 30, "/Applications/Job-Monitor.app/Contents/MacOS/Job-Monitor")["ProgramArguments"] == [
+        "/Applications/Job-Monitor.app/Contents/MacOS/Job-Monitor", "benachrichtigen"]

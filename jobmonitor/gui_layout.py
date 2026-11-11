@@ -637,7 +637,7 @@ document.querySelectorAll('form').forEach(f => f.addEventListener('submit', e =>
     busy.style.display = 'none'; busy.classList.remove('leicht'); f._unterwegs = false;
     if (b) b.removeAttribute('aria-busy');
     f.querySelectorAll('[data-absender]').forEach(x => x.remove());
-  }, 15000);
+  }, 45000);
 }));
 window.addEventListener('pageshow', () => {   // zurück-Navigation: Zustand zurücksetzen
   const busy = document.getElementById('busy');

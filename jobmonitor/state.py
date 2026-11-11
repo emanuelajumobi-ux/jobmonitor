@@ -2,11 +2,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from datetime import datetime
 from pathlib import Path
 
 from .models import Job
+
+log = logging.getLogger("jobmonitor.state")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS seen (
@@ -28,7 +31,29 @@ CREATE TABLE IF NOT EXISTS quellen_verlauf (
 class State:
     def __init__(self, path: Path | str, readonly: bool = False):
         """readonly: für Oberfläche und `make cv` – die Datei gehört der Pipeline und wird von ihr committet;
-        lokale Änderungen würden beim Synchronisieren mit ihr kollidieren."""
+        lokale Änderungen würden beim Synchronisieren mit ihr kollidieren.
+        Beschädigte Datei (z. B. Absturz beim Schreiben): die Oberfläche zeigt dann eine leere Liste statt auf jeder
+        Seite zu scheitern; die nächste Suche legt die kaputte Datei beiseite und beginnt neu."""
+        try:
+            self._oeffnen(path, readonly)
+        except sqlite3.DatabaseError:
+            try:
+                self.db.close()
+            except Exception:
+                pass
+            if readonly:
+                log.warning("Datenbank %s ist beschädigt – zeige vorerst eine leere Liste", path)
+                self.readonly = True
+                self.db = sqlite3.connect(":memory:")
+                self.db.executescript(SCHEMA)
+                self._spalten(True)
+            else:
+                kaputt = Path(path).with_name(Path(path).stem + ".kaputt.sqlite")
+                Path(path).replace(kaputt)
+                log.warning("Datenbank war beschädigt – aufgehoben als %s, beginne neu", kaputt.name)
+                self._oeffnen(path, readonly)
+
+    def _oeffnen(self, path: Path | str, readonly: bool) -> None:
         self.readonly = readonly
         if readonly:
             if not Path(path).exists():
@@ -43,6 +68,9 @@ class State:
             # Update, scheiterte dann mit „database is locked“. Liest gerade die App, kurz warten statt abbrechen.
             self.db = sqlite3.connect(path, timeout=30, isolation_level=None)
             self.db.executescript(SCHEMA)
+        self._spalten(readonly)
+
+    def _spalten(self, readonly: bool) -> None:
         columns = {row[1] for row in self.db.execute("PRAGMA table_info(job_detail)")}
         if "frist" not in columns and not readonly:   # ältere Datenbanken ohne Frist-Spalte
             self.db.execute("ALTER TABLE job_detail ADD COLUMN frist TEXT")

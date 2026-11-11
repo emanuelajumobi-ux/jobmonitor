@@ -244,6 +244,11 @@ class App(BewerbungenSeiten):
                 log.info("Noch keine erfolgreiche Suche – %s", self.erste_suche())
         except Exception:
             log.exception("Erste Suche nicht nachgeholt")
+        try:
+            if self.echt is None and not zeitplan.github_aktiv(self.root) and zeitplan.auffrischen(self.root):
+                log.info("Zeitplan zeigte auf einen alten Ort der App – erneuert")
+        except Exception:
+            log.exception("Zeitplan nicht aufgefrischt")
         if zeitplan.laden(self.root).get("an"):
             zeitplan.pruefen_und_starten(self.root, self.aufgaben)
             self._zeitplan_stop = threading.Event()
@@ -308,6 +313,20 @@ class App(BewerbungenSeiten):
         threading.Timer(1.5, self.window.destroy).start()
         return self.page("Verschieben", f'<h1>Job-Monitor liegt jetzt in {esc(ziel.parent)}</h1><p class="sub">Die '
                                         f'App startet gleich von dort neu. Deine Daten bleiben.</p>')
+
+    def fehlerseite(self, exc: Exception) -> bytes:
+        """Seite für unerwartete Fehler (gui_server._sicher): was passiert ist und wie es weitergeht."""
+        body = (f'<h1>Das hat nicht geklappt</h1><p class="sub">Ein unerwarteter Fehler ist aufgetreten. Deine Daten '
+                f'sind davon nicht betroffen.</p><div class="card err"><p><b>{esc(type(exc).__name__)}:</b> '
+                f'{esc(str(exc)[:400])}</p></div><div class="card"><p>Geh zurück und versuch es noch einmal. Passiert '
+                f'es wieder, melde den Fehler bitte unter <a href="/einstellungen#feedback">Einstellungen → Feedback'
+                f'</a> – die Einzelheiten stehen im Protokoll (.gui_aufgaben/app.log im Datenordner).</p>'
+                f'<div class="row"><a class="btn" href="javascript:history.back()">Zurück</a>'
+                f'<a class="btn ghost" href="/">Zur Stellenliste</a></div></div>')
+        try:
+            return self.page("Fehler", body)
+        except Exception:      # die Seitenleiste braucht Daten, die gerade kaputt sein können
+            return layout.document("Fehler", body)
 
     def update_hinweis(self, neu: dict | None) -> str:
         if not neu:
@@ -1893,7 +1912,22 @@ class App(BewerbungenSeiten):
 
     def master(self, data: dict | None = None, message: str = "") -> bytes:
         cfg = load_config(self.root / "config.yaml")
-        data = gm.load(self.root) if data is None else data
+        if data is None:
+            # Von Hand beschädigte Datei: nicht den Editor mit halben Daten zeigen (Speichern würde Inhalte verlieren)
+            try:
+                data = gm.load(self.root)
+                if not isinstance(data, dict):
+                    raise CvDataError("cv_master.yaml muss aus Abschnitten bestehen (profil:, stationen: …)")
+                from .cv_data import check_struktur
+                check_struktur(data, "cv_master.yaml")
+            except Exception as exc:
+                rel = gm.master_path(self.root).relative_to(self.root)
+                return self.page("Master-CV", f'<h1>Master-CV bearbeiten</h1><div class="card err"><p><b>Die Datei '
+                                 f'{esc(rel)} lässt sich nicht lesen.</b> {esc(exc)}</p></div><div class="card"><p>'
+                                 f'Die Datei wurde vermutlich außerhalb der App bearbeitet. Öffne sie in einem '
+                                 f'Texteditor und korrigiere die genannte Stelle – oder hol eine ältere Fassung aus '
+                                 f'deiner Sicherung zurück. Solange zeigt die App den Editor nicht, damit beim '
+                                 f'Speichern nichts verloren geht.</p></div>', "master")
         try:
             cov = gm.coverage(data, cfg["fit"]["begriffe"])
         except Exception:   # halbfertige Eingaben sollen die Seite nicht verhindern
