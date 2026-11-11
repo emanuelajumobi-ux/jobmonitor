@@ -3,7 +3,7 @@
 Was sich je Version geändert hat. Der Abschnitt der jeweiligen Version erscheint beim Veröffentlichen auf der
 Download-Seite und in der App beim Hinweis „Version … ist da“ unter „Was ist neu“.
 
-## Unveröffentlicht
+## 1.4.5
 
 - **Suchprofil-Seite repariert:** Ein Fehler im Skript der Seite legte den Zähler der Suchbegriffe, die Schätzung der Abrufe und die Vorlagen der Karrierestufe lahm. Wählst du jetzt eine Karrierestufe, werden die Rollen-Wörter wieder vorbelegt.
 - **Tägliche Suche überlebt das Verschieben der App:** Der Zeitplan merkte sich den Ort der App. Nach dem Verschieben (von „Downloads“ nach „Programme“, vom ZIP-Ordner zum Installer) lief die tägliche Suche still nie mehr. Jetzt erneuert die App den Zeitplan beim Start von selbst.
